@@ -2,9 +2,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 const tabs = [
-  { path: '/', label: 'Home', icon: HomeIcon },
+  { path: '/', label: 'Prayer Times', icon: HomeIcon },
   { path: '/quran', label: 'Quran', icon: QuranIcon },
-  { path: '/dhikr', label: 'Dhikr', icon: DhikrIcon },
+  { path: '/dhikr', label: 'Duas', icon: DhikrIcon },
   { path: '/tracker', label: 'Tracker', icon: TrackerIcon },
   { path: '/more', label: 'More', icon: MoreIcon },
 ];
