@@ -16,9 +16,18 @@ export function usePrayerTimes() {
   const [qiblaDirection, setQiblaDirection] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [today, setToday] = useState(new Date());
   const [method, setMethod] = useState<CalcMethod>(() => {
     return (localStorage.getItem('nur-calc-method') as CalcMethod) || 'UmmAlQura';
   });
+
+  // Reset date at midnight
+  useEffect(() => {
+    const now = new Date();
+    const msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime() - now.getTime();
+    const timer = setTimeout(() => setToday(new Date()), msUntilMidnight);
+    return () => clearTimeout(timer);
+  }, [today]);
 
   // Listen for calc method changes from Settings
   useEffect(() => {
@@ -62,7 +71,7 @@ export function usePrayerTimes() {
   // Calculate prayer times — reactive to location, method, and date
   useEffect(() => {
     if (!location) return;
-    const times = getPrayerTimes(location.lat, location.lng, new Date(), method);
+    const times = getPrayerTimes(location.lat, location.lng, today, method);
     setPrayers(times);
     setCurrentPrayer(getCurrentPrayer(times));
     setNextPrayer(getNextPrayer(times));
@@ -73,7 +82,7 @@ export function usePrayerTimes() {
       coordinates: { lat: location.lat, lng: location.lng },
       times: times.map(t => ({ name: t.name, time: t.time.toLocaleTimeString() })),
     });
-  }, [location, method]);
+  }, [location, method, today]);
 
   // Countdown timer
   useEffect(() => {
