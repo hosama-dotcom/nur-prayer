@@ -85,14 +85,14 @@ export default function Home() {
   return (
     <GradientBackground prayer={currentPrayer}>
       <div className="min-h-screen pb-24 px-5 safe-area-top">
-        {/* Top bar: hijri date only */}
+        {/* Top bar: hijri date top-right */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="pt-12 pb-1 flex justify-center"
+          className="pt-12 pb-1 flex justify-end"
         >
-          <p className="text-xs text-white/40 font-arabic">{getHijriDate()}</p>
+          <p className="text-[10px] text-white/[0.6] font-arabic">{getHijriDate()}</p>
         </motion.div>
 
         {/* Hero: Arabic calligraphy name → English → countdown */}
@@ -100,14 +100,14 @@ export default function Home() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="text-center pt-8 pb-5"
+          className="text-center pt-6 pb-5"
         >
           {currentPrayerData && (
-            <p className="font-arabic-display text-white leading-none" style={{ fontSize: '76px' }}>
+            <p className="font-arabic-display text-white py-3" style={{ fontSize: '64px', lineHeight: 1.3 }}>
               {currentPrayerData.arabicLabel}
             </p>
           )}
-          <h1 className="text-2xl font-light tracking-wide text-white/70 mt-2">
+          <h1 className="text-2xl font-light tracking-wide text-white/70 mt-1">
             {currentPrayerData?.label || 'Prayer'}
           </h1>
           {nextPrayer && (
@@ -223,27 +223,33 @@ export default function Home() {
           )}
         </motion.div>
 
-        {/* Prayer window progress bar */}
+        {/* Prayer progress — poetic thin gold line with crescent */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
-          className="mt-5 px-1"
+          className="fixed bottom-[68px] left-0 right-0 z-20 px-0"
         >
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[9px] uppercase tracking-widest text-white/30">
-              {currentPrayerData?.label} window
-            </span>
-            <span className="text-[9px] text-white/30">{Math.round(progress)}%</span>
-          </div>
-          <div className="w-full h-[3px] rounded-full bg-white/[0.08] overflow-hidden">
+          <div className="relative w-full h-[2px] bg-white/[0.06]">
             <motion.div
-              className="h-full rounded-full"
+              className="h-full"
               style={{ background: 'linear-gradient(90deg, #C9A84C, #E8D48B)' }}
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
               transition={{ duration: 1, ease: 'easeOut' }}
             />
+            {/* Crescent at progress point */}
+            <motion.div
+              className="absolute top-1/2 -translate-y-1/2"
+              initial={{ left: 0 }}
+              animate={{ left: `${progress}%` }}
+              transition={{ duration: 1, ease: 'easeOut' }}
+              style={{ marginLeft: '-6px' }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="#C9A84C" />
+              </svg>
+            </motion.div>
           </div>
         </motion.div>
       </div>
