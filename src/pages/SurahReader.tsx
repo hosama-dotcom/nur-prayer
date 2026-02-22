@@ -386,14 +386,8 @@ export default function SurahReader() {
             </button>
             <div className="flex-1 text-center min-w-0">
               <p className="font-arabic-display text-xl text-primary leading-relaxed">{surah?.arabicName}</p>
-              <p className="text-[11px] text-muted-foreground" style={{ fontWeight: 300, letterSpacing: '0.12em' }}>
-                {surah?.name} · {surah?.englishName}
-              </p>
             </div>
-            <div className="text-right w-10">
-              <p className="text-[9px] text-muted-foreground leading-tight">{surah?.versesCount} ayat</p>
-              <p className="text-[9px] text-muted-foreground leading-tight">{surah?.revelationType}</p>
-            </div>
+            <div className="w-10" />
           </div>
         </div>
 
