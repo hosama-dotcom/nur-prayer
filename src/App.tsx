@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import Home from "./pages/Home";
 import Quran from "./pages/Quran";
+import SurahReader from "./pages/SurahReader";
 import Dhikr from "./pages/Dhikr";
 import Ramadan from "./pages/Ramadan";
 import More from "./pages/More";
@@ -22,6 +23,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/quran" element={<Quran />} />
+          <Route path="/quran/:number" element={<SurahReader />} />
           <Route path="/dhikr" element={<Dhikr />} />
           <Route path="/ramadan" element={<Ramadan />} />
           <Route path="/more" element={<More />} />

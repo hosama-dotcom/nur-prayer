@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { surahs } from '@/data/surahs';
 
 export default function Quran() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
 
   const filtered = surahs.filter(
@@ -48,8 +50,8 @@ export default function Quran() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: Math.min(i * 0.02, 0.5) }}
               className="glass-card px-4 py-4 flex items-center gap-4 active:scale-[0.98] transition-transform cursor-pointer"
+              onClick={() => navigate(`/quran/${surah.number}`)}
             >
-              {/* Number */}
               <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                 <span className="text-xs font-semibold text-primary">{surah.number}</span>
               </div>
