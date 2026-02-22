@@ -74,15 +74,26 @@ export default function Ramadan() {
 
       <div className="relative z-10 px-5">
         {/* Header */}
-        <div className="pt-12 pb-6">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🌙</span>
-            <h1 className="text-2xl font-semibold text-foreground">Ramadan</h1>
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="pt-12 pb-6 text-center"
+        >
+          <p className="font-arabic-display text-5xl text-primary leading-tight">رَمَضَان</p>
+          <p className="text-sm font-light text-foreground/80 mt-1 tracking-wide">Ramadan</p>
+          <p className="text-xs text-muted-foreground mt-2">Day {((dayOfYear - 1) % 30) + 1} of 30</p>
+          <div className="mt-3 mx-auto max-w-[200px]">
+            <div className="h-1 rounded-full bg-white/[0.06] overflow-hidden">
+              <motion.div
+                className="h-full rounded-full"
+                style={{ background: 'linear-gradient(90deg, hsl(43, 50%, 54%), hsl(43, 60%, 70%))' }}
+                initial={{ width: 0 }}
+                animate={{ width: `${(((dayOfYear - 1) % 30) + 1) / 30 * 100}%` }}
+                transition={{ duration: 1, ease: 'easeOut' }}
+              />
+            </div>
           </div>
-          {!ramadanActive && (
-            <p className="text-xs text-muted-foreground mt-1">Track your Ramadan journey anytime</p>
-          )}
-        </div>
+        </motion.div>
 
         {/* Suhoor / Iftar cards */}
         <motion.div
