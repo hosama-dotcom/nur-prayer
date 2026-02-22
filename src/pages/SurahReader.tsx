@@ -369,7 +369,7 @@ export default function SurahReader() {
   );
 
   return (
-    <div className="min-h-screen gradient-isha safe-area-top" style={{ paddingBottom: audioUrl ? '180px' : '120px' }}>
+    <div className="min-h-screen gradient-isha safe-area-top">
       <div className="geometric-pattern absolute inset-0 pointer-events-none opacity-30" />
       <div className="relative z-10">
 
@@ -465,15 +465,14 @@ export default function SurahReader() {
           )}
         </AnimatePresence>
 
-        {/* Bismillah */}
-        {chapterNum !== 9 && chapterNum !== 1 && (
-          <div className="text-center py-8 px-5">
-            <p className="font-arabic-display text-2xl text-primary/50">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</p>
-          </div>
-        )}
-
         {/* Continuous flowing text */}
-        <div className="px-6">
+        <div className="px-6" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 80px)', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 90px)' }}>
+          {/* Bismillah */}
+          {chapterNum !== 9 && chapterNum !== 1 && (
+            <div className="text-center py-8">
+              <p className="font-arabic-display text-2xl text-primary/50">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</p>
+            </div>
+          )}
           {verses.length > 0 && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
               {showTranslation ? (
