@@ -30,8 +30,7 @@ export function BottomNav() {
                   {tab.label}
                 </span>
                 {isActive && (
-                  <motion.div
-                    layoutId="activeTab"
+                  <div
                     style={{
                       position: 'absolute',
                       bottom: 0,
@@ -40,9 +39,8 @@ export function BottomNav() {
                       width: '20px',
                       height: '3px',
                       borderRadius: '2px',
-                      background: 'hsl(var(--primary))',
+                      background: 'hsl(43, 50%, 54%)',
                     }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                   />
                 )}
               </button>
