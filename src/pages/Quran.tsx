@@ -39,7 +39,7 @@ export default function Quran() {
           animate={{ opacity: 1, y: 0 }}
           className="pt-12 pb-6 text-center"
         >
-          <p className="font-arabic-display text-5xl text-primary leading-tight">القُرآن</p>
+          <p className="font-arabic-display text-5xl text-primary leading-tight">القُرآن الكريم</p>
           <p className="text-sm font-light text-foreground/80 mt-1 tracking-wide">Quran</p>
           <p className="text-xs text-muted-foreground mt-2">114 Surahs</p>
         </motion.div>
