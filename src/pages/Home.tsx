@@ -1,6 +1,5 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
-import { useAdhan, PRAYERS_WITH_ADHAN } from '@/hooks/useAdhan';
 import { GradientBackground } from '@/components/GradientBackground';
 import { formatTime, getHijriDate, isRamadan, getTimeUntil, getPrayerTimes } from '@/lib/prayer-utils';
 import { useMemo, useState, useEffect } from 'react';
@@ -120,60 +119,13 @@ function RamadanCountdown({ maghribTime, fajrTime }: { maghribTime: Date; fajrTi
   );
 }
 
-function AdhanIcon({ enabled, onToggle, isPlaying }: { enabled: boolean; onToggle: () => void; isPlaying: boolean }) {
-  return (
-    <motion.button
-      onClick={(e) => { e.stopPropagation(); onToggle(); }}
-      whileTap={{ scale: 0.8 }}
-      className="absolute top-2 right-2 z-10 p-0.5"
-    >
-      {enabled ? (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="hsl(43,50%,54%)" stroke="hsl(43,50%,54%)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-          <path d="M15.54 8.46a5 5 0 010 7.07" fill="none" />
-          <path d="M19.07 4.93a10 10 0 010 14.14" fill="none" />
-        </svg>
-      ) : (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="hsl(220,10%,45%)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-          <line x1="23" y1="9" x2="17" y2="15" />
-          <line x1="17" y1="9" x2="23" y2="15" />
-        </svg>
-      )}
-    </motion.button>
-  );
-}
 
-function StopAdhanButton({ onStop }: { onStop: () => void }) {
-  return (
-    <motion.button
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      onClick={onStop}
-      className="absolute top-1.5 left-1.5 z-10 w-5 h-5 rounded-full bg-white/10 border border-white/20 flex items-center justify-center"
-    >
-      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round">
-        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-      </svg>
-    </motion.button>
-  );
-}
+
 
 export default function Home() {
   const { prayers, currentPrayer, nextPrayer, countdown, qiblaDirection, loading, location } = usePrayerTimes();
-  const { prefs, togglePrayer, playing, stopAdhan, showBgTooltip } = useAdhan(prayers);
   const verse = useMemo(() => getDailyVerse(), []);
   const [compassOpen, setCompassOpen] = useState(false);
-  const [tooltipVisible, setTooltipVisible] = useState(false);
-
-  // Show background tooltip once
-  useEffect(() => {
-    if (showBgTooltip) {
-      setTooltipVisible(true);
-      const t = setTimeout(() => setTooltipVisible(false), 6000);
-      return () => clearTimeout(t);
-    }
-  }, [showBgTooltip]);
 
   if (loading) {
     return (
@@ -240,33 +192,6 @@ export default function Home() {
           )}
         </motion.div>
 
-        {/* Adhan PWA tooltip (one-time dismissible) */}
-        <AnimatePresence>
-          {tooltipVisible && (
-            <motion.div
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -5 }}
-              className="mb-3 mx-auto max-w-[300px]"
-            >
-              <div className="rounded-xl px-4 py-2.5 bg-white/[0.1] border border-white/[0.1] backdrop-blur-xl flex items-center justify-between gap-2">
-                <p className="text-[10px] text-white/60">Open the app at prayer time for Adhan to play</p>
-                <button
-                  onClick={() => {
-                    setTooltipVisible(false);
-                    localStorage.setItem('nur_adhan_tooltip_shown', '1');
-                  }}
-                  className="shrink-0 text-white/30 hover:text-white/60 transition-colors"
-                >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         {/* Prayer times row */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
@@ -275,11 +200,9 @@ export default function Home() {
           className="overflow-x-auto no-scrollbar -mx-5 px-5 mt-2"
         >
           <div className="flex gap-2 justify-center pb-2">
-            {prayers.filter(p => p.name !== 'sunrise').map((prayer) => {
+          {prayers.filter(p => p.name !== 'sunrise').map((prayer) => {
               const isActive = prayer.name === currentPrayer;
               const isNext = nextPrayer?.name === prayer.name;
-              const hasAdhan = PRAYERS_WITH_ADHAN.includes(prayer.name);
-              const isPlaying = playing === prayer.name;
               return (
                 <div
                   key={prayer.name}
@@ -290,19 +213,8 @@ export default function Home() {
                     }
                     ${isNext ? 'border-white/15' : ''}
                   `}
-                  style={{
-                    ...(isActive ? { boxShadow: '0 0 16px rgba(201, 168, 76, 0.25), 0 0 32px rgba(201, 168, 76, 0.1)' } : {}),
-                    ...(isPlaying ? { animation: 'adhan-pulse 2s ease-in-out infinite' } : {}),
-                  }}
+                  style={isActive ? { boxShadow: '0 0 16px rgba(201, 168, 76, 0.25), 0 0 32px rgba(201, 168, 76, 0.1)' } : {}}
                 >
-                  {hasAdhan && (
-                    <AdhanIcon
-                      enabled={prefs[prayer.name] ?? true}
-                      onToggle={() => togglePrayer(prayer.name)}
-                      isPlaying={isPlaying}
-                    />
-                  )}
-                  {isPlaying && <StopAdhanButton onStop={stopAdhan} />}
                   <p className="text-[9px] uppercase tracking-widest text-white/45 mb-0.5">{prayer.label}</p>
                   <p className={`text-xs font-semibold ${isActive ? 'text-[#C9A84C]' : 'text-white/75'}`}>
                     {formatTime(prayer.time)}
