@@ -103,61 +103,31 @@
   }
 
   .gradient-fajr {
-    background: linear-gradient(
-      160deg,
-      #0D1B4B 0%,
-      #24165C 50%,
-      #3B1F6A 100%
-    );
+    background: linear-gradient(180deg, #0D1B4B 0%, #24165C 50%, #1A0A3B 100%);
   }
 
   .gradient-dhuhr {
-    background: linear-gradient(
-      160deg,
-      #1A6B9A 0%,
-      #125C84 50%,
-      #0D4F6C 100%
-    );
+    background: linear-gradient(180deg, #1A6B9A 0%, #0D4F6C 50%, #0A2A3B 100%);
   }
 
   .gradient-asr {
-    background: linear-gradient(
-      160deg,
-      #C17A2A 0%,
-      #A05C1C 50%,
-      #8B3E0F 100%
-    );
+    background: linear-gradient(180deg, #C17A2A 0%, #8B3E0F 50%, #4A1F08 100%);
   }
 
   .gradient-maghrib {
-    background: linear-gradient(
-      160deg,
-      #C4511A 0%,
-      #9C3830 50%,
-      #7B1F4A 100%
-    );
+    background: linear-gradient(180deg, #C4511A 0%, #7B1F4A 50%, #3A0E22 100%);
   }
 
   .gradient-isha {
-    background: linear-gradient(
-      160deg,
-      #0A0A1A 0%,
-      #110A2D 50%,
-      #1A0A3B 100%
-    );
+    background: linear-gradient(180deg, #0A0A1A 0%, #1A0A3B 50%, #0A0515 100%);
   }
 
   .gradient-default {
-    background: linear-gradient(
-      160deg,
-      #0A0A1A 0%,
-      #110A2D 50%,
-      #1A0A3B 100%
-    );
+    background: linear-gradient(180deg, #0A0A1A 0%, #1A0A3B 50%, #0A0515 100%);
   }
 
   .geometric-pattern {
-    background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 0L80 40L40 80L0 40Z' fill='none' stroke='rgba(255,255,255,0.08)' stroke-width='0.5'/%3E%3Cpath d='M40 12L68 40L40 68L12 40Z' fill='none' stroke='rgba(255,255,255,0.05)' stroke-width='0.5'/%3E%3Cpath d='M40 24L56 40L40 56L24 40Z' fill='none' stroke='rgba(255,255,255,0.03)' stroke-width='0.5'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 0L80 40L40 80L0 40Z' fill='none' stroke='rgba(255,255,255,0.12)' stroke-width='0.5'/%3E%3Cpath d='M40 12L68 40L40 68L12 40Z' fill='none' stroke='rgba(255,255,255,0.08)' stroke-width='0.5'/%3E%3Cpath d='M40 24L56 40L40 56L24 40Z' fill='none' stroke='rgba(255,255,255,0.05)' stroke-width='0.5'/%3E%3C/svg%3E");
     background-size: 80px 80px;
   }
 
