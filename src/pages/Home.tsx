@@ -2,7 +2,8 @@ import { motion } from 'framer-motion';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
 import { GradientBackground } from '@/components/GradientBackground';
 import { formatTime, getHijriDate } from '@/lib/prayer-utils';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { QiblaCompass } from '@/components/QiblaCompass';
 
 const dailyVerses = [
   { arabic: 'إِنَّ مَعَ الْعُسْرِ يُسْرًا', translation: 'Indeed, with hardship comes ease.', ref: 'Ash-Sharh 94:6' },
@@ -58,8 +59,9 @@ function getPrayerProgress(prayers: any[], currentPrayer: string): number {
 }
 
 export default function Home() {
-  const { prayers, currentPrayer, nextPrayer, countdown, qiblaDirection, loading } = usePrayerTimes();
+  const { prayers, currentPrayer, nextPrayer, countdown, qiblaDirection, loading, location } = usePrayerTimes();
   const verse = useMemo(() => getDailyVerse(), []);
+  const [compassOpen, setCompassOpen] = useState(false);
 
   if (loading) {
     return (
@@ -168,18 +170,30 @@ export default function Home() {
           transition={{ delay: 0.5 }}
           className="flex justify-center mt-6"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.08] border border-white/[0.1] backdrop-blur-lg">
-            <svg width="14" height="14" viewBox="0 0 100 100" className="text-white/50">
-              <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="3" />
-              <g transform={`rotate(${qiblaDirection}, 50, 50)`}>
-                <line x1="50" y1="50" x2="50" y2="18" stroke="#C9A84C" strokeWidth="3" strokeLinecap="round" />
-                <polygon points="50,14 46,24 54,24" fill="#C9A84C" />
-              </g>
-              <circle cx="50" cy="50" r="4" fill="#C9A84C" opacity="0.7" />
+          <button
+            onClick={() => setCompassOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.08] border border-white/[0.1] backdrop-blur-lg active:scale-95 transition-transform"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <polygon points="12,2 14.5,9.5 12,8 9.5,9.5" fill="#C9A84C" />
+              <polygon points="12,22 9.5,14.5 12,16 14.5,14.5" fill="rgba(255,255,255,0.3)" />
             </svg>
-            <span className="text-xs text-white/60">Qibla: {Math.round(qiblaDirection)}°</span>
-          </div>
+            <span className="text-xs text-white/60">Qibla</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" opacity="0.3">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
         </motion.div>
+
+        {/* Qibla Compass overlay */}
+        <QiblaCompass
+          open={compassOpen}
+          onClose={() => setCompassOpen(false)}
+          qiblaDirection={qiblaDirection}
+          latitude={location?.lat || 0}
+          longitude={location?.lng || 0}
+        />
 
         {/* Daily Verse card — soft frosted glass */}
         <motion.div
