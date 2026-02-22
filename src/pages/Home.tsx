@@ -103,10 +103,10 @@ function RamadanCountdown({ maghribTime, fajrTime }: { maghribTime: Date; fajrTi
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <p className="text-[9px] uppercase tracking-[0.15em] text-white/40 mb-0.5">{label}</p>
               <p className="leading-none">
-                <span className="text-[32px] font-light text-[#C9A84C]">{hours}</span>
-                <span className="text-[14px] text-white/30 mx-0.5">h</span>
-                <span className="text-[32px] font-light text-[#C9A84C] ml-1">{minutes.toString().padStart(2, '0')}</span>
-                <span className="text-[14px] text-white/30 mx-0.5">m</span>
+                <span className="text-[26px] font-light text-[#C9A84C]">{hours}</span>
+                <span className="text-[12px] text-white/30 mx-0.5">h</span>
+                <span className="text-[26px] font-light text-[#C9A84C] ml-1">{minutes.toString().padStart(2, '0')}</span>
+                <span className="text-[12px] text-white/30 mx-0.5">m</span>
               </p>
               <p className="text-[9px] text-white/25 mt-0.5">{subtext}</p>
             </div>
