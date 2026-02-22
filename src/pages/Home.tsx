@@ -274,7 +274,7 @@ export default function Home() {
           transition={{ delay: 0.3 }}
           className="overflow-x-auto no-scrollbar -mx-5 px-5 mt-2"
         >
-          <div className="flex gap-2 min-w-max pb-2">
+          <div className="flex gap-2 justify-center pb-2">
             {prayers.filter(p => p.name !== 'sunrise').map((prayer) => {
               const isActive = prayer.name === currentPrayer;
               const isNext = nextPrayer?.name === prayer.name;
