@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Switch } from '@/components/ui/switch';
 import type { CalcMethod } from '@/lib/prayer-utils';
@@ -97,9 +98,6 @@ function LanguageScreen({ onBack }: { onBack: () => void }) {
   const handleSelect = (lang: string) => {
     setSelected(lang);
     localStorage.setItem('nur-language', lang);
-    if (lang === 'ar') {
-      // For now show coming soon
-    }
   };
 
   return (
@@ -177,6 +175,7 @@ function AboutScreen() {
 }
 
 export default function More() {
+  const navigate = useNavigate();
   const [view, setView] = useState<SettingsView>('main');
   const [calcOpen, setCalcOpen] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<CalcMethod>(() => {
@@ -246,6 +245,17 @@ export default function More() {
                     ))}
                   </motion.div>
                 )}
+              </motion.div>
+
+              {/* Duas link */}
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
+                <button onClick={() => navigate('/duas')} className="w-full glass-card px-5 py-4 flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg">🤲</span>
+                    <span className="text-sm text-foreground">Duas & Adhkar</span>
+                  </div>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--muted-foreground))" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
+                </button>
               </motion.div>
 
               {/* Menu items */}
