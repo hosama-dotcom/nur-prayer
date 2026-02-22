@@ -11,6 +11,8 @@ const verseSchema = z.object({
   verse_key: z.string(),
   verse_number: z.number(),
   text_uthmani: z.string(),
+  page_number: z.number().optional(),
+  juz_number: z.number().optional(),
   translations: z.array(z.object({ text: z.string() })).optional().default([]),
 });
 
@@ -43,6 +45,8 @@ interface Verse {
   verse_key: string;
   verse_number: number;
   text_uthmani: string;
+  page_number?: number;
+  juz_number?: number;
   translations: { text: string }[];
 }
 
@@ -148,7 +152,7 @@ export default function SurahReader() {
       setLoading(true);
       try {
         const res = await fetch(
-          `https://api.quran.com/api/v4/verses/by_chapter/${chapterNum}?language=en&words=false&translations=131&fields=text_uthmani&per_page=50&page=${page}`
+          `https://api.quran.com/api/v4/verses/by_chapter/${chapterNum}?language=en&words=false&translations=131&fields=text_uthmani,page_number,juz_number&per_page=50&page=${page}`
         );
         if (!res.ok) throw new Error('Failed to fetch verses');
         const raw = await res.json();
@@ -415,45 +419,80 @@ export default function SurahReader() {
           {verses.length > 0 && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
               {showTranslation ? (
-                // Interleaved mode: each verse with its translation + gold divider
+                // Interleaved mode: each verse with its translation
                 <div className="space-y-0">
-                  {verses.map((verse, idx) => (
-                    <div key={verse.id}>
-                      <p
-                        className="font-arabic-display text-primary/90 text-right leading-[2.4]"
-                        style={{ fontSize: `${fontSize}px` }}
-                        dir="rtl"
-                      >
-                        {verse.text_uthmani}
-                        <VerseBadge num={verse.verse_number} />
-                      </p>
-                      {verse.translations?.[0] && (
-                        <p className="text-[13px] leading-relaxed text-muted-foreground/60 italic text-left mt-2">
-                          <span className="text-primary/40 not-italic text-[11px] font-semibold mr-1.5">{verse.verse_number}.</span>
-                          {stripHtml(verse.translations[0].text)}
+                  {verses.map((verse, idx) => {
+                    const prevVerse = idx > 0 ? verses[idx - 1] : null;
+                    const showJuzMarker = verse.juz_number && (!prevVerse || prevVerse.juz_number !== verse.juz_number);
+                    const showPageMarker = verse.page_number && (!prevVerse || prevVerse.page_number !== verse.page_number);
+                    return (
+                      <div key={verse.id}>
+                        {(showJuzMarker || showPageMarker) && (
+                          <div className="flex items-center justify-center gap-3 my-4">
+                            <div className="h-px flex-1 bg-primary/10" />
+                            <span className="text-[10px] text-primary/50 font-medium tracking-wider">
+                              {showJuzMarker && `Juz ${verse.juz_number}`}
+                              {showJuzMarker && showPageMarker && ' · '}
+                              {showPageMarker && `Page ${verse.page_number}`}
+                            </span>
+                            <div className="h-px flex-1 bg-primary/10" />
+                          </div>
+                        )}
+                        <p
+                          className="font-arabic-display text-primary/90 text-right leading-[2.4]"
+                          style={{ fontSize: `${fontSize}px` }}
+                          dir="rtl"
+                        >
+                          {verse.text_uthmani}
+                          <VerseBadge num={verse.verse_number} />
                         </p>
-                      )}
-                      {idx < verses.length - 1 && (
-                        <div className="my-5 mx-auto w-16 h-px bg-primary/20" />
-                      )}
-                    </div>
-                  ))}
+                        {verse.translations?.[0] && (
+                          <p className="text-[13px] leading-relaxed text-left mt-2" style={{ color: 'hsl(35, 60%, 65%)' }}>
+                            <span className="text-primary/40 text-[11px] font-semibold mr-1.5">{verse.verse_number}.</span>
+                            {stripHtml(verse.translations[0].text)}
+                          </p>
+                        )}
+                        {idx < verses.length - 1 && (
+                          <div className="my-5 mx-auto w-16 h-px bg-primary/20" />
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
-                // Continuous flowing mode
-                <p
-                  className="font-arabic-display text-primary/90 text-right leading-[2.4]"
-                  style={{ fontSize: `${fontSize}px` }}
-                  dir="rtl"
-                >
-                  {verses.map(verse => (
-                    <span key={verse.id}>
-                      {verse.text_uthmani}
-                      <VerseBadge num={verse.verse_number} />
-                      {' '}
-                    </span>
-                  ))}
-                </p>
+                // Continuous flowing mode with Juz/page markers
+                <div dir="rtl">
+                  {verses.map((verse, idx) => {
+                    const prevVerse = idx > 0 ? verses[idx - 1] : null;
+                    const showJuzMarker = verse.juz_number && (!prevVerse || prevVerse.juz_number !== verse.juz_number);
+                    const showPageMarker = verse.page_number && (!prevVerse || prevVerse.page_number !== verse.page_number);
+                    return (
+                      <span key={verse.id}>
+                        {(showJuzMarker || showPageMarker) && idx > 0 && (
+                          <span className="block my-4" dir="ltr">
+                            <span className="flex items-center justify-center gap-3">
+                              <span className="h-px flex-1 bg-primary/10" />
+                              <span className="text-[10px] text-primary/50 font-medium tracking-wider">
+                                {showJuzMarker && `Juz ${verse.juz_number}`}
+                                {showJuzMarker && showPageMarker && ' · '}
+                                {showPageMarker && `Page ${verse.page_number}`}
+                              </span>
+                              <span className="h-px flex-1 bg-primary/10" />
+                            </span>
+                          </span>
+                        )}
+                        <span
+                          className="font-arabic-display text-primary/90 leading-[2.4]"
+                          style={{ fontSize: `${fontSize}px` }}
+                        >
+                          {verse.text_uthmani}
+                          <VerseBadge num={verse.verse_number} />
+                          {' '}
+                        </span>
+                      </span>
+                    );
+                  })}
+                </div>
               )}
             </motion.div>
           )}
