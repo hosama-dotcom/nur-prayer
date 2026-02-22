@@ -32,8 +32,16 @@ export function BottomNav() {
                 {isActive && (
                   <motion.div
                     layoutId="activeTab"
-                    className="absolute bottom-0 w-5 h-1 rounded-full bg-primary"
-                    style={{ left: '50%', transform: 'translateX(-50%)' }}
+                    style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      width: '20px',
+                      height: '3px',
+                      borderRadius: '2px',
+                      background: 'hsl(var(--primary))',
+                    }}
                     transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                   />
                 )}
