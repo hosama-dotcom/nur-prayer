@@ -505,7 +505,7 @@ export default function SurahReader() {
                           <VerseBadge num={verse.verse_number} />
                         </p>
                         {verse.translations?.[0] && (
-                          <p className="text-[13px] leading-relaxed text-left mt-2" style={{ color: 'hsl(35, 60%, 65%)' }}>
+                          <p className="text-[13px] leading-relaxed text-left mt-2" style={{ color: 'hsl(165, 50%, 60%)' }}>
                             <span className="text-primary/40 text-[11px] font-semibold mr-1.5">{verse.verse_number}.</span>
                             {stripHtml(verse.translations[0].text)}
                           </p>
