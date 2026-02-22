@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
 import { GradientBackground } from '@/components/GradientBackground';
-import { formatTime, getHijriDate } from '@/lib/prayer-utils';
-import { useMemo, useState } from 'react';
+import { formatTime, getHijriDate, isRamadan, getTimeUntil, getPrayerTimes } from '@/lib/prayer-utils';
+import { useMemo, useState, useEffect } from 'react';
 import { QiblaCompass } from '@/components/QiblaCompass';
 
 const dailyVerses = [
@@ -45,17 +45,37 @@ function getDailyVerse() {
   return dailyVerses[dayOfYear % dailyVerses.length];
 }
 
-function getPrayerProgress(prayers: any[], currentPrayer: string): number {
-  const now = new Date();
-  const currentIdx = prayers.findIndex(p => p.name === currentPrayer);
-  if (currentIdx === -1) return 0;
-  const currentTime = prayers[currentIdx].time;
-  const nextIdx = currentIdx + 1 < prayers.length ? currentIdx + 1 : 0;
-  const nextTime = prayers[nextIdx]?.time;
-  if (!nextTime || nextTime <= currentTime) return 50;
-  const total = nextTime.getTime() - currentTime.getTime();
-  const elapsed = now.getTime() - currentTime.getTime();
-  return Math.min(100, Math.max(0, (elapsed / total) * 100));
+function RamadanCountdown({ maghribTime, fajrTime }: { maghribTime: Date; fajrTime: Date }) {
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const beforeIftar = now < maghribTime;
+  const target = beforeIftar ? maghribTime : new Date(fajrTime.getTime() - 10 * 60 * 1000 + 24 * 60 * 60 * 1000);
+  const label = beforeIftar ? 'Iftar in' : 'Next Suhoor in';
+  const subtext = beforeIftar ? 'Until Maghrib' : 'Until Fajr';
+
+  const diff = Math.max(0, target.getTime() - now.getTime());
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.9 }}
+      className="mt-6 text-center"
+    >
+      <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 mb-1">{label}</p>
+      <p className="text-[48px] font-light text-[#C9A84C] leading-none">
+        {hours}h {minutes.toString().padStart(2, '0')}m
+      </p>
+      <p className="text-[11px] text-white/30 mt-1">{subtext}</p>
+    </motion.div>
+  );
 }
 
 export default function Home() {
@@ -82,7 +102,6 @@ export default function Home() {
   const currentPrayerData = prayers.find(p => p.name === currentPrayer);
   const fajrTime = prayers.find(p => p.name === 'fajr');
   const maghribTime = prayers.find(p => p.name === 'maghrib');
-  const progress = getPrayerProgress(prayers, currentPrayer);
 
   return (
     <GradientBackground prayer={currentPrayer}>
@@ -237,35 +256,10 @@ export default function Home() {
           )}
         </motion.div>
 
-        {/* Prayer progress — poetic thin gold line with crescent */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="fixed bottom-[68px] left-0 right-0 z-20 px-0"
-        >
-          <div className="relative w-full h-[2px] bg-white/[0.06]">
-            <motion.div
-              className="h-full"
-              style={{ background: 'linear-gradient(90deg, #C9A84C, #E8D48B)' }}
-              initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 1, ease: 'easeOut' }}
-            />
-            {/* Crescent at progress point */}
-            <motion.div
-              className="absolute top-1/2 -translate-y-1/2"
-              initial={{ left: 0 }}
-              animate={{ left: `${progress}%` }}
-              transition={{ duration: 1, ease: 'easeOut' }}
-              style={{ marginLeft: '-8px' }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="#C9A84C" />
-              </svg>
-            </motion.div>
-          </div>
-        </motion.div>
+        {/* Iftar/Suhoor countdown hero — Ramadan only */}
+        {isRamadan() && maghribTime && fajrTime && (
+          <RamadanCountdown maghribTime={maghribTime.time} fajrTime={fajrTime.time} />
+        )}
       </div>
     </GradientBackground>
   );
