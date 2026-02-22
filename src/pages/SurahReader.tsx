@@ -1,9 +1,18 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { surahs } from '@/data/surahs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Slider } from '@/components/ui/slider';
+
+const RECITERS = [
+  { id: 7, name: 'Mishary Rashid Al-Afasy', short: 'Afasy' },
+  { id: 1, name: 'Abdul Rahman Al-Sudais', short: 'Sudais' },
+  { id: 5, name: 'Mahmoud Khalil Al-Husary', short: 'Husary' },
+  { id: 9, name: 'Saad Al-Ghamdi', short: 'Ghamdi' },
+  { id: 6, name: 'Abu Bakr Al-Shatri', short: 'Shatri' },
+];
+const RECITER_KEY = 'nur-reciter-id';
 
 interface Verse {
   id: number;
@@ -82,6 +91,11 @@ export default function SurahReader() {
   const [audioDuration, setAudioDuration] = useState(0);
   const [audioCurrentTime, setAudioCurrentTime] = useState(0);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [reciterId, setReciterId] = useState(() => {
+    const stored = localStorage.getItem(RECITER_KEY);
+    return stored ? parseInt(stored, 10) : 7;
+  });
+  const [showReciterPicker, setShowReciterPicker] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -141,14 +155,26 @@ export default function SurahReader() {
   useEffect(() => {
     const fetchAudio = async () => {
       try {
-        const res = await fetch(`https://api.quran.com/api/v4/chapter_recitations/7/${chapterNum}`);
+        const res = await fetch(`https://api.quran.com/api/v4/chapter_recitations/${reciterId}/${chapterNum}`);
         const data = await res.json();
         const url = data.audio_file?.audio_url;
         if (url) setAudioUrl(url);
       } catch { /* silent */ }
     };
     fetchAudio();
-  }, [chapterNum]);
+  }, [chapterNum, reciterId]);
+
+  const changeReciter = (id: number) => {
+    if (id === reciterId) return;
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    setIsPlaying(false);
+    setAudioCurrentTime(0);
+    setAudioDuration(0);
+    setAudioUrl(null);
+    setReciterId(id);
+    localStorage.setItem(RECITER_KEY, String(id));
+    setShowReciterPicker(false);
+  };
 
   // Infinite scroll
   useEffect(() => {
@@ -304,6 +330,12 @@ export default function SurahReader() {
         {/* Floating toolbar */}
         <div className="fixed top-20 right-4 z-30 flex items-center gap-2">
           <button
+            onClick={() => setShowReciterPicker(p => !p)}
+            className="h-8 px-2.5 rounded-full text-[10px] font-semibold backdrop-blur-sm bg-secondary/70 text-muted-foreground transition-colors"
+          >
+            {RECITERS.find(r => r.id === reciterId)?.short || 'Afasy'}
+          </button>
+          <button
             onClick={() => setShowTranslation(t => !t)}
             className={`h-8 px-2.5 rounded-full text-[10px] font-semibold backdrop-blur-sm transition-colors ${
               showTranslation ? 'bg-primary/25 text-primary' : 'bg-secondary/70 text-muted-foreground'
@@ -318,6 +350,31 @@ export default function SurahReader() {
           </div>
         </div>
 
+        {/* Reciter picker */}
+        <AnimatePresence>
+          {showReciterPicker && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="fixed top-[108px] right-4 z-40 rounded-xl border overflow-hidden"
+              style={{ background: 'hsla(230, 20%, 12%, 0.95)', borderColor: 'hsla(0, 0%, 100%, 0.1)', backdropFilter: 'blur(20px)' }}
+            >
+              {RECITERS.map(r => (
+                <button
+                  key={r.id}
+                  onClick={() => changeReciter(r.id)}
+                  className={`block w-full text-left px-4 py-2.5 text-[12px] transition-colors ${
+                    r.id === reciterId ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:bg-secondary/50'
+                  }`}
+                >
+                  {r.name}
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Bismillah */}
         {chapterNum !== 9 && chapterNum !== 1 && (
           <div className="text-center py-8 px-5">
@@ -330,9 +387,9 @@ export default function SurahReader() {
           {verses.length > 0 && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
               {showTranslation ? (
-                // Interleaved mode: each verse with its translation
-                <div className="space-y-6">
-                  {verses.map(verse => (
+                // Interleaved mode: each verse with its translation + gold divider
+                <div className="space-y-0">
+                  {verses.map((verse, idx) => (
                     <div key={verse.id}>
                       <p
                         className="font-arabic-display text-primary/90 text-right leading-[2.4]"
@@ -347,6 +404,9 @@ export default function SurahReader() {
                           <span className="text-primary/40 not-italic text-[11px] font-semibold mr-1.5">{verse.verse_number}.</span>
                           {stripHtml(verse.translations[0].text)}
                         </p>
+                      )}
+                      {idx < verses.length - 1 && (
+                        <div className="my-5 mx-auto w-16 h-px bg-primary/20" />
                       )}
                     </div>
                   ))}
@@ -410,7 +470,7 @@ export default function SurahReader() {
             </button>
             <div className="flex-1 min-w-0">
               <p className="text-xs text-foreground truncate">{surah?.name}</p>
-              <p className="text-[10px] text-muted-foreground">Mishary Rashid Al-Afasy</p>
+              <p className="text-[10px] text-muted-foreground">{RECITERS.find(r => r.id === reciterId)?.name || 'Unknown'}</p>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-[9px] text-muted-foreground w-7 text-right">{formatTime(audioCurrentTime)}</span>
                 <Slider value={[audioCurrentTime]} max={audioDuration || 1} step={1} onValueChange={seekAudio} className="flex-1 h-1" />
