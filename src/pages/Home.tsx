@@ -53,8 +53,9 @@ function RamadanCountdown({ maghribTime, fajrTime }: { maghribTime: Date; fajrTi
     return () => clearInterval(interval);
   }, []);
 
+  const suhoorTime = new Date(fajrTime.getTime() - 10 * 60 * 1000);
   const beforeIftar = now < maghribTime;
-  const target = beforeIftar ? maghribTime : new Date(fajrTime.getTime() - 10 * 60 * 1000 + 24 * 60 * 60 * 1000);
+  const target = beforeIftar ? maghribTime : new Date(suhoorTime.getTime() + 24 * 60 * 60 * 1000);
   const label = beforeIftar ? 'Iftar in' : 'Next Suhoor in';
   const subtext = beforeIftar ? 'Until Maghrib' : 'Until Fajr';
 
@@ -62,18 +63,58 @@ function RamadanCountdown({ maghribTime, fajrTime }: { maghribTime: Date; fajrTi
   const hours = Math.floor(diff / (1000 * 60 * 60));
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
+  // Arc progress: fasting window = suhoor to maghrib
+  const fastTotal = maghribTime.getTime() - suhoorTime.getTime();
+  const fastElapsed = now.getTime() - suhoorTime.getTime();
+  const progress = beforeIftar ? Math.min(1, Math.max(0, fastElapsed / fastTotal)) : 0;
+  const radius = 54;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference * (1 - progress);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.9 }}
-      className="mt-6 text-center"
+      className="mt-6"
     >
-      <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 mb-1">{label}</p>
-      <p className="text-[48px] font-light text-[#C9A84C] leading-none">
-        {hours}h {minutes.toString().padStart(2, '0')}m
-      </p>
-      <p className="text-[11px] text-white/30 mt-1">{subtext}</p>
+      <div
+        className="rounded-2xl px-5 py-5 backdrop-blur-xl"
+        style={{
+          background: 'rgba(255,255,255,0.07)',
+          border: '1px solid rgba(255,255,255,0.12)',
+        }}
+      >
+        <div className="flex items-center justify-center">
+          <div className="relative flex-shrink-0" style={{ width: 120, height: 120 }}>
+            <svg width="120" height="120" viewBox="0 0 120 120" className="rotate-[-90deg]">
+              <circle cx="60" cy="60" r={radius} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
+              <motion.circle
+                cx="60" cy="60" r={radius}
+                fill="none" stroke="#C9A84C" strokeWidth="4"
+                strokeLinecap="round"
+                strokeDasharray={circumference}
+                initial={{ strokeDashoffset: circumference }}
+                animate={{ strokeDashoffset }}
+                transition={{ duration: 1, ease: 'easeOut' }}
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <p className="text-[9px] uppercase tracking-[0.15em] text-white/40 mb-0.5">{label}</p>
+              <p className="leading-none">
+                <span className="text-[32px] font-light text-[#C9A84C]">{hours}</span>
+                <span className="text-[14px] text-white/30 mx-0.5">h</span>
+                <span className="text-[32px] font-light text-[#C9A84C] ml-1">{minutes.toString().padStart(2, '0')}</span>
+                <span className="text-[14px] text-white/30 mx-0.5">m</span>
+              </p>
+              <p className="text-[9px] text-white/25 mt-0.5">{subtext}</p>
+            </div>
+          </div>
+        </div>
+        {beforeIftar && (
+          <p className="text-[9px] text-center text-white/20 mt-2">{Math.round(progress * 100)}% of fast completed</p>
+        )}
+      </div>
     </motion.div>
   );
 }
