@@ -107,7 +107,7 @@ export default function Home() {
               {currentPrayerData.arabicLabel}
             </p>
           )}
-          <h1 className="text-2xl font-light tracking-wide text-white/70 mt-1">
+          <h1 className="text-2xl text-white/70 mt-1" style={{ fontWeight: 300, letterSpacing: '0.15em' }}>
             {currentPrayerData?.label || 'Prayer'}
           </h1>
           {nextPrayer && (
@@ -212,7 +212,7 @@ export default function Home() {
           {fajrTime && (
             <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.07] border border-white/[0.08] backdrop-blur-lg">
               <span className="text-[10px] uppercase tracking-wider text-white/40">Suhoor</span>
-              <span className="text-xs font-semibold text-white/80">{formatTime(fajrTime.time)}</span>
+              <span className="text-xs font-semibold text-white/80">{formatTime(new Date(fajrTime.time.getTime() - 10 * 60 * 1000))}</span>
             </div>
           )}
           {maghribTime && (
@@ -244,9 +244,9 @@ export default function Home() {
               initial={{ left: 0 }}
               animate={{ left: `${progress}%` }}
               transition={{ duration: 1, ease: 'easeOut' }}
-              style={{ marginLeft: '-6px' }}
+              style={{ marginLeft: '-8px' }}
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="#C9A84C" />
               </svg>
             </motion.div>
