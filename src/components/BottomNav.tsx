@@ -5,7 +5,7 @@ const tabs = [
   { path: '/', label: 'Home', icon: HomeIcon },
   { path: '/quran', label: 'Quran', icon: QuranIcon },
   { path: '/dhikr', label: 'Dhikr', icon: DhikrIcon },
-  { path: '/ramadan', label: 'Ramadan', icon: RamadanIcon },
+  { path: '/tracker', label: 'Tracker', icon: RamadanIcon },
   { path: '/more', label: 'More', icon: MoreIcon },
 ];
 

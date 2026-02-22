@@ -178,6 +178,7 @@ function AboutScreen() {
 
 export default function More() {
   const [view, setView] = useState<SettingsView>('main');
+  const [calcOpen, setCalcOpen] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<CalcMethod>(() => {
     return (localStorage.getItem('nur-calc-method') as CalcMethod) || 'UmmAlQura';
   });
@@ -206,24 +207,45 @@ export default function More() {
         <AnimatePresence mode="wait">
           {view === 'main' ? (
             <motion.div key="main" initial={{ opacity: 0, x: 0 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.15 }}>
-              {/* Calculation Method */}
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="glass-card p-5 mb-4">
-                <p className="text-sm font-semibold text-foreground mb-3">Prayer Calculation Method</p>
-                <div className="space-y-2">
-                  {calcMethods.map((m) => (
-                    <button
-                      key={m.value}
-                      onClick={() => handleMethodChange(m.value)}
-                      className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-all ${
-                        selectedMethod === m.value
-                          ? 'bg-primary/15 text-primary border border-primary/20'
-                          : 'bg-secondary/20 text-foreground/70 border border-transparent'
-                      }`}
-                    >
-                      {m.label}
-                    </button>
-                  ))}
-                </div>
+              {/* Calculation Method - Collapsible */}
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="glass-card mb-4 overflow-hidden">
+                <button
+                  onClick={() => setCalcOpen(!calcOpen)}
+                  className="w-full px-5 py-4 flex items-center justify-between"
+                >
+                  <div className="text-left">
+                    <p className="text-sm font-semibold text-foreground">Calculation Method</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{calcMethods.find(m => m.value === selectedMethod)?.label}</p>
+                  </div>
+                  <svg
+                    width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--muted-foreground))" strokeWidth="2" strokeLinecap="round"
+                    className={`transition-transform duration-200 ${calcOpen ? 'rotate-90' : ''}`}
+                  >
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </button>
+                {calcOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                    className="px-5 pb-4 space-y-2"
+                  >
+                    {calcMethods.map((m) => (
+                      <button
+                        key={m.value}
+                        onClick={() => handleMethodChange(m.value)}
+                        className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-all ${
+                          selectedMethod === m.value
+                            ? 'bg-primary/15 text-primary border border-primary/20'
+                            : 'bg-secondary/20 text-foreground/70 border border-transparent'
+                        }`}
+                      >
+                        {m.label}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
               </motion.div>
 
               {/* Menu items */}

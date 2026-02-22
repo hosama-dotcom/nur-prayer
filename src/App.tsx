@@ -8,7 +8,7 @@ import Home from "./pages/Home";
 import Quran from "./pages/Quran";
 import SurahReader from "./pages/SurahReader";
 import Dhikr from "./pages/Dhikr";
-import Ramadan from "./pages/Ramadan";
+import Tracker from "./pages/Tracker";
 import More from "./pages/More";
 import NotFound from "./pages/NotFound";
 
@@ -25,7 +25,7 @@ const App = () => (
           <Route path="/quran" element={<Quran />} />
           <Route path="/quran/:number" element={<SurahReader />} />
           <Route path="/dhikr" element={<Dhikr />} />
-          <Route path="/ramadan" element={<Ramadan />} />
+          <Route path="/tracker" element={<Tracker />} />
           <Route path="/more" element={<More />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

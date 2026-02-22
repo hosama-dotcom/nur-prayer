@@ -91,22 +91,29 @@ export function getGradientClass(prayer: PrayerName): string {
   return map[prayer] || 'gradient-default';
 }
 
-export function getHijriDate(): string {
+export function getHijriParts(): { day: number; month: string; year: string } {
   const now = new Date();
-  // Use Intl API for accurate Hijri date
   const formatter = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
     day: 'numeric', month: 'long', year: 'numeric'
   });
   const parts = formatter.formatToParts(now);
-  const day = parts.find(p => p.type === 'day')?.value || '';
+  const day = parseInt(parts.find(p => p.type === 'day')?.value || '1', 10);
   const month = parts.find(p => p.type === 'month')?.value || '';
   const year = parts.find(p => (p.type as string) === 'relatedYear')?.value || parts.find(p => p.type === 'year')?.value || '';
+  return { day, month, year };
+}
+
+export function getHijriDate(): string {
+  const { day, month, year } = getHijriParts();
   return `${day} ${month} ${year} AH`;
 }
 
 export function isRamadan(): boolean {
-  const hijri = getHijriDate();
-  return hijri.includes('Ramadan');
+  return getHijriParts().month.includes('Ramadan');
+}
+
+export function getHijriDay(): number {
+  return getHijriParts().day;
 }
 
 // Qibla direction from a given location

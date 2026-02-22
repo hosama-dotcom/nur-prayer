@@ -34,10 +34,15 @@ export default function Quran() {
       <div className="geometric-pattern absolute inset-0 pointer-events-none" />
       <div className="relative z-10 px-5">
         {/* Header */}
-        <div className="pt-12 pb-4">
-          <h1 className="text-2xl font-semibold text-foreground">Quran</h1>
-          <p className="text-sm text-muted-foreground mt-1">114 Surahs</p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="pt-12 pb-6 text-center"
+        >
+          <p className="font-arabic-display text-5xl text-primary leading-tight">القُرآن</p>
+          <p className="text-sm font-light text-foreground/80 mt-1 tracking-wide">Quran</p>
+          <p className="text-xs text-muted-foreground mt-2">114 Surahs</p>
+        </motion.div>
 
         {/* Continue reading banner */}
         {lastRead && lastReadSurah && (
