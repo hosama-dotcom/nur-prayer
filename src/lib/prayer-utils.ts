@@ -28,7 +28,7 @@ export function getPrayerTimes(
   lat: number,
   lng: number,
   date: Date = new Date(),
-  method: CalcMethod = 'NorthAmerica'
+  method: CalcMethod = 'UmmAlQura'
 ): PrayerTime[] {
   const coordinates = new Coordinates(lat, lng);
   const params = methodMap[method]();
@@ -54,13 +54,16 @@ export function getCurrentPrayer(prayers: PrayerTime[]): PrayerName {
   return 'isha';
 }
 
-export function getNextPrayer(prayers: PrayerTime[]): PrayerTime | null {
+export function getNextPrayer(prayers: PrayerTime[], lat: number, lng: number, method: CalcMethod = 'UmmAlQura'): PrayerTime | null {
   const now = new Date();
   for (const p of prayers) {
     if (p.time > now) return p;
   }
-  // Next day's fajr
-  return null;
+  // After isha — return tomorrow's fajr
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowPrayers = getPrayerTimes(lat, lng, tomorrow, method);
+  return tomorrowPrayers[0]; // fajr
 }
 
 export function getTimeUntil(target: Date): { hours: number; minutes: number; seconds: number } {
@@ -88,33 +91,17 @@ export function getGradientClass(prayer: PrayerName): string {
   return map[prayer] || 'gradient-default';
 }
 
-// Simple Hijri date approximation
 export function getHijriDate(): string {
   const now = new Date();
-  // Using a known reference: 1 Muharram 1446 = July 8, 2024
-  const refGregorian = new Date(2024, 6, 8); // July 8, 2024
-  const refHijriYear = 1446;
-  const refHijriMonth = 1;
-  const refHijriDay = 1;
-  
-  const diffDays = Math.floor((now.getTime() - refGregorian.getTime()) / (1000 * 60 * 60 * 24));
-  
-  // Average Hijri month is ~29.53 days, year ~354.37 days
-  const totalHijriDays = refHijriDay + diffDays - 1;
-  const hijriYearsElapsed = Math.floor(totalHijriDays / 354.37);
-  const remainingDays = totalHijriDays - Math.floor(hijriYearsElapsed * 354.37);
-  const hijriMonth = Math.floor(remainingDays / 29.53) + 1;
-  const hijriDay = Math.floor(remainingDays % 29.53) + 1;
-  const hijriYear = refHijriYear + hijriYearsElapsed;
-
-  const months = [
-    'Muharram', 'Safar', 'Rabi al-Awwal', 'Rabi al-Thani',
-    'Jumada al-Ula', 'Jumada al-Thani', 'Rajab', 'Shaban',
-    'Ramadan', 'Shawwal', 'Dhul Qadah', 'Dhul Hijjah'
-  ];
-  
-  const monthName = months[Math.min(Math.max(hijriMonth - 1, 0), 11)];
-  return `${hijriDay} ${monthName} ${hijriYear} AH`;
+  // Use Intl API for accurate Hijri date
+  const formatter = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
+    day: 'numeric', month: 'long', year: 'numeric'
+  });
+  const parts = formatter.formatToParts(now);
+  const day = parts.find(p => p.type === 'day')?.value || '';
+  const month = parts.find(p => p.type === 'month')?.value || '';
+  const year = parts.find(p => (p.type as string) === 'relatedYear')?.value || parts.find(p => p.type === 'year')?.value || '';
+  return `${day} ${month} ${year} AH`;
 }
 
 export function isRamadan(): boolean {
