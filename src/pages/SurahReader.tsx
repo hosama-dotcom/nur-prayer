@@ -374,7 +374,7 @@ export default function SurahReader() {
       <div className="relative z-10">
 
         {/* Header */}
-        <div className="sticky top-0 z-20 px-5 pt-8 pb-4" style={{ background: 'linear-gradient(180deg, #0A0A1A 0%, #0A0A1Ae6 60%, #0A0A1A00 100%)' }}>
+        <div className="sticky top-0 z-20 px-5 pt-12 pb-4" style={{ background: 'linear-gradient(180deg, #0A0A1A 0%, #0A0A1Ae6 60%, #0A0A1A00 100%)' }}>
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate('/quran')}
@@ -575,7 +575,7 @@ export default function SurahReader() {
 
       {/* Mini audio player */}
       {audioUrl && (
-        <div className="fixed bottom-[85px] left-0 right-0 z-40 px-3 pb-2">
+        <div className="fixed bottom-[100px] left-0 right-0 z-40 px-3 pb-2">
           <div
             className="rounded-2xl border p-3 flex items-center gap-3"
             style={{ background: 'hsla(230, 20%, 12%, 0.92)', borderColor: 'hsla(0, 0%, 100%, 0.1)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)' }}
