@@ -10,6 +10,13 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
 
 /* ── Helpers ── */
 
@@ -77,23 +84,34 @@ function KhatmCounter() {
     return saved ? JSON.parse(saved) : [];
   });
   const [showConfirm, setShowConfirm] = useState(false);
+  const [deleteIdx, setDeleteIdx] = useState<number | null>(null);
 
-  const confirmKhatm = () => {
-    const updated = [...khatms, { date: new Date().toISOString() }];
+  const persist = (updated: KhatmLog[]) => {
     setKhatms(updated);
     localStorage.setItem('nur_khatm_log', JSON.stringify(updated));
+  };
+
+  const confirmKhatm = () => {
+    persist([...khatms, { date: new Date().toISOString() }]);
     if (navigator.vibrate) navigator.vibrate(30);
     setShowConfirm(false);
   };
 
+  const deleteKhatm = (idx: number) => {
+    const updated = khatms.filter((_, i) => i !== idx);
+    persist(updated);
+    setDeleteIdx(null);
+  };
+
+  const updateDate = (idx: number, newDate: Date) => {
+    const updated = [...khatms];
+    updated[idx] = { ...updated[idx], date: newDate.toISOString() };
+    persist(updated);
+  };
+
   return (
     <>
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="glass-card p-6 mb-5"
-      >
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card p-6 mb-5">
         <div className="flex flex-col items-center mb-5">
           <div className="w-24 h-24 rounded-full bg-primary/10 border-2 border-primary/25 flex items-center justify-center mb-3">
             <p className="text-3xl font-bold text-primary">{khatms.length}</p>
@@ -101,25 +119,46 @@ function KhatmCounter() {
           <p className="text-xs text-muted-foreground">Complete Quran readings</p>
         </div>
 
-        <button
-          onClick={() => setShowConfirm(true)}
-          className="w-full py-3.5 rounded-xl bg-primary/15 text-primary text-sm font-semibold border border-primary/25 active:scale-[0.97] transition-all"
-        >
+        <button onClick={() => setShowConfirm(true)}
+          className="w-full py-3.5 rounded-xl bg-primary/15 text-primary text-sm font-semibold border border-primary/25 active:scale-[0.97] transition-all">
           Record Khatm ✦
         </button>
 
         {khatms.length > 0 && (
-          <div className="mt-5 space-y-2 max-h-[140px] overflow-y-auto no-scrollbar">
-            {[...khatms].reverse().map((k, i) => (
-              <div key={i} className="flex items-center justify-between text-xs text-muted-foreground px-1">
-                <span>Khatm #{khatms.length - i}</span>
-                <span>{formatKhatmDate(k.date)}</span>
-              </div>
-            ))}
+          <div className="mt-5 space-y-2 max-h-[180px] overflow-y-auto no-scrollbar">
+            {[...khatms].map((k, realIdx) => khatms.length - 1 - realIdx).map((origIdx) => {
+              const k = khatms[origIdx];
+              return (
+                <div key={origIdx} className="flex items-center justify-between text-xs text-muted-foreground px-1 gap-2">
+                  <span className="shrink-0">Khatm #{origIdx + 1}</span>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="text-muted-foreground hover:text-foreground transition-colors truncate text-right">
+                        {formatKhatmDate(k.date)}
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="end">
+                      <Calendar
+                        mode="single"
+                        selected={new Date(k.date)}
+                        onSelect={(d) => d && updateDate(origIdx, d)}
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <button onClick={() => setDeleteIdx(origIdx)} className="shrink-0 text-muted-foreground/40 hover:text-red-400 transition-colors p-0.5">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                    </svg>
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )}
       </motion.div>
 
+      {/* Confirm new khatm */}
       <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
         <DialogContent className="glass-card-strong border-primary/20 max-w-[340px] rounded-2xl">
           <DialogHeader className="text-center">
@@ -131,12 +170,30 @@ function KhatmCounter() {
           <p className="text-xs text-muted-foreground text-center">
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
           </p>
-          <button
-            onClick={confirmKhatm}
-            className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm active:scale-[0.97] transition-all"
-          >
+          <button onClick={confirmKhatm}
+            className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm active:scale-[0.97] transition-all">
             Confirm ✓
           </button>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirmation */}
+      <Dialog open={deleteIdx !== null} onOpenChange={() => setDeleteIdx(null)}>
+        <DialogContent className="glass-card-strong border-primary/20 max-w-[340px] rounded-2xl">
+          <DialogHeader className="text-center">
+            <DialogTitle className="text-foreground text-sm">Remove this Khatm record?</DialogTitle>
+            <DialogDescription className="text-muted-foreground text-xs mt-1">This action cannot be undone.</DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-3">
+            <button onClick={() => setDeleteIdx(null)}
+              className="flex-1 py-2.5 rounded-xl bg-secondary/30 text-foreground/70 text-sm font-medium">
+              Cancel
+            </button>
+            <button onClick={() => deleteIdx !== null && deleteKhatm(deleteIdx)}
+              className="flex-1 py-2.5 rounded-xl bg-red-500/20 text-red-400 text-sm font-semibold border border-red-500/20">
+              Remove
+            </button>
+          </div>
         </DialogContent>
       </Dialog>
     </>
@@ -148,12 +205,7 @@ function KhatmCounter() {
 function ReadingStreak() {
   const streak = getReadingStreak();
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.15 }}
-      className="glass-card p-5 mb-5 flex items-center gap-4"
-    >
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="glass-card p-5 mb-5 flex items-center gap-4">
       <div className="text-2xl">🔥</div>
       <div>
         <p className="text-sm font-semibold text-primary">{streak} day streak</p>
@@ -165,13 +217,9 @@ function ReadingStreak() {
 
 /* ── Juz Progress Grid ── */
 
-function JuzProgress({ storageKey = 'nur_juz_progress', label = 'Current Reading — Juz Progress', onAllComplete }: {
-  storageKey?: string;
-  label?: string;
-  onAllComplete?: () => void;
-}) {
+function JuzProgress({ onAllComplete }: { onAllComplete?: () => void }) {
   const [juz, setJuz] = useState<boolean[]>(() => {
-    const saved = localStorage.getItem(storageKey);
+    const saved = localStorage.getItem('nur_juz_progress');
     return saved ? JSON.parse(saved) : Array(30).fill(false);
   });
 
@@ -179,7 +227,7 @@ function JuzProgress({ storageKey = 'nur_juz_progress', label = 'Current Reading
     const updated = [...juz];
     updated[i] = !updated[i];
     setJuz(updated);
-    localStorage.setItem(storageKey, JSON.stringify(updated));
+    localStorage.setItem('nur_juz_progress', JSON.stringify(updated));
     if (updated[i] && navigator.vibrate) navigator.vibrate(15);
     if (updated.every(Boolean) && onAllComplete) onAllComplete();
   };
@@ -187,7 +235,7 @@ function JuzProgress({ storageKey = 'nur_juz_progress', label = 'Current Reading
   const reset = () => {
     const fresh = Array(30).fill(false);
     setJuz(fresh);
-    localStorage.setItem(storageKey, JSON.stringify(fresh));
+    localStorage.setItem('nur_juz_progress', JSON.stringify(fresh));
   };
 
   const completed = juz.filter(Boolean).length;
@@ -195,15 +243,10 @@ function JuzProgress({ storageKey = 'nur_juz_progress', label = 'Current Reading
   const circ = 2 * Math.PI * 32;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2 }}
-      className="glass-card p-5 mb-5"
-    >
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="glass-card p-5 mb-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-sm font-semibold text-foreground">{label}</p>
+          <p className="text-sm font-semibold text-foreground">Juz Progress</p>
           <p className="text-xs text-muted-foreground">{completed}/30 Juz completed</p>
         </div>
         <div className="relative w-14 h-14">
@@ -220,19 +263,14 @@ function JuzProgress({ storageKey = 'nur_juz_progress', label = 'Current Reading
 
       <div className="grid grid-cols-6 gap-2">
         {Array.from({ length: 30 }, (_, i) => (
-          <button
-            key={i}
-            onClick={() => toggle(i)}
+          <button key={i} onClick={() => toggle(i)}
             className={`aspect-square rounded-xl text-[10px] font-medium flex flex-col items-center justify-center gap-0.5 transition-all active:scale-90 ${
               juz[i]
                 ? 'bg-primary/20 text-primary border border-primary/30'
                 : 'bg-secondary/30 text-muted-foreground border border-transparent hover:border-white/[0.08]'
-            }`}
-          >
+            }`}>
             {juz[i] ? (
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
             ) : (
               <span className="text-[8px] text-muted-foreground/50">Juz</span>
             )}
@@ -240,29 +278,23 @@ function JuzProgress({ storageKey = 'nur_juz_progress', label = 'Current Reading
           </button>
         ))}
       </div>
-
-      <button onClick={reset} className="mt-3 text-[11px] text-muted-foreground/50 hover:text-muted-foreground transition-colors">
-        Reset Progress
-      </button>
+      <button onClick={reset} className="mt-3 text-[11px] text-muted-foreground/50 hover:text-muted-foreground transition-colors">Reset Progress</button>
     </motion.div>
   );
 }
 
-/* ── Ramadan Section ── */
+/* ── Ramadan Banner ── */
 
-function RamadanSection() {
-  const { prayers } = usePrayerTimes();
+function RamadanBanner() {
   const hijriDay = getHijriDay();
+  const { prayers } = usePrayerTimes();
   const todayDua = ramadanDuas[(hijriDay - 1) % 30];
-  const year = new Date().getFullYear();
 
   const fajrTime = prayers.find(p => p.name === 'fajr');
   const maghribTime = prayers.find(p => p.name === 'maghrib');
-  const ishaTime = prayers.find(p => p.name === 'isha');
 
   const suhoorTime = fajrTime ? new Date(fajrTime.time.getTime() - 10 * 60 * 1000) : null;
   const iftarTime = maghribTime?.time || null;
-  const tarawihTime = ishaTime ? new Date(ishaTime.time.getTime() + 30 * 60 * 1000) : null;
 
   const now = new Date();
   const suhoorIsNext = suhoorTime && suhoorTime > now;
@@ -272,7 +304,7 @@ function RamadanSection() {
 
   return (
     <>
-      {/* Ramadan banner */}
+      {/* Banner */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-5 mb-5 text-center">
         <p className="font-arabic-display text-4xl text-primary leading-tight">رَمَضَان</p>
         <p className="text-xs text-muted-foreground mt-1">Day {hijriDay} of 30</p>
@@ -285,7 +317,7 @@ function RamadanSection() {
       </motion.div>
 
       {/* Suhoor / Iftar */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="grid grid-cols-2 gap-3 mb-3">
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="grid grid-cols-2 gap-3 mb-5">
         <div className={`glass-card p-5 text-center ${suhoorIsNext ? 'border-primary/20' : ''}`}>
           <p className="text-[10px] uppercase tracking-wider text-foreground/40 mb-2">Suhoor ends</p>
           <p className={`text-xl font-semibold ${suhoorIsNext ? 'text-primary' : 'text-foreground'}`}>{suhoorTime ? formatTime(suhoorTime) : '--:--'}</p>
@@ -300,20 +332,8 @@ function RamadanSection() {
         </div>
       </motion.div>
 
-      {tarawihTime && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="flex justify-center mb-5">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.05] border border-white/[0.06]">
-            <span className="text-[10px] text-white/30 uppercase tracking-wider">Tarawih</span>
-            <span className="text-xs text-white/60 font-medium">{formatTime(tarawihTime)}</span>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Ramadan-specific Juz grid */}
-      <JuzProgress storageKey={`nur_ramadan_juz_${year}`} label="Khatm in Ramadan" />
-
       {/* Dua of the day */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="glass-card p-5 mb-5">
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card p-5 mb-5">
         <p className="text-[10px] uppercase tracking-wider text-foreground/40 mb-3">Dua of the Day</p>
         <div className="max-h-[220px] overflow-y-auto no-scrollbar">
           <p className="font-arabic text-xl text-foreground/90 text-right leading-loose mb-4">{todayDua.arabic}</p>
@@ -343,11 +363,11 @@ export default function Tracker() {
           <p className="text-sm font-light text-foreground/80 mt-1 tracking-wide">My Quran Journey</p>
         </motion.div>
 
+        {ramadanActive && <RamadanBanner />}
+
         <KhatmCounter />
         <ReadingStreak />
         <JuzProgress onAllComplete={() => setShowKhatmModal(true)} />
-
-        {ramadanActive && <RamadanSection />}
       </div>
 
       {/* Auto-khatm modal when all 30 juz completed */}
@@ -367,8 +387,7 @@ export default function Tracker() {
               localStorage.setItem('nur_khatm_log', JSON.stringify(khatms));
               setShowKhatmModal(false);
             }}
-            className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm active:scale-[0.97] transition-all"
-          >
+            className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm active:scale-[0.97] transition-all">
             Record Khatm ✓
           </button>
         </DialogContent>

@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
 import { useAdhan, PRAYERS_WITH_ADHAN } from '@/hooks/useAdhan';
 import { GradientBackground } from '@/components/GradientBackground';
@@ -240,19 +240,32 @@ export default function Home() {
           )}
         </motion.div>
 
-        {/* Background tooltip */}
-        {tooltipVisible && (
-          <motion.div
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="mb-3 mx-auto max-w-[300px]"
-          >
-            <div className="rounded-xl px-4 py-2.5 bg-white/[0.1] border border-white/[0.1] backdrop-blur-xl text-center">
-              <p className="text-[10px] text-white/60">Open the app at prayer time for Adhan to play</p>
-            </div>
-          </motion.div>
-        )}
+        {/* Adhan PWA tooltip (one-time dismissible) */}
+        <AnimatePresence>
+          {tooltipVisible && (
+            <motion.div
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -5 }}
+              className="mb-3 mx-auto max-w-[300px]"
+            >
+              <div className="rounded-xl px-4 py-2.5 bg-white/[0.1] border border-white/[0.1] backdrop-blur-xl flex items-center justify-between gap-2">
+                <p className="text-[10px] text-white/60">Open the app at prayer time for Adhan to play</p>
+                <button
+                  onClick={() => {
+                    setTooltipVisible(false);
+                    localStorage.setItem('nur_adhan_tooltip_shown', '1');
+                  }}
+                  className="shrink-0 text-white/30 hover:text-white/60 transition-colors"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Prayer times row */}
         <motion.div
