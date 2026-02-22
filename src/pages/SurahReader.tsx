@@ -155,12 +155,14 @@ export default function SurahReader() {
     if (loading || page >= totalPages) return;
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
-    observerRef.current = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setPage(p => p + 1); },
-      { threshold: 0.1 }
-    );
-    observerRef.current.observe(sentinel);
-    return () => observerRef.current?.disconnect();
+    const timeout = setTimeout(() => {
+      observerRef.current = new IntersectionObserver(
+        ([entry]) => { if (entry.isIntersecting) setPage(p => p + 1); },
+        { threshold: 0.1 }
+      );
+      if (sentinelRef.current) observerRef.current.observe(sentinelRef.current);
+    }, 100);
+    return () => { clearTimeout(timeout); observerRef.current?.disconnect(); };
   }, [loading, page, totalPages]);
 
   // Save reading progress on scroll (debounced)
@@ -208,6 +210,10 @@ export default function SurahReader() {
     if (!audioRef.current) {
       const audio = new Audio(audioUrl);
       audioRef.current = audio;
+      // Handle case where metadata already loaded
+      if (audio.readyState >= 1 && audio.duration && isFinite(audio.duration)) {
+        setAudioDuration(audio.duration);
+      }
       audio.addEventListener('loadedmetadata', () => { if (audio.duration && isFinite(audio.duration)) setAudioDuration(audio.duration); });
       audio.addEventListener('durationchange', () => { if (audio.duration && isFinite(audio.duration)) setAudioDuration(audio.duration); });
       audio.addEventListener('timeupdate', () => setAudioCurrentTime(audio.currentTime));
@@ -323,31 +329,43 @@ export default function SurahReader() {
         <div className="px-6">
           {verses.length > 0 && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
-              <p
-                className="font-arabic-display text-primary/90 text-right leading-[2.4]"
-                style={{ fontSize: `${fontSize}px` }}
-                dir="rtl"
-              >
-                {verses.map(verse => (
-                  <span key={verse.id}>
-                    {verse.text_uthmani}
-                    <VerseBadge num={verse.verse_number} />
-                    {' '}
-                  </span>
-                ))}
-              </p>
-
-              {showTranslation && (
-                <div className="mt-8 space-y-4">
+              {showTranslation ? (
+                // Interleaved mode: each verse with its translation
+                <div className="space-y-6">
                   {verses.map(verse => (
-                    verse.translations?.[0] && (
-                      <p key={verse.id} className="text-[13px] leading-relaxed text-muted-foreground/60 italic text-left">
-                        <span className="text-primary/40 not-italic text-[11px] font-semibold mr-1.5">{verse.verse_number}.</span>
-                        {stripHtml(verse.translations[0].text)}
+                    <div key={verse.id}>
+                      <p
+                        className="font-arabic-display text-primary/90 text-right leading-[2.4]"
+                        style={{ fontSize: `${fontSize}px` }}
+                        dir="rtl"
+                      >
+                        {verse.text_uthmani}
+                        <VerseBadge num={verse.verse_number} />
                       </p>
-                    )
+                      {verse.translations?.[0] && (
+                        <p className="text-[13px] leading-relaxed text-muted-foreground/60 italic text-left mt-2">
+                          <span className="text-primary/40 not-italic text-[11px] font-semibold mr-1.5">{verse.verse_number}.</span>
+                          {stripHtml(verse.translations[0].text)}
+                        </p>
+                      )}
+                    </div>
                   ))}
                 </div>
+              ) : (
+                // Continuous flowing mode
+                <p
+                  className="font-arabic-display text-primary/90 text-right leading-[2.4]"
+                  style={{ fontSize: `${fontSize}px` }}
+                  dir="rtl"
+                >
+                  {verses.map(verse => (
+                    <span key={verse.id}>
+                      {verse.text_uthmani}
+                      <VerseBadge num={verse.verse_number} />
+                      {' '}
+                    </span>
+                  ))}
+                </p>
               )}
             </motion.div>
           )}
