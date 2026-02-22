@@ -134,31 +134,22 @@ export default function Dhikr() {
 
         {/* Progress ring + count */}
         <div className="relative w-64 h-64 mb-6">
-          <svg className="w-full h-full progress-ring" viewBox="0 0 240 240">
-            {/* Background ring */}
+          <svg className="w-full h-full" viewBox="0 0 240 240">
+            <circle cx="120" cy="120" r="105" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="5" />
             <circle
-              cx="120"
-              cy="120"
-              r="105"
-              fill="none"
-              stroke="rgba(255,255,255,0.05)"
-              strokeWidth="5"
-            />
-            {/* Progress arc */}
-            <circle
-              cx="120"
-              cy="120"
-              r="105"
+              cx="120" cy="120" r="105"
               fill="none"
               stroke={completed ? '#C9A84C' : 'url(#goldGradient)'}
               strokeWidth="5"
               strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
-              className="transition-all duration-200 ease-out"
-              style={completed ? { filter: 'drop-shadow(0 0 8px rgba(201, 168, 76, 0.5))' } : undefined}
+              transform="rotate(-90 120 120)"
+              style={{
+                transition: 'stroke-dashoffset 0.2s ease-out',
+                ...(completed ? { filter: 'drop-shadow(0 0 8px rgba(201, 168, 76, 0.5))' } : {}),
+              }}
             />
-            {/* Gradient def */}
             <defs>
               <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#C9A84C" />
