@@ -5,7 +5,7 @@ const tabs = [
   { path: '/', label: 'Home', icon: HomeIcon },
   { path: '/quran', label: 'Quran', icon: QuranIcon },
   { path: '/dhikr', label: 'Dhikr', icon: DhikrIcon },
-  { path: '/tracker', label: 'Tracker', icon: RamadanIcon },
+  { path: '/tracker', label: 'Tracker', icon: TrackerIcon },
   { path: '/more', label: 'More', icon: MoreIcon },
 ];
 
@@ -85,10 +85,10 @@ function DhikrIcon({ active }: { active: boolean }) {
   );
 }
 
-function RamadanIcon({ active }: { active: boolean }) {
+function TrackerIcon({ active }: { active: boolean }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? 'hsl(43, 50%, 54%)' : 'hsl(220, 10%, 60%)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+      <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
     </svg>
   );
 }
