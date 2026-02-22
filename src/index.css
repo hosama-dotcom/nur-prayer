@@ -84,6 +84,8 @@
 
   .font-arabic-display {
     font-family: 'Scheherazade New', 'Amiri', serif;
+    text-rendering: geometricPrecision;
+    -webkit-font-smoothing: antialiased;
   }
 }
 

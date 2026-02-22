@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { surahs } from '@/data/surahs';
+import { juzData } from '@/data/juzData';
 
 interface LastRead {
   surahNumber: number;
@@ -16,9 +17,13 @@ function getLastRead(): LastRead | null {
   } catch { return null; }
 }
 
+type ViewMode = 'surah' | 'juz';
+
 export default function Quran() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
+  const [viewMode, setViewMode] = useState<ViewMode>('surah');
+  const [expandedJuz, setExpandedJuz] = useState<number | null>(null);
   const lastRead = getLastRead();
   const lastReadSurah = lastRead ? surahs.find(s => s.number === lastRead.surahNumber) : null;
 
@@ -40,9 +45,32 @@ export default function Quran() {
           className="pt-12 pb-6 text-center"
         >
           <p className="font-arabic-display text-5xl text-primary leading-tight">القُرآن الكريم</p>
-          
-          <p className="text-xs text-muted-foreground mt-2">114 Surahs</p>
+          <p className="text-xs text-muted-foreground mt-2">114 Surahs · 30 Juz</p>
         </motion.div>
+
+        {/* Surah / Juz toggle */}
+        <div className="flex justify-center mb-4">
+          <div className="inline-flex rounded-full p-1 bg-white/[0.06] border border-white/[0.08] backdrop-blur-sm">
+            {(['surah', 'juz'] as const).map((m) => (
+              <button
+                key={m}
+                onClick={() => setViewMode(m)}
+                className={`relative px-6 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  viewMode === m ? 'text-primary' : 'text-muted-foreground'
+                }`}
+              >
+                {viewMode === m && (
+                  <motion.div
+                    layoutId="quran-view-pill"
+                    className="absolute inset-0 rounded-full bg-primary/15 border border-primary/25"
+                    transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                  />
+                )}
+                <span className="relative z-10 capitalize">{m}</span>
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* Continue reading banner */}
         {lastRead && lastReadSurah && (
@@ -71,48 +99,131 @@ export default function Quran() {
           </motion.button>
         )}
 
-        {/* Search */}
-        <div className="mb-4">
-          <div className="glass-card px-4 py-3 flex items-center gap-3">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="hsl(220, 10%, 60%)" strokeWidth="2" strokeLinecap="round">
-              <circle cx="11" cy="11" r="8" />
-              <path d="M21 21l-4.35-4.35" />
-            </svg>
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search surah..."
-              className="bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground flex-1"
-            />
+        {/* Search (surah view only) */}
+        {viewMode === 'surah' && (
+          <div className="mb-4">
+            <div className="glass-card px-4 py-3 flex items-center gap-3">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="hsl(220, 10%, 60%)" strokeWidth="2" strokeLinecap="round">
+                <circle cx="11" cy="11" r="8" />
+                <path d="M21 21l-4.35-4.35" />
+              </svg>
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search surah..."
+                className="bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground flex-1"
+              />
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Surah List */}
-        <div className="space-y-2">
-          {filtered.map((surah, i) => (
-            <motion.div
-              key={surah.number}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: Math.min(i * 0.02, 0.5) }}
-              className="glass-card px-4 py-4 flex items-center gap-4 active:scale-[0.98] transition-transform cursor-pointer"
-              onClick={() => navigate(`/quran/${surah.number}`)}
-            >
-              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <span className="text-xs font-semibold text-primary">{surah.number}</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground">{surah.name}</p>
-                <p className="text-xs text-muted-foreground">{surah.englishName} · {surah.versesCount} verses</p>
-              </div>
-              <div className="text-right flex-shrink-0">
-                <p className="font-arabic text-lg text-primary/80">{surah.arabicName}</p>
-                <p className="text-[10px] text-muted-foreground">{surah.revelationType}</p>
+        <AnimatePresence mode="wait">
+          {viewMode === 'surah' ? (
+            <motion.div key="surah" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              {/* Surah List */}
+              <div className="space-y-2">
+                {filtered.map((surah, i) => (
+                  <motion.div
+                    key={surah.number}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: Math.min(i * 0.02, 0.5) }}
+                    className="glass-card px-4 py-4 flex items-center gap-4 active:scale-[0.98] transition-transform cursor-pointer"
+                    onClick={() => navigate(`/quran/${surah.number}`)}
+                  >
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <span className="text-xs font-semibold text-primary">{surah.number}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground">{surah.name}</p>
+                      <p className="text-xs text-muted-foreground">{surah.englishName} · {surah.versesCount} verses</p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="font-arabic text-lg text-primary/80">{surah.arabicName}</p>
+                      <p className="text-[10px] text-muted-foreground">{surah.revelationType}</p>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
             </motion.div>
-          ))}
-        </div>
+          ) : (
+            <motion.div key="juz" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              {/* Juz List */}
+              <div className="space-y-2">
+                {juzData.map((juz, i) => {
+                  const isExpanded = expandedJuz === juz.number;
+                  return (
+                    <motion.div
+                      key={juz.number}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: Math.min(i * 0.02, 0.5) }}
+                      className="glass-card overflow-hidden"
+                    >
+                      <button
+                        onClick={() => setExpandedJuz(isExpanded ? null : juz.number)}
+                        className="w-full px-4 py-4 flex items-center gap-4 active:scale-[0.98] transition-transform"
+                      >
+                        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs font-semibold text-primary">{juz.number}</span>
+                        </div>
+                        <div className="flex-1 min-w-0 text-left">
+                          <p className="text-sm font-medium text-foreground">Juz {juz.number} — {juz.name}</p>
+                          <p className="text-xs text-muted-foreground">{juz.surahs.length} surah{juz.surahs.length > 1 ? 's' : ''}</p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <p className="font-arabic text-lg text-primary/80">{juz.arabicName}</p>
+                          <svg
+                            width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--muted-foreground))" strokeWidth="2" strokeLinecap="round"
+                            className={`transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+                          >
+                            <polyline points="9 18 15 12 9 6" />
+                          </svg>
+                        </div>
+                      </button>
+
+                      <AnimatePresence>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="px-4 pb-3 space-y-1">
+                              {juz.surahs.map((js) => {
+                                const surah = surahs.find(s => s.number === js.surahNumber);
+                                if (!surah) return null;
+                                return (
+                                  <button
+                                    key={`${juz.number}-${js.surahNumber}`}
+                                    onClick={() => navigate(`/quran/${js.surahNumber}?verse=${js.startVerse}`)}
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.05] active:scale-[0.97] transition-transform text-left"
+                                  >
+                                    <span className="text-[10px] font-semibold text-primary/60 w-6 text-center">{surah.number}</span>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-xs font-medium text-foreground">{surah.name}</p>
+                                      <p className="text-[10px] text-muted-foreground">
+                                        Verses {js.startVerse}–{js.endVerse}
+                                      </p>
+                                    </div>
+                                    <p className="font-arabic text-sm text-primary/60">{surah.arabicName}</p>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

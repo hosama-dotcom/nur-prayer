@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   Dialog,
@@ -32,36 +32,45 @@ function formatKhatmDate(dateStr: string): string {
   return `${hijri} — ${greg}`;
 }
 
-/* ── Khatm Counter ── */
-
-function KhatmCounter() {
+function useKhatmLog() {
   const [khatms, setKhatms] = useState<KhatmLog[]>(() => {
     const saved = localStorage.getItem('nur_khatm_log');
     return saved ? JSON.parse(saved) : [];
   });
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [deleteIdx, setDeleteIdx] = useState<number | null>(null);
 
   const persist = (updated: KhatmLog[]) => {
     setKhatms(updated);
     localStorage.setItem('nur_khatm_log', JSON.stringify(updated));
   };
 
-  const confirmKhatm = () => {
+  const addKhatm = () => {
     persist([...khatms, { date: new Date().toISOString() }]);
     if (navigator.vibrate) navigator.vibrate(30);
-    setShowConfirm(false);
   };
 
   const deleteKhatm = (idx: number) => {
     persist(khatms.filter((_, i) => i !== idx));
-    setDeleteIdx(null);
   };
 
   const updateDate = (idx: number, newDate: Date) => {
     const updated = [...khatms];
     updated[idx] = { ...updated[idx], date: newDate.toISOString() };
     persist(updated);
+  };
+
+  return { khatms, addKhatm, deleteKhatm, updateDate };
+}
+
+/* ── Khatm Counter ── */
+
+function KhatmCounter({ khatmLog }: { khatmLog: ReturnType<typeof useKhatmLog> }) {
+  const { khatms, addKhatm, deleteKhatm, updateDate } = khatmLog;
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [deleteIdx, setDeleteIdx] = useState<number | null>(null);
+
+  const confirmKhatm = () => {
+    addKhatm();
+    setShowConfirm(false);
   };
 
   return (
@@ -144,7 +153,7 @@ function KhatmCounter() {
               className="flex-1 py-2.5 rounded-xl bg-secondary/30 text-foreground/70 text-sm font-medium">
               Cancel
             </button>
-            <button onClick={() => deleteIdx !== null && deleteKhatm(deleteIdx)}
+            <button onClick={() => deleteIdx !== null && (deleteKhatm(deleteIdx), setDeleteIdx(null))}
               className="flex-1 py-2.5 rounded-xl bg-red-500/20 text-red-400 text-sm font-semibold border border-red-500/20">
               Remove
             </button>
@@ -167,15 +176,11 @@ function ReadingStreak() {
 
       const now = new Date();
       const lastDate = new Date(lastRead.timestamp);
-      
-      // Check if last reading was today or yesterday
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const lastDay = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate());
       const diffDays = Math.floor((today.getTime() - lastDay.getTime()) / (1000 * 60 * 60 * 24));
-      
-      if (diffDays > 1) return 0; // streak broken
-      
-      // Count streak from reading history
+
+      if (diffDays > 1) return 0;
       const historyRaw = localStorage.getItem('nur_reading_streak');
       if (historyRaw) {
         const streak = JSON.parse(historyRaw);
@@ -202,7 +207,7 @@ function ReadingStreak() {
 
 /* ── Juz Progress Grid ── */
 
-function JuzProgress() {
+function JuzProgress({ onAllComplete }: { onAllComplete: () => void }) {
   const [completed, setCompleted] = useState<boolean[]>(() => {
     try {
       const saved = localStorage.getItem('nur_juz_progress');
@@ -220,6 +225,11 @@ function JuzProgress() {
     updated[idx] = !updated[idx];
     persist(updated);
     if (navigator.vibrate) navigator.vibrate(15);
+
+    // Check if all 30 are now complete
+    if (updated.every(Boolean)) {
+      setTimeout(() => onAllComplete(), 500);
+    }
   };
 
   const reset = () => {
@@ -266,6 +276,22 @@ function JuzProgress() {
 /* ── Main Page ── */
 
 export default function Tracker() {
+  const khatmLog = useKhatmLog();
+  const [showAutoKhatm, setShowAutoKhatm] = useState(false);
+
+  const handleAllJuzComplete = () => {
+    setShowAutoKhatm(true);
+  };
+
+  const confirmAutoKhatm = () => {
+    khatmLog.addKhatm();
+    // Reset juz progress
+    localStorage.setItem('nur_juz_progress', JSON.stringify(new Array(30).fill(false)));
+    setShowAutoKhatm(false);
+    // Force re-render by reloading juz state — trigger via page remount
+    window.location.reload();
+  };
+
   return (
     <div className="min-h-screen safe-area-top pb-24 relative">
       <div className="absolute inset-0 bg-gradient-to-b from-[hsl(180,30%,12%)] via-[hsl(35,40%,15%)] to-[hsl(230,25%,8%)]" />
@@ -275,13 +301,31 @@ export default function Tracker() {
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="pt-12 pb-6 text-center">
           <p className="font-arabic-display text-5xl text-primary leading-tight">رِحْلَتِي</p>
-          
         </motion.div>
 
-        <KhatmCounter />
+        <KhatmCounter khatmLog={khatmLog} />
         <ReadingStreak />
-        <JuzProgress />
+        <JuzProgress onAllComplete={handleAllJuzComplete} />
       </div>
+
+      {/* Auto Khatm modal */}
+      <Dialog open={showAutoKhatm} onOpenChange={setShowAutoKhatm}>
+        <DialogContent className="glass-card-strong border-primary/20 max-w-[340px] rounded-2xl">
+          <DialogHeader className="text-center">
+            <DialogTitle className="text-primary font-arabic text-2xl">مَاشَاءَ اللّٰه!</DialogTitle>
+            <DialogDescription className="text-foreground/80 text-sm mt-3">
+              You have completed the Quran!
+            </DialogDescription>
+          </DialogHeader>
+          <p className="text-xs text-muted-foreground text-center">
+            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+          </p>
+          <button onClick={confirmAutoKhatm}
+            className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm active:scale-[0.97] transition-all">
+            Alhamdulillah, record this Khatm ✓
+          </button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
