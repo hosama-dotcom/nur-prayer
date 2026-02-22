@@ -157,7 +157,7 @@ export default function Home() {
           transition={{ delay: 0.1 }}
           className="pt-12 pb-1 flex justify-end"
         >
-          <p className="text-[10px] text-white/[0.6] font-arabic">{getHijriDate()}</p>
+          <p className="text-sm text-white/70 font-arabic tracking-wide">{getHijriDate()}</p>
         </motion.div>
 
         {/* Hero */}
