@@ -32,6 +32,7 @@ export const duaTopics: DuaTopic[] = [
   { id: 'rain', label: 'Rain & Weather', arabicLabel: 'المطر', icon: '🌧' },
   { id: 'healing', label: 'Illness & Healing', arabicLabel: 'الشفاء', icon: '💚' },
   { id: 'parents', label: 'Parents & Children', arabicLabel: 'الوالدان', icon: '❤️' },
+  { id: 'knowledge', label: 'Knowledge', arabicLabel: 'العلم', icon: '📚' },
 ];
 
 let _id = 0;
@@ -189,4 +190,13 @@ export const duas: Dua[] = [
   d('parents', 'رَبِّ اجْعَلْنِي مُقِيمَ الصَّلَاةِ وَمِنْ ذُرِّيَّتِي', "Rabbij'alni muqimas-salati wa min dhurriyyati", 'My Lord, make me an establisher of prayer, and from my descendants.', 'Quran 14:40'),
   d('parents', 'اللَّهُمَّ اغْفِرْ لِحَيِّنَا وَمَيِّتِنَا وَشَاهِدِنَا وَغَائِبِنَا وَصَغِيرِنَا وَكَبِيرِنَا', "Allahummaghfir lihayyina wa mayyitina wa shahidina wa gha'ibina wa saghirina wa kabirina", 'O Allah, forgive our living and our dead, those present and those absent, our young and our old.', 'Ibn Majah'),
   d('parents', 'اللَّهُمَّ أَصْلِحْ لِي ذُرِّيَّتِي', 'Allahumma aslih li dhurriyyati', 'O Allah, set right my offspring for me.', 'Quran 46:15'),
+
+  // ── Knowledge (7) ──
+  d('knowledge', 'رَبِّ زِدْنِي عِلْمًا', 'Rabbi zidni ilma', 'My Lord, increase me in knowledge.', 'Quran 20:114'),
+  d('knowledge', 'اللَّهُمَّ انْفَعْنِي بِمَا عَلَّمْتَنِي وَعَلِّمْنِي مَا يَنْفَعُنِي', "Allahumman-fa'ni bima 'allamtani wa 'allimni ma yanfa'uni", 'O Allah, benefit me with what You have taught me, and teach me that which will benefit me.', 'Ibn Majah'),
+  d('knowledge', 'اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا وَرِزْقًا طَيِّبًا وَعَمَلًا مُتَقَبَّلًا', "Allahumma inni as'aluka 'ilman nafi'an wa rizqan tayyiban wa 'amalan mutaqabbala", 'O Allah, I ask You for beneficial knowledge, good provision, and accepted deeds.', 'Ibn Majah'),
+  d('knowledge', 'اللَّهُمَّ اهْدِنِي وَسَدِّدْنِي', 'Allahummahdini wa saddidni', 'O Allah, guide me and make me steadfast.', 'Muslim'),
+  d('knowledge', 'رَبِّ اشْرَحْ لِي صَدْرِي وَيَسِّرْ لِي أَمْرِي', 'Rabbish-rahli sadri wa yassir li amri', 'My Lord, expand for me my chest and ease for me my task.', 'Quran 20:25-26'),
+  d('knowledge', 'اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عِلْمٍ لَا يَنْفَعُ', "Allahumma inni a'udhu bika min 'ilmin la yanfa'", 'O Allah, I seek refuge in You from knowledge that does not benefit.', 'Muslim'),
+  d('knowledge', 'سُبْحَانَكَ لَا عِلْمَ لَنَا إِلَّا مَا عَلَّمْتَنَا إِنَّكَ أَنتَ الْعَلِيمُ الْحَكِيمُ', "Subhanaka la 'ilma lana illa ma 'allamtana innaka antal-'alimul-hakim", 'Glory be to You, we have no knowledge except what You have taught us. Indeed, You are the All-Knowing, the All-Wise.', 'Quran 2:32'),
 ];
