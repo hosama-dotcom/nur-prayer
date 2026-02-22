@@ -154,9 +154,13 @@ export default function Home() {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="pt-12 pb-1 flex justify-end"
+          className="pt-12 pb-1 flex flex-col items-end"
         >
           <p className="text-sm text-white/70 font-arabic tracking-wide">{getHijriDate()}</p>
+          <button onClick={() => navigate('/more')} className="text-right active:opacity-70 transition-opacity mt-0.5">
+            <p className="text-[11px] text-white/50">{cityName ? `📍 ${cityName}` : '📍 Location unknown'}</p>
+            <p className="text-[9px] text-white/40">{methodLabel} Method</p>
+          </button>
         </motion.div>
 
         {/* Hero */}
@@ -222,23 +226,6 @@ export default function Home() {
           </div>
         </motion.div>
 
-        {/* Location pill */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="flex justify-center mt-3"
-        >
-          <button
-            onClick={() => navigate('/more')}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.08] backdrop-blur-lg active:scale-95 transition-transform"
-          >
-            <span className="text-[11px]">📍</span>
-            <span className="text-[11px] text-white/50">
-              {cityName ? `${cityName} · ${methodLabel}` : 'Location unknown — tap to set'}
-            </span>
-          </button>
-        </motion.div>
 
         {/* Qibla pill */}
         <motion.div
