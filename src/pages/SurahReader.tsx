@@ -112,6 +112,9 @@ export default function SurahReader() {
   const [totalPages, setTotalPages] = useState(1);
   const [fontSize, setFontSize] = useState(getStoredFontSize);
   const [showTranslation, setShowTranslation] = useState(false);
+  const [currentJuz, setCurrentJuz] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState<number | null>(null);
+  const [scrollActive, setScrollActive] = useState(false);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(getBookmarks);
 
   // Audio
@@ -151,15 +154,30 @@ export default function SurahReader() {
     const fetchVerses = async () => {
       setLoading(true);
       try {
-        const res = await fetch(
-          `https://api.quran.com/api/v4/verses/by_chapter/${chapterNum}?language=en&words=false&translations=131&fields=text_uthmani,page_number,juz_number&per_page=50&page=${page}`
-        );
-        if (!res.ok) throw new Error('Failed to fetch verses');
-        const raw = await res.json();
+        // Fetch verses and translations in parallel
+        const [versesRes, translationsRes] = await Promise.all([
+          fetch(`https://api.quran.com/api/v4/verses/by_chapter/${chapterNum}?language=en&words=false&fields=text_uthmani,page_number,juz_number&per_page=50&page=${page}`),
+          fetch(`https://api.quran.com/api/v4/quran/translations/20?chapter_number=${chapterNum}`),
+        ]);
+        if (!versesRes.ok) throw new Error('Failed to fetch verses');
+        const raw = await versesRes.json();
         const parsed = apiResponseSchema.safeParse(raw);
         if (!parsed.success) throw new Error('Invalid verse data received');
         const data = parsed.data as ApiResponse;
-        setVerses(prev => page === 1 ? data.verses : [...prev, ...data.verses]);
+
+        // Merge translations into verses
+        let translationTexts: string[] = [];
+        if (translationsRes.ok) {
+          const tData = await translationsRes.json();
+          translationTexts = (tData.translations || []).map((t: { text: string }) => t.text);
+        }
+
+        const versesWithTranslations = data.verses.map((v, i) => ({
+          ...v,
+          translations: translationTexts[i + (page - 1) * 50] ? [{ text: translationTexts[i + (page - 1) * 50] }] : [],
+        }));
+
+        setVerses(prev => page === 1 ? versesWithTranslations : [...prev, ...versesWithTranslations]);
         setTotalPages(data.pagination.total_pages);
       } catch (e: any) {
         setError(e.message);
@@ -223,7 +241,9 @@ export default function SurahReader() {
     return () => { clearTimeout(timeout); observerRef.current?.disconnect(); };
   }, [loading, page, totalPages]);
 
-  // Save reading progress on scroll (debounced)
+  // Save reading progress on scroll + track current juz/page
+  const scrollFadeRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     const handleScroll = () => {
       // Find which verse badge is closest to viewport center
@@ -237,6 +257,18 @@ export default function SurahReader() {
       });
       visibleVerseRef.current = closestVerse;
 
+      // Update floating Juz/page indicator
+      const currentVerseData = verses.find(v => v.verse_number === closestVerse);
+      if (currentVerseData) {
+        if (currentVerseData.juz_number) setCurrentJuz(currentVerseData.juz_number);
+        if (currentVerseData.page_number) setCurrentPage(currentVerseData.page_number);
+      }
+
+      // Show indicator on scroll, fade after 2s
+      setScrollActive(true);
+      if (scrollFadeRef.current) clearTimeout(scrollFadeRef.current);
+      scrollFadeRef.current = setTimeout(() => setScrollActive(false), 2000);
+
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
       saveTimeoutRef.current = setTimeout(() => {
         saveLastRead(chapterNum, visibleVerseRef.current);
@@ -247,12 +279,18 @@ export default function SurahReader() {
     return () => {
       window.removeEventListener('scroll', handleScroll);
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      if (scrollFadeRef.current) clearTimeout(scrollFadeRef.current);
     };
-  }, [chapterNum]);
+  }, [chapterNum, verses]);
 
-  // Save on mount too
+  // Save on mount + init juz/page
   useEffect(() => {
-    if (verses.length > 0) saveLastRead(chapterNum, scrollToVerse || 1);
+    if (verses.length > 0) {
+      saveLastRead(chapterNum, scrollToVerse || 1);
+      const first = verses[0];
+      if (first.juz_number && !currentJuz) setCurrentJuz(first.juz_number);
+      if (first.page_number && !currentPage) setCurrentPage(first.page_number);
+    }
   }, [chapterNum, verses.length, scrollToVerse]);
 
   const adjustFontSize = (delta: number) => {
@@ -382,6 +420,26 @@ export default function SurahReader() {
           </div>
         </div>
 
+        {/* Floating Juz/Page indicator */}
+        {(currentJuz || currentPage) && (
+          <div
+            className="fixed top-[72px] left-1/2 -translate-x-1/2 z-25 pointer-events-none transition-opacity duration-500"
+            style={{ opacity: scrollActive ? 1 : 0.4 }}
+          >
+            <div
+              className="px-3 py-1.5 rounded-full text-[10px] font-medium tracking-wider text-white/70"
+              style={{
+                background: 'hsla(230, 20%, 12%, 0.85)',
+                border: '1px solid hsla(0, 0%, 100%, 0.08)',
+                backdropFilter: 'blur(20px)',
+              }}
+            >
+              {currentJuz && `Juz ${currentJuz}`}
+              {currentJuz && currentPage && ' · '}
+              {currentPage && `Page ${currentPage}`}
+            </div>
+          </div>
+        )}
         {/* Reciter picker */}
         <AnimatePresence>
           {showReciterPicker && (
