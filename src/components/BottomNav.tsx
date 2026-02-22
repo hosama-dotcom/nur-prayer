@@ -23,20 +23,20 @@ export function BottomNav() {
               <button
                 key={tab.path}
                 onClick={() => navigate(tab.path)}
-                className="flex flex-col items-center gap-1 py-1 px-3 relative"
+                className="relative flex flex-col items-center gap-1 py-1 px-3"
               >
-                {isActive && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute -top-1 w-8 h-1 rounded-full bg-primary"
-                    style={{ left: '50%', transform: 'translateX(-50%)' }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                  />
-                )}
                 <tab.icon active={isActive} />
                 <span className={`text-[10px] font-medium transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
                   {tab.label}
                 </span>
+                {isActive && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute bottom-0 w-5 h-1 rounded-full bg-primary"
+                    style={{ left: '50%', transform: 'translateX(-50%)' }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  />
+                )}
               </button>
             );
           })}
