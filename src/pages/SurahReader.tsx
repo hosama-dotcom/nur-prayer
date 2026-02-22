@@ -41,18 +41,17 @@ export default function SurahReader() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [fontSize, setFontSize] = useState(getStoredFontSize);
+  const [showTranslation, setShowTranslation] = useState(false);
 
-  // Audio player state
+  // Audio
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioDuration, setAudioDuration] = useState(0);
   const [audioCurrentTime, setAudioCurrentTime] = useState(0);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const observerRef = useRef<IntersectionObserver | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
-  // Reset on chapter change
   useEffect(() => {
     setVerses([]);
     setPage(1);
@@ -62,19 +61,16 @@ export default function SurahReader() {
     setAudioCurrentTime(0);
     setAudioDuration(0);
     setAudioUrl(null);
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
   }, [chapterNum]);
 
-  // Fetch verses
   useEffect(() => {
     const fetchVerses = async () => {
       setLoading(true);
       try {
-        const url = `https://api.quran.com/api/v4/verses/by_chapter/${chapterNum}?language=en&words=false&translations=131&fields=text_uthmani&per_page=50&page=${page}`;
-        const res = await fetch(url);
+        const res = await fetch(
+          `https://api.quran.com/api/v4/verses/by_chapter/${chapterNum}?language=en&words=false&translations=131&fields=text_uthmani&per_page=50&page=${page}`
+        );
         if (!res.ok) throw new Error('Failed to fetch verses');
         const data: ApiResponse = await res.json();
         console.log(`[SurahReader] Chapter ${chapterNum}, page ${page}:`, data);
@@ -89,20 +85,14 @@ export default function SurahReader() {
     fetchVerses();
   }, [chapterNum, page]);
 
-  // Fetch full surah audio
   useEffect(() => {
     const fetchAudio = async () => {
       try {
         const res = await fetch(`https://api.quran.com/api/v4/chapter_recitations/7/${chapterNum}`);
         const data = await res.json();
         const url = data.audio_file?.audio_url;
-        if (url) {
-          console.log(`[SurahReader] Audio URL for chapter ${chapterNum}:`, url);
-          setAudioUrl(url);
-        }
-      } catch {
-        console.warn('[SurahReader] Failed to fetch surah audio');
-      }
+        if (url) setAudioUrl(url);
+      } catch { /* silent */ }
     };
     fetchAudio();
   }, [chapterNum]);
@@ -112,21 +102,14 @@ export default function SurahReader() {
     if (loading || page >= totalPages) return;
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
-
     observerRef.current = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setPage(p => p + 1);
-        }
-      },
+      ([entry]) => { if (entry.isIntersecting) setPage(p => p + 1); },
       { threshold: 0.1 }
     );
     observerRef.current.observe(sentinel);
-
     return () => observerRef.current?.disconnect();
   }, [loading, page, totalPages]);
 
-  // Font size
   const adjustFontSize = (delta: number) => {
     setFontSize(prev => {
       const next = Math.max(20, Math.min(40, prev + delta));
@@ -135,7 +118,6 @@ export default function SurahReader() {
     });
   };
 
-  // Audio controls
   const togglePlay = useCallback(() => {
     if (!audioUrl) return;
     if (!audioRef.current) {
@@ -145,14 +127,16 @@ export default function SurahReader() {
       audio.addEventListener('timeupdate', () => setAudioCurrentTime(audio.currentTime));
       audio.addEventListener('ended', () => { setIsPlaying(false); setAudioCurrentTime(0); });
     }
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      audioRef.current.play();
-      setIsPlaying(true);
-    }
+    if (isPlaying) { audioRef.current.pause(); setIsPlaying(false); }
+    else { audioRef.current.play(); setIsPlaying(true); }
   }, [audioUrl, isPlaying]);
+
+  const skipBack = () => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 10);
+      setAudioCurrentTime(audioRef.current.currentTime);
+    }
+  };
 
   const seekAudio = (value: number[]) => {
     if (audioRef.current) {
@@ -167,8 +151,27 @@ export default function SurahReader() {
     return `${m}:${sec.toString().padStart(2, '0')}`;
   };
 
+  // Verse number badge component — small inline gold circle
+  const VerseBadge = ({ num }: { num: number }) => (
+    <span
+      className="inline-flex items-center justify-center mx-1 align-middle rounded-full border border-primary/30 text-primary"
+      style={{
+        width: '20px',
+        height: '20px',
+        fontSize: '9px',
+        fontFamily: 'Inter, sans-serif',
+        fontWeight: 600,
+        lineHeight: 1,
+        verticalAlign: 'middle',
+        background: 'hsla(var(--primary) / 0.12)',
+      }}
+    >
+      {num}
+    </span>
+  );
+
   return (
-    <div className="min-h-screen gradient-isha pb-36 safe-area-top" ref={scrollContainerRef}>
+    <div className="min-h-screen gradient-isha safe-area-top" style={{ paddingBottom: audioUrl ? '160px' : '100px' }}>
       <div className="geometric-pattern absolute inset-0 pointer-events-none opacity-30" />
       <div className="relative z-10">
 
@@ -196,103 +199,119 @@ export default function SurahReader() {
           </div>
         </div>
 
-        {/* Font size toolbar */}
-        <div className="fixed top-20 right-4 z-30 flex flex-col gap-1">
+        {/* Floating toolbar: EN toggle + font size pill */}
+        <div className="fixed top-20 right-4 z-30 flex items-center gap-2">
           <button
-            onClick={() => adjustFontSize(2)}
-            className="w-9 h-9 rounded-xl bg-secondary/70 backdrop-blur-sm flex items-center justify-center text-primary text-sm font-bold"
+            onClick={() => setShowTranslation(t => !t)}
+            className={`h-8 px-2.5 rounded-full text-[10px] font-semibold backdrop-blur-sm transition-colors ${
+              showTranslation ? 'bg-primary/25 text-primary' : 'bg-secondary/70 text-muted-foreground'
+            }`}
           >
-            A+
+            EN
           </button>
-          <button
-            onClick={() => adjustFontSize(-2)}
-            className="w-9 h-9 rounded-xl bg-secondary/70 backdrop-blur-sm flex items-center justify-center text-primary text-xs font-bold"
-          >
-            A-
-          </button>
+          <div className="flex items-center bg-secondary/70 backdrop-blur-sm rounded-full overflow-hidden">
+            <button
+              onClick={() => adjustFontSize(-2)}
+              className="h-8 w-8 flex items-center justify-center text-primary text-[11px] font-bold hover:bg-secondary/90 transition-colors"
+            >
+              A-
+            </button>
+            <div className="w-px h-4 bg-muted-foreground/20" />
+            <button
+              onClick={() => adjustFontSize(2)}
+              className="h-8 w-8 flex items-center justify-center text-primary text-[12px] font-bold hover:bg-secondary/90 transition-colors"
+            >
+              A+
+            </button>
+          </div>
         </div>
 
         {/* Bismillah */}
         {chapterNum !== 9 && chapterNum !== 1 && (
           <div className="text-center py-8 px-5">
-            <p className="font-arabic-display text-2xl text-primary/60">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</p>
+            <p className="font-arabic-display text-2xl text-primary/50">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</p>
           </div>
         )}
 
-        {/* Verses — flowing layout */}
+        {/* Continuous flowing text */}
         <div className="px-6">
-          {verses.map((verse, i) => (
+          {verses.length > 0 && (
             <motion.div
-              key={verse.id}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: Math.min(i * 0.02, 0.5) }}
+              transition={{ duration: 0.4 }}
             >
-              {/* Arabic text with inline verse number */}
-              <div className="py-5" dir="rtl">
-                <p
-                  className="font-arabic-display text-primary/90 text-right leading-[2.2]"
-                  style={{ fontSize: `${fontSize}px` }}
-                >
-                  {verse.text_uthmani}
-                  <span
-                    className="inline-flex items-center justify-center mx-2 align-middle rounded-full bg-primary/15 text-primary"
-                    style={{ width: '1.6em', height: '1.6em', fontSize: '0.45em', fontFamily: 'Inter, sans-serif', fontWeight: 600 }}
-                  >
-                    {verse.verse_number}
+              {/* Arabic — one continuous flowing block */}
+              <p
+                className="font-arabic-display text-primary/90 text-right leading-[2.4]"
+                style={{ fontSize: `${fontSize}px` }}
+                dir="rtl"
+              >
+                {verses.map(verse => (
+                  <span key={verse.id}>
+                    {verse.text_uthmani}
+                    <VerseBadge num={verse.verse_number} />
+                    {' '}
                   </span>
-                </p>
-              </div>
+                ))}
+              </p>
 
-              {/* Translation */}
-              {verse.translations?.[0] && (
-                <p className="text-sm leading-relaxed text-muted-foreground/70 italic pb-5 text-left">
-                  {stripHtml(verse.translations[0].text)}
-                </p>
+              {/* Translations — shown when toggled */}
+              {showTranslation && (
+                <div className="mt-8 space-y-4">
+                  {verses.map(verse => (
+                    verse.translations?.[0] && (
+                      <p key={verse.id} className="text-[13px] leading-relaxed text-muted-foreground/60 italic text-left">
+                        <span className="text-primary/40 not-italic text-[11px] font-semibold mr-1.5">{verse.verse_number}.</span>
+                        {stripHtml(verse.translations[0].text)}
+                      </p>
+                    )
+                  ))}
+                </div>
               )}
-
-              {/* Divider */}
-              <div className="h-px w-full bg-primary/10" />
             </motion.div>
-          ))}
-
-          {/* Infinite scroll sentinel */}
-          {!loading && page < totalPages && (
-            <div ref={sentinelRef} className="h-10" />
           )}
 
-          {/* Loading */}
+          {!loading && page < totalPages && <div ref={sentinelRef} className="h-10" />}
+
           {loading && (
-            <div className="space-y-6 py-4">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="space-y-3">
-                  <Skeleton className="h-10 w-full bg-muted/30" />
-                  <Skeleton className="h-4 w-3/4 bg-muted/20" />
-                  <div className="h-px w-full bg-primary/5" />
-                </div>
+            <div className="space-y-4 py-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-12 w-full bg-muted/20" />
               ))}
             </div>
           )}
 
-          {/* Error */}
           {error && (
             <div className="text-center py-10">
               <p className="text-sm text-destructive mb-3">{error}</p>
-              <button
-                onClick={() => { setError(null); setPage(1); }}
-                className="text-sm text-primary underline"
-              >
-                Retry
-              </button>
+              <button onClick={() => { setError(null); setPage(1); }} className="text-sm text-primary underline">Retry</button>
             </div>
           )}
         </div>
       </div>
 
-      {/* Mini audio player — above bottom nav */}
+      {/* Mini audio player */}
       {audioUrl && (
-        <div className="fixed bottom-[68px] left-0 right-0 z-40 px-4 pb-2">
-          <div className="glass-card-strong p-3 flex items-center gap-3">
+        <div className="fixed bottom-[68px] left-0 right-0 z-40 px-3 pb-2">
+          <div
+            className="rounded-2xl border p-3 flex items-center gap-3"
+            style={{
+              background: 'hsla(230, 20%, 12%, 0.92)',
+              borderColor: 'hsla(0, 0%, 100%, 0.1)',
+              backdropFilter: 'blur(30px)',
+              WebkitBackdropFilter: 'blur(30px)',
+            }}
+          >
+            {/* Skip back */}
+            <button onClick={skipBack} className="w-8 h-8 flex items-center justify-center flex-shrink-0 text-muted-foreground">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 4v6h6" />
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+              </svg>
+            </button>
+
+            {/* Play/Pause */}
             <button
               onClick={togglePlay}
               className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0"
@@ -308,18 +327,14 @@ export default function SurahReader() {
                 </svg>
               )}
             </button>
+
+            {/* Info + progress */}
             <div className="flex-1 min-w-0">
               <p className="text-xs text-foreground truncate">{surah?.name}</p>
               <p className="text-[10px] text-muted-foreground">Mishary Rashid Al-Afasy</p>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-[9px] text-muted-foreground w-7 text-right">{formatTime(audioCurrentTime)}</span>
-                <Slider
-                  value={[audioCurrentTime]}
-                  max={audioDuration || 1}
-                  step={1}
-                  onValueChange={seekAudio}
-                  className="flex-1 h-1"
-                />
+                <Slider value={[audioCurrentTime]} max={audioDuration || 1} step={1} onValueChange={seekAudio} className="flex-1 h-1" />
                 <span className="text-[9px] text-muted-foreground w-7">{formatTime(audioDuration)}</span>
               </div>
             </div>
