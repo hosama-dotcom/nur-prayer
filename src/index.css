@@ -52,16 +52,16 @@
     --glass-shadow: 0 0% 0% / 0.3;
 
     /* Prayer time gradients */
-    --fajr-start: 235 45% 12%;
-    --fajr-end: 220 40% 25%;
-    --dhuhr-start: 40 60% 50%;
-    --dhuhr-end: 35 50% 40%;
-    --asr-start: 35 55% 45%;
-    --asr-end: 25 50% 35%;
-    --maghrib-start: 15 70% 45%;
-    --maghrib-end: 340 50% 35%;
-    --isha-start: 260 40% 15%;
-    --isha-end: 240 35% 10%;
+    --fajr-start: 228 75% 17%;
+    --fajr-end: 263 55% 27%;
+    --dhuhr-start: 198 70% 35%;
+    --dhuhr-end: 194 78% 24%;
+    --asr-start: 33 65% 46%;
+    --asr-end: 22 80% 30%;
+    --maghrib-start: 18 72% 44%;
+    --maghrib-end: 330 60% 30%;
+    --isha-start: 240 43% 7%;
+    --isha-end: 260 65% 14%;
   }
 }
 
@@ -105,60 +105,60 @@
   .gradient-fajr {
     background: linear-gradient(
       160deg,
-      hsl(235 45% 12%) 0%,
-      hsl(220 40% 22%) 50%,
-      hsl(210 35% 30%) 100%
+      #0D1B4B 0%,
+      #24165C 50%,
+      #3B1F6A 100%
     );
   }
 
   .gradient-dhuhr {
     background: linear-gradient(
       160deg,
-      hsl(45 65% 55%) 0%,
-      hsl(40 55% 45%) 50%,
-      hsl(35 50% 38%) 100%
+      #1A6B9A 0%,
+      #125C84 50%,
+      #0D4F6C 100%
     );
   }
 
   .gradient-asr {
     background: linear-gradient(
       160deg,
-      hsl(38 60% 50%) 0%,
-      hsl(30 55% 42%) 50%,
-      hsl(25 48% 35%) 100%
+      #C17A2A 0%,
+      #A05C1C 50%,
+      #8B3E0F 100%
     );
   }
 
   .gradient-maghrib {
     background: linear-gradient(
       160deg,
-      hsl(20 75% 50%) 0%,
-      hsl(350 55% 40%) 50%,
-      hsl(330 45% 30%) 100%
+      #C4511A 0%,
+      #9C3830 50%,
+      #7B1F4A 100%
     );
   }
 
   .gradient-isha {
     background: linear-gradient(
       160deg,
-      hsl(260 40% 18%) 0%,
-      hsl(250 35% 14%) 50%,
-      hsl(240 35% 10%) 100%
+      #0A0A1A 0%,
+      #110A2D 50%,
+      #1A0A3B 100%
     );
   }
 
   .gradient-default {
     background: linear-gradient(
       160deg,
-      hsl(235 40% 15%) 0%,
-      hsl(235 35% 12%) 50%,
-      hsl(235 30% 8%) 100%
+      #0A0A1A 0%,
+      #110A2D 50%,
+      #1A0A3B 100%
     );
   }
 
   .geometric-pattern {
-    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0L60 30L30 60L0 30Z' fill='none' stroke='rgba(255,255,255,0.03)' stroke-width='1'/%3E%3Cpath d='M30 10L50 30L30 50L10 30Z' fill='none' stroke='rgba(255,255,255,0.02)' stroke-width='0.5'/%3E%3C/svg%3E");
-    background-size: 60px 60px;
+    background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 0L80 40L40 80L0 40Z' fill='none' stroke='rgba(255,255,255,0.08)' stroke-width='0.5'/%3E%3Cpath d='M40 12L68 40L40 68L12 40Z' fill='none' stroke='rgba(255,255,255,0.05)' stroke-width='0.5'/%3E%3Cpath d='M40 24L56 40L40 56L24 40Z' fill='none' stroke='rgba(255,255,255,0.03)' stroke-width='0.5'/%3E%3C/svg%3E");
+    background-size: 80px 80px;
   }
 
   .prayer-glow {
