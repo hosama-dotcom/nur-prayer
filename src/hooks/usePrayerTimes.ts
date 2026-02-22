@@ -79,8 +79,28 @@ export function usePrayerTimes() {
     };
   }, [method]);
 
-  // Get location with watch for significant changes
+  // Get location — use cached position first, only request geolocation if stale (>1hr)
   useEffect(() => {
+    const CACHE_KEY = 'nur_cached_location';
+    const CACHE_MAX_AGE = 60 * 60 * 1000; // 1 hour
+
+    const loadCached = (): { lat: number; lng: number; city: string; ts: number } | null => {
+      try { return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch { return null; }
+    };
+
+    const saveCache = (lat: number, lng: number, city: string) => {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ lat, lng, city, ts: Date.now() }));
+    };
+
+    const cached = loadCached();
+    if (cached && Date.now() - cached.ts < CACHE_MAX_AGE) {
+      setLocation({ lat: cached.lat, lng: cached.lng, city: cached.city });
+      setCityName(cached.city || localStorage.getItem('nur_location_name') || '');
+      setQiblaDirection(getQiblaDirection(cached.lat, cached.lng));
+      setLoading(false);
+      return; // use cache, skip geolocation request
+    }
+
     if (!navigator.geolocation) {
       setLocation({ lat: 21.4225, lng: 39.8262, city: 'Makkah' });
       setCityName('Makkah');
@@ -92,8 +112,6 @@ export function usePrayerTimes() {
 
     const handlePosition = async (pos: GeolocationPosition) => {
       const { latitude, longitude } = pos.coords;
-
-      // Only update if moved >10km or first time
       if (lastLat !== 0 && haversineKm(lastLat, lastLng, latitude, longitude) < 10) return;
       lastLat = latitude;
       lastLng = longitude;
@@ -102,11 +120,13 @@ export function usePrayerTimes() {
       setQiblaDirection(getQiblaDirection(latitude, longitude));
       setLoading(false);
 
-      // Reverse geocode
       const city = await reverseGeocode(latitude, longitude);
       if (city) {
         setCityName(city);
         localStorage.setItem('nur_location_name', city);
+        saveCache(latitude, longitude, city);
+      } else {
+        saveCache(latitude, longitude, '');
       }
     };
 
@@ -117,14 +137,23 @@ export function usePrayerTimes() {
       setLoading(false);
     };
 
-    navigator.geolocation.getCurrentPosition(handlePosition, handleError);
-
-    const watchId = navigator.geolocation.watchPosition(handlePosition, () => {}, {
-      enableHighAccuracy: false,
-      maximumAge: 300000, // 5 min
-    });
-
-    return () => navigator.geolocation.clearWatch(watchId);
+    // Check permission state first to avoid prompting
+    if (navigator.permissions) {
+      navigator.permissions.query({ name: 'geolocation' }).then(result => {
+        if (result.state === 'granted') {
+          navigator.geolocation.getCurrentPosition(handlePosition, handleError);
+        } else if (result.state === 'prompt') {
+          // Only prompt once — use fallback if denied
+          navigator.geolocation.getCurrentPosition(handlePosition, handleError);
+        } else {
+          handleError();
+        }
+      }).catch(() => {
+        navigator.geolocation.getCurrentPosition(handlePosition, handleError);
+      });
+    } else {
+      navigator.geolocation.getCurrentPosition(handlePosition, handleError);
+    }
   }, []);
 
   // Calculate prayer times
