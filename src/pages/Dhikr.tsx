@@ -385,8 +385,14 @@ export default function Dhikr() {
     <div className="min-h-screen safe-area-top relative overflow-hidden flex flex-col" style={{ background: 'linear-gradient(180deg, #070D1A 0%, #0C1629 40%, #0A1020 100%)' }}>
       <div className="geometric-pattern absolute inset-0 pointer-events-none opacity-20" />
 
+      {/* Header */}
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="relative z-30 pt-12 pb-2 text-center">
+        <p className="font-arabic-display text-5xl text-primary leading-tight">الأَذْكَار وَالأَدْعِيَة</p>
+        <p className="text-sm font-light text-foreground/80 mt-1 tracking-wide">Adhkar & Duas</p>
+      </motion.div>
+
       {/* Pill toggle */}
-      <div className="relative z-30 flex justify-center pt-14 pb-2">
+      <div className="relative z-30 flex justify-center pt-2 pb-2">
         <div className="inline-flex rounded-full p-1 bg-white/[0.06] border border-white/[0.08] backdrop-blur-sm">
           {(['dhikr', 'duas'] as const).map((t) => (
             <button

@@ -155,6 +155,51 @@ function KhatmCounter() {
   );
 }
 
+/* ── Reading Streak ── */
+
+function ReadingStreak() {
+  const getStreak = (): number => {
+    try {
+      const raw = localStorage.getItem('nur_last_read');
+      if (!raw) return 0;
+      const lastRead = JSON.parse(raw);
+      if (!lastRead?.timestamp) return 0;
+
+      const now = new Date();
+      const lastDate = new Date(lastRead.timestamp);
+      
+      // Check if last reading was today or yesterday
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const lastDay = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate());
+      const diffDays = Math.floor((today.getTime() - lastDay.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (diffDays > 1) return 0; // streak broken
+      
+      // Count streak from reading history
+      const historyRaw = localStorage.getItem('nur_reading_streak');
+      if (historyRaw) {
+        const streak = JSON.parse(historyRaw);
+        return typeof streak === 'number' ? streak : 1;
+      }
+      return diffDays <= 1 ? 1 : 0;
+    } catch { return 0; }
+  };
+
+  const streak = getStreak();
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="glass-card p-5 mb-5">
+      <div className="flex items-center gap-3">
+        <span className="text-2xl">🔥</span>
+        <div>
+          <p className="text-sm font-semibold text-primary">{streak} day streak</p>
+          <p className="text-[11px] text-muted-foreground">Consecutive days with Quran reading</p>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 /* ── Juz Progress Grid ── */
 
 function JuzProgress() {
@@ -229,11 +274,12 @@ export default function Tracker() {
       <div className="relative z-10 px-5">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="pt-12 pb-6 text-center">
-          <p className="font-arabic-display text-[52px] text-primary leading-none mb-2">رِحْلَتِي</p>
-          <p className="text-sm font-light text-foreground/80 tracking-wide">My Journey</p>
+          <p className="font-arabic-display text-5xl text-primary leading-tight">رِحْلَتِي</p>
+          <p className="text-sm font-light text-foreground/80 mt-1 tracking-wide">My Journey</p>
         </motion.div>
 
         <KhatmCounter />
+        <ReadingStreak />
         <JuzProgress />
       </div>
     </div>
