@@ -123,7 +123,8 @@ export default function SurahReader() {
     if (!audioRef.current) {
       const audio = new Audio(audioUrl);
       audioRef.current = audio;
-      audio.addEventListener('loadedmetadata', () => setAudioDuration(audio.duration));
+      audio.addEventListener('loadedmetadata', () => { if (audio.duration && isFinite(audio.duration)) setAudioDuration(audio.duration); });
+      audio.addEventListener('durationchange', () => { if (audio.duration && isFinite(audio.duration)) setAudioDuration(audio.duration); });
       audio.addEventListener('timeupdate', () => setAudioCurrentTime(audio.currentTime));
       audio.addEventListener('ended', () => { setIsPlaying(false); setAudioCurrentTime(0); });
     }
@@ -171,7 +172,7 @@ export default function SurahReader() {
   );
 
   return (
-    <div className="min-h-screen gradient-isha safe-area-top" style={{ paddingBottom: audioUrl ? '160px' : '100px' }}>
+    <div className="min-h-screen gradient-isha safe-area-top" style={{ paddingBottom: audioUrl ? '180px' : '120px' }}>
       <div className="geometric-pattern absolute inset-0 pointer-events-none opacity-30" />
       <div className="relative z-10">
 
