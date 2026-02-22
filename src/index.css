@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Scheherazade+New:wght@400;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -81,6 +81,10 @@
   .font-arabic {
     font-family: 'Amiri', serif;
   }
+
+  .font-arabic-display {
+    font-family: 'Scheherazade New', 'Amiri', serif;
+  }
 }
 
 @layer components {
@@ -107,7 +111,7 @@
   }
 
   .gradient-dhuhr {
-    background: linear-gradient(180deg, #1A6B9A 0%, #0D4F6C 50%, #0A2A3B 100%);
+    background: linear-gradient(180deg, #2980B9 0%, #1A5276 40%, #0D2137 100%);
   }
 
   .gradient-asr {

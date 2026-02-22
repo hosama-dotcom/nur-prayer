@@ -39,10 +39,10 @@ export function getPrayerTimes(
   return [
     { name: 'fajr', label: 'Fajr', arabicLabel: 'الفجر', time: prayerTimes.fajr },
     { name: 'sunrise', label: 'Sunrise', arabicLabel: 'الشروق', time: prayerTimes.sunrise },
-    { name: 'dhuhr', label: 'Dhuhr', arabicLabel: 'الظهر', time: prayerTimes.dhuhr },
-    { name: 'asr', label: 'Asr', arabicLabel: 'العصر', time: prayerTimes.asr },
-    { name: 'maghrib', label: 'Maghrib', arabicLabel: 'المغرب', time: prayerTimes.maghrib },
-    { name: 'isha', label: 'Isha', arabicLabel: 'العشاء', time: prayerTimes.isha },
+    { name: 'dhuhr', label: 'Dhuhr', arabicLabel: 'الظُّهْر', time: prayerTimes.dhuhr },
+    { name: 'asr', label: 'Asr', arabicLabel: 'العَصْر', time: prayerTimes.asr },
+    { name: 'maghrib', label: 'Maghrib', arabicLabel: 'المَغْرِب', time: prayerTimes.maghrib },
+    { name: 'isha', label: 'Isha', arabicLabel: 'العِشَاء', time: prayerTimes.isha },
   ];
 }
 
