@@ -275,7 +275,7 @@ export default function Tracker() {
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="pt-12 pb-6 text-center">
           <p className="font-arabic-display text-5xl text-primary leading-tight">رِحْلَتِي</p>
-          <p className="text-sm font-light text-foreground/80 mt-1 tracking-wide">My Journey</p>
+          
         </motion.div>
 
         <KhatmCounter />
