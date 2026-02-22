@@ -3,6 +3,7 @@ import { usePrayerTimes } from '@/hooks/usePrayerTimes';
 import { GradientBackground } from '@/components/GradientBackground';
 import { formatTime, getHijriDate, isRamadan, getTimeUntil, getPrayerTimes } from '@/lib/prayer-utils';
 import { useMemo, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { QiblaCompass } from '@/components/QiblaCompass';
 import type { PrayerName } from '@/lib/prayer-utils';
 
@@ -119,13 +120,11 @@ function RamadanCountdown({ maghribTime, fajrTime }: { maghribTime: Date; fajrTi
   );
 }
 
-
-
-
 export default function Home() {
-  const { prayers, currentPrayer, nextPrayer, countdown, qiblaDirection, loading, location } = usePrayerTimes();
+  const { prayers, currentPrayer, nextPrayer, countdown, qiblaDirection, loading, location, cityName, methodLabel } = usePrayerTimes();
   const verse = useMemo(() => getDailyVerse(), []);
   const [compassOpen, setCompassOpen] = useState(false);
+  const navigate = useNavigate();
 
   if (loading) {
     return (
@@ -223,12 +222,30 @@ export default function Home() {
           </div>
         </motion.div>
 
+        {/* Location pill */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="flex justify-center mt-3"
+        >
+          <button
+            onClick={() => navigate('/more')}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.08] backdrop-blur-lg active:scale-95 transition-transform"
+          >
+            <span className="text-[11px]">📍</span>
+            <span className="text-[11px] text-white/50">
+              {cityName ? `${cityName} · ${methodLabel}` : 'Location unknown — tap to set'}
+            </span>
+          </button>
+        </motion.div>
+
         {/* Qibla pill */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="flex justify-center mt-6"
+          className="flex justify-center mt-4"
         >
           <button
             onClick={() => setCompassOpen(true)}

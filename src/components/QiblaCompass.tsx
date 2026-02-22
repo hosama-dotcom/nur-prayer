@@ -181,16 +181,18 @@ export function QiblaCompass({ open, onClose, qiblaDirection, latitude, longitud
                 );
               })}
 
-              {/* Compass needle */}
-              <polygon
-                points={`${cx},${cy - 65} ${cx - 7},${cy} ${cx},${cy - 10} ${cx + 7},${cy}`}
-                fill={aligned ? '#34D399' : '#C9A84C'}
-                opacity="0.9"
-              />
-              <polygon
-                points={`${cx},${cy + 65} ${cx - 7},${cy} ${cx},${cy + 10} ${cx + 7},${cy}`}
-                fill="rgba(255,255,255,0.15)"
-              />
+              {/* Qibla needle — rotated to point toward Makkah */}
+              <g transform={`rotate(${qiblaDirection}, ${cx}, ${cy})`}>
+                <polygon
+                  points={`${cx},${cy - 65} ${cx - 7},${cy} ${cx},${cy - 10} ${cx + 7},${cy}`}
+                  fill={aligned ? '#34D399' : '#C9A84C'}
+                  opacity="0.9"
+                />
+                <polygon
+                  points={`${cx},${cy + 65} ${cx - 7},${cy} ${cx},${cy + 10} ${cx + 7},${cy}`}
+                  fill="rgba(255,255,255,0.15)"
+                />
+              </g>
 
               {/* Center jewel */}
               <circle cx={cx} cy={cy} r="6" fill="#0C1219" stroke={aligned ? '#34D399' : '#C9A84C'} strokeWidth="1.5" />

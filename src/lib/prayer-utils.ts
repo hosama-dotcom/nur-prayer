@@ -28,7 +28,7 @@ export function getPrayerTimes(
   lat: number,
   lng: number,
   date: Date = new Date(),
-  method: CalcMethod = 'UmmAlQura'
+  method: CalcMethod = 'Dubai'
 ): PrayerTime[] {
   const coordinates = new Coordinates(lat, lng);
   const params = methodMap[method]();
@@ -54,7 +54,7 @@ export function getCurrentPrayer(prayers: PrayerTime[]): PrayerName {
   return 'isha';
 }
 
-export function getNextPrayer(prayers: PrayerTime[], lat: number, lng: number, method: CalcMethod = 'UmmAlQura'): PrayerTime | null {
+export function getNextPrayer(prayers: PrayerTime[], lat: number, lng: number, method: CalcMethod = 'Dubai'): PrayerTime | null {
   const now = new Date();
   for (const p of prayers) {
     if (p.time > now) return p;

@@ -57,7 +57,7 @@ export default function More() {
   const [view, setView] = useState<SettingsView>('main');
   const [calcOpen, setCalcOpen] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<CalcMethod>(() => {
-    return (localStorage.getItem('nur-calc-method') as CalcMethod) || 'UmmAlQura';
+    return (localStorage.getItem('nur-calc-method') as CalcMethod) || 'Dubai';
   });
 
   const handleMethodChange = (method: CalcMethod) => {
