@@ -172,9 +172,6 @@ export default function Home() {
               {currentPrayerData.arabicLabel}
             </p>
           )}
-          <h1 className="text-2xl text-white/70 mt-1" style={{ fontWeight: 300, letterSpacing: '0.15em' }}>
-            {currentPrayerData?.label || 'Prayer'}
-          </h1>
           {nextPrayer && (
             <motion.div
               initial={{ opacity: 0 }}
