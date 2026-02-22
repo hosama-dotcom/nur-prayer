@@ -118,6 +118,7 @@ export default function SurahReader() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(getBookmarks);
   const [isLandscape, setIsLandscape] = useState(false);
   const [audioExpanded, setAudioExpanded] = useState(false);
+  const [showPlayer, setShowPlayer] = useState(true);
 
   // Audio
   const [isPlaying, setIsPlaying] = useState(false);
@@ -423,8 +424,8 @@ export default function SurahReader() {
           </div>
         )}
 
-        {/* Floating toolbar - landscape: compact top-right; portrait: normal */}
-        <div className={`fixed z-30 flex items-center gap-1.5 ${isLandscape ? 'top-1.5 right-3' : 'top-20 right-4 gap-2'}`}>
+        {/* Floating toolbar - landscape: compact top-right with safe area; portrait: normal */}
+        <div className={`fixed z-30 flex items-center gap-1.5 ${isLandscape ? 'top-1.5' : 'top-20 right-4 gap-2'}`} style={isLandscape ? { right: 'calc(16px + env(safe-area-inset-right, 0px))' } : undefined}>
           <button
             onClick={() => setShowReciterPicker(p => !p)}
             className={`rounded-full font-semibold backdrop-blur-sm bg-secondary/70 text-muted-foreground transition-colors ${
@@ -609,8 +610,8 @@ export default function SurahReader() {
       {/* Audio player */}
       {audioUrl && (
         isLandscape ? (
-          // Landscape: minimal circular play button with progress arc, bottom-right
-          <div className="fixed bottom-3 right-3 z-40">
+          // Landscape: minimal circular play button with progress arc, bottom-right with safe area
+          <div className="fixed z-40" style={{ bottom: '12px', right: 'calc(16px + env(safe-area-inset-right, 0px))' }}>
             <AnimatePresence mode="wait">
               {audioExpanded ? (
                 <motion.div
@@ -679,35 +680,68 @@ export default function SurahReader() {
             </AnimatePresence>
           </div>
         ) : (
-          // Portrait: full mini player
-          <div className="fixed bottom-[100px] left-0 right-0 z-40 px-3 pb-2">
-            <div
-              className="rounded-2xl border p-3 flex items-center gap-3"
-              style={{ background: 'hsla(230, 20%, 12%, 0.92)', borderColor: 'hsla(0, 0%, 100%, 0.1)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)' }}
+          // Portrait: collapsible mini player + floating FAB
+          <>
+            {/* Floating play/pause FAB - always visible in portrait */}
+            <motion.button
+              onClick={() => setShowPlayer(p => !p)}
+              className="fixed z-50 w-10 h-10 rounded-full flex items-center justify-center"
+              style={{
+                bottom: '108px',
+                right: '12px',
+                background: 'hsla(230, 20%, 12%, 0.88)',
+                border: '1px solid hsla(0, 0%, 100%, 0.1)',
+                backdropFilter: 'blur(20px)',
+              }}
+              whileTap={{ scale: 0.9 }}
             >
-              <button onClick={skipBack} className="w-8 h-8 flex items-center justify-center flex-shrink-0 text-muted-foreground">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M1 4v6h6" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
-                </svg>
-              </button>
-              <button onClick={togglePlay} className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                {isPlaying ? (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
-                ) : (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><polygon points="6,3 20,12 6,21" /></svg>
-                )}
-              </button>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-foreground truncate">{surah?.name}</p>
-                <p className="text-[10px] text-muted-foreground">{RECITERS.find(r => r.id === reciterId)?.name || 'Unknown'}</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-[9px] text-muted-foreground w-7 text-right">{formatTime(audioCurrentTime)}</span>
-                  <Slider value={[audioCurrentTime]} max={audioDuration || 1} step={1} onValueChange={seekAudio} className="flex-1 h-1" />
-                  <span className="text-[9px] text-muted-foreground w-7">{formatTime(audioDuration)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
+              {isPlaying ? (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="hsl(var(--primary))"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="hsl(var(--primary))"><polygon points="6,3 20,12 6,21" /></svg>
+              )}
+            </motion.button>
+
+            {/* Sliding audio player */}
+            <AnimatePresence>
+              {showPlayer && (
+                <motion.div
+                  initial={{ y: 100, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: 100, opacity: 0 }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                  className="fixed bottom-[100px] left-0 right-0 z-40 px-3 pb-2"
+                >
+                  <div
+                    className="rounded-2xl border p-3 flex items-center gap-3"
+                    style={{ background: 'hsla(230, 20%, 12%, 0.92)', borderColor: 'hsla(0, 0%, 100%, 0.1)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)' }}
+                  >
+                    <button onClick={skipBack} className="w-8 h-8 flex items-center justify-center flex-shrink-0 text-muted-foreground">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M1 4v6h6" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+                      </svg>
+                    </button>
+                    <button onClick={togglePlay} className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                      {isPlaying ? (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
+                      ) : (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><polygon points="6,3 20,12 6,21" /></svg>
+                      )}
+                    </button>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-foreground truncate">{surah?.name}</p>
+                      <p className="text-[10px] text-muted-foreground">{RECITERS.find(r => r.id === reciterId)?.name || 'Unknown'}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[9px] text-muted-foreground w-7 text-right">{formatTime(audioCurrentTime)}</span>
+                        <Slider value={[audioCurrentTime]} max={audioDuration || 1} step={1} onValueChange={seekAudio} className="flex-1 h-1" />
+                        <span className="text-[9px] text-muted-foreground w-7">{formatTime(audioDuration)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </>
         )
       )}
     </div>
