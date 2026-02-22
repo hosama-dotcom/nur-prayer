@@ -42,16 +42,45 @@ function NotificationsScreen({ onBack }: { onBack: () => void }) {
     return Object.fromEntries(PRAYER_NAMES.map(p => [p, { enabled: true, sound: 'Makkah', reminder: false }]));
   });
 
+  const [adhanSound, setAdhanSound] = useState(() => localStorage.getItem('nur_adhan_sound') || 'Makkah');
+
   const update = (prayer: string, patch: Partial<NotificationSettings[string]>) => {
     const next = { ...settings, [prayer]: { ...settings[prayer], ...patch } };
     setSettings(next);
     localStorage.setItem('nur-notification-settings', JSON.stringify(next));
   };
 
+  const handleAdhanSound = (sound: string) => {
+    setAdhanSound(sound);
+    localStorage.setItem('nur_adhan_sound', sound);
+  };
+
   return (
     <div>
       <BackButton onClick={onBack} />
       <h2 className="text-lg font-semibold text-foreground mb-4">Notifications</h2>
+
+      {/* Global Adhan Sound */}
+      <div className="glass-card p-4 mb-4">
+        <p className="text-sm font-medium text-foreground mb-3">Adhan Sound</p>
+        <p className="text-[10px] text-muted-foreground mb-3">Per-prayer toggles on home screen override this setting</p>
+        <div className="flex gap-2">
+          {['Makkah', 'Madinah', 'None'].map((sound) => (
+            <button
+              key={sound}
+              onClick={() => handleAdhanSound(sound)}
+              className={`px-3 py-1.5 rounded-lg text-xs transition-all ${
+                adhanSound === sound
+                  ? 'bg-primary/15 text-primary border border-primary/20'
+                  : 'bg-secondary/20 text-foreground/60 border border-transparent'
+              }`}
+            >
+              {sound}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="space-y-3">
         {PRAYER_NAMES.map((prayer) => (
           <div key={prayer} className="glass-card p-4">
@@ -61,24 +90,6 @@ function NotificationsScreen({ onBack }: { onBack: () => void }) {
             </div>
             {settings[prayer]?.enabled && (
               <div className="space-y-3 pt-2 border-t border-border/30">
-                <div>
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Azan Sound</p>
-                  <div className="flex gap-2">
-                    {AZAN_SOUNDS.map((sound) => (
-                      <button
-                        key={sound}
-                        onClick={() => update(prayer, { sound })}
-                        className={`px-3 py-1.5 rounded-lg text-xs transition-all ${
-                          settings[prayer]?.sound === sound
-                            ? 'bg-primary/15 text-primary border border-primary/20'
-                            : 'bg-secondary/20 text-foreground/60 border border-transparent'
-                        }`}
-                      >
-                        {sound}
-                      </button>
-                    ))}
-                  </div>
-                </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-foreground/70">15 min reminder</span>
                   <Switch checked={settings[prayer]?.reminder ?? false} onCheckedChange={(v) => update(prayer, { reminder: v })} />

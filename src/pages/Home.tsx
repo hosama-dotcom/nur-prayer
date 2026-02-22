@@ -1,9 +1,11 @@
 import { motion } from 'framer-motion';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
+import { useAdhan, PRAYERS_WITH_ADHAN } from '@/hooks/useAdhan';
 import { GradientBackground } from '@/components/GradientBackground';
 import { formatTime, getHijriDate, isRamadan, getTimeUntil, getPrayerTimes } from '@/lib/prayer-utils';
 import { useMemo, useState, useEffect } from 'react';
 import { QiblaCompass } from '@/components/QiblaCompass';
+import type { PrayerName } from '@/lib/prayer-utils';
 
 const dailyVerses = [
   { arabic: 'إِنَّ مَعَ الْعُسْرِ يُسْرًا', translation: 'Indeed, with hardship comes ease.', ref: 'Ash-Sharh 94:6' },
@@ -63,7 +65,6 @@ function RamadanCountdown({ maghribTime, fajrTime }: { maghribTime: Date; fajrTi
   const hours = Math.floor(diff / (1000 * 60 * 60));
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
-  // Arc progress: fasting window = suhoor to maghrib
   const fastTotal = maghribTime.getTime() - suhoorTime.getTime();
   const fastElapsed = now.getTime() - suhoorTime.getTime();
   const progress = beforeIftar ? Math.min(1, Math.max(0, fastElapsed / fastTotal)) : 0;
@@ -119,10 +120,60 @@ function RamadanCountdown({ maghribTime, fajrTime }: { maghribTime: Date; fajrTi
   );
 }
 
+function AdhanIcon({ enabled, onToggle, isPlaying }: { enabled: boolean; onToggle: () => void; isPlaying: boolean }) {
+  return (
+    <motion.button
+      onClick={(e) => { e.stopPropagation(); onToggle(); }}
+      whileTap={{ scale: 0.8 }}
+      className="absolute top-2 right-2 z-10 p-0.5"
+    >
+      {enabled ? (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="hsl(43,50%,54%)" stroke="hsl(43,50%,54%)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+          <path d="M15.54 8.46a5 5 0 010 7.07" fill="none" />
+          <path d="M19.07 4.93a10 10 0 010 14.14" fill="none" />
+        </svg>
+      ) : (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="hsl(220,10%,45%)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+          <line x1="23" y1="9" x2="17" y2="15" />
+          <line x1="17" y1="9" x2="23" y2="15" />
+        </svg>
+      )}
+    </motion.button>
+  );
+}
+
+function StopAdhanButton({ onStop }: { onStop: () => void }) {
+  return (
+    <motion.button
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      onClick={onStop}
+      className="absolute top-1.5 left-1.5 z-10 w-5 h-5 rounded-full bg-white/10 border border-white/20 flex items-center justify-center"
+    >
+      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round">
+        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+      </svg>
+    </motion.button>
+  );
+}
+
 export default function Home() {
   const { prayers, currentPrayer, nextPrayer, countdown, qiblaDirection, loading, location } = usePrayerTimes();
+  const { prefs, togglePrayer, playing, stopAdhan, showBgTooltip } = useAdhan(prayers);
   const verse = useMemo(() => getDailyVerse(), []);
   const [compassOpen, setCompassOpen] = useState(false);
+  const [tooltipVisible, setTooltipVisible] = useState(false);
+
+  // Show background tooltip once
+  useEffect(() => {
+    if (showBgTooltip) {
+      setTooltipVisible(true);
+      const t = setTimeout(() => setTooltipVisible(false), 6000);
+      return () => clearTimeout(t);
+    }
+  }, [showBgTooltip]);
 
   if (loading) {
     return (
@@ -147,7 +198,7 @@ export default function Home() {
   return (
     <GradientBackground prayer={currentPrayer}>
       <div className="min-h-screen pb-24 px-5 safe-area-top">
-        {/* Top bar: hijri date top-right */}
+        {/* Top bar */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -157,7 +208,7 @@ export default function Home() {
           <p className="text-[10px] text-white/[0.6] font-arabic">{getHijriDate()}</p>
         </motion.div>
 
-        {/* Hero: Arabic calligraphy name → English → countdown */}
+        {/* Hero */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -189,6 +240,20 @@ export default function Home() {
           )}
         </motion.div>
 
+        {/* Background tooltip */}
+        {tooltipVisible && (
+          <motion.div
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="mb-3 mx-auto max-w-[300px]"
+          >
+            <div className="rounded-xl px-4 py-2.5 bg-white/[0.1] border border-white/[0.1] backdrop-blur-xl text-center">
+              <p className="text-[10px] text-white/60">Open the app at prayer time for Adhan to play</p>
+            </div>
+          </motion.div>
+        )}
+
         {/* Prayer times row */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
@@ -200,18 +265,31 @@ export default function Home() {
             {prayers.filter(p => p.name !== 'sunrise').map((prayer) => {
               const isActive = prayer.name === currentPrayer;
               const isNext = nextPrayer?.name === prayer.name;
+              const hasAdhan = PRAYERS_WITH_ADHAN.includes(prayer.name);
+              const isPlaying = playing === prayer.name;
               return (
                 <div
                   key={prayer.name}
-                  className={`rounded-xl px-3.5 py-2.5 text-center min-w-[78px] transition-all border backdrop-blur-xl
+                  className={`relative rounded-xl px-3.5 py-2.5 text-center min-w-[78px] transition-all border backdrop-blur-xl
                     ${isActive
                       ? 'bg-white/15 border-[#C9A84C]/40'
                       : 'bg-white/[0.07] border-white/[0.08]'
                     }
                     ${isNext ? 'border-white/15' : ''}
                   `}
-                  style={isActive ? { boxShadow: '0 0 16px rgba(201, 168, 76, 0.25), 0 0 32px rgba(201, 168, 76, 0.1)' } : undefined}
+                  style={{
+                    ...(isActive ? { boxShadow: '0 0 16px rgba(201, 168, 76, 0.25), 0 0 32px rgba(201, 168, 76, 0.1)' } : {}),
+                    ...(isPlaying ? { animation: 'adhan-pulse 2s ease-in-out infinite' } : {}),
+                  }}
                 >
+                  {hasAdhan && (
+                    <AdhanIcon
+                      enabled={prefs[prayer.name] ?? true}
+                      onToggle={() => togglePrayer(prayer.name)}
+                      isPlaying={isPlaying}
+                    />
+                  )}
+                  {isPlaying && <StopAdhanButton onStop={stopAdhan} />}
                   <p className="text-[9px] uppercase tracking-widest text-white/45 mb-0.5">{prayer.label}</p>
                   <p className={`text-xs font-semibold ${isActive ? 'text-[#C9A84C]' : 'text-white/75'}`}>
                     {formatTime(prayer.time)}
@@ -255,7 +333,7 @@ export default function Home() {
           longitude={location?.lng || 0}
         />
 
-        {/* Daily Verse card — soft frosted glass */}
+        {/* Daily Verse */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -297,7 +375,7 @@ export default function Home() {
           )}
         </motion.div>
 
-        {/* Iftar/Suhoor countdown hero — Ramadan only */}
+        {/* Ramadan countdown */}
         {isRamadan() && maghribTime && fajrTime && (
           <RamadanCountdown maghribTime={maghribTime.time} fajrTime={fajrTime.time} />
         )}
