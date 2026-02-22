@@ -74,7 +74,7 @@ export function usePrayerTimes() {
     const times = getPrayerTimes(location.lat, location.lng, today, method);
     setPrayers(times);
     setCurrentPrayer(getCurrentPrayer(times));
-    setNextPrayer(getNextPrayer(times));
+    setNextPrayer(getNextPrayer(times, location.lat, location.lng, method));
 
     // Debug logging
     console.log('[Nur] Prayer Times Calculated:', {
@@ -93,7 +93,7 @@ export function usePrayerTimes() {
         const cp = getCurrentPrayer(prayers);
         if (cp !== currentPrayer) {
           setCurrentPrayer(cp);
-          setNextPrayer(getNextPrayer(prayers));
+          setNextPrayer(getNextPrayer(prayers, location!.lat, location!.lng, method));
         }
       }
     }, 1000);
