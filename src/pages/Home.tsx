@@ -44,6 +44,19 @@ function getDailyVerse() {
   return dailyVerses[dayOfYear % dailyVerses.length];
 }
 
+function getPrayerProgress(prayers: any[], currentPrayer: string): number {
+  const now = new Date();
+  const currentIdx = prayers.findIndex(p => p.name === currentPrayer);
+  if (currentIdx === -1) return 0;
+  const currentTime = prayers[currentIdx].time;
+  const nextIdx = currentIdx + 1 < prayers.length ? currentIdx + 1 : 0;
+  const nextTime = prayers[nextIdx]?.time;
+  if (!nextTime || nextTime <= currentTime) return 50;
+  const total = nextTime.getTime() - currentTime.getTime();
+  const elapsed = now.getTime() - currentTime.getTime();
+  return Math.min(100, Math.max(0, (elapsed / total) * 100));
+}
+
 export default function Home() {
   const { prayers, currentPrayer, nextPrayer, countdown, qiblaDirection, loading } = usePrayerTimes();
   const verse = useMemo(() => getDailyVerse(), []);
@@ -57,46 +70,44 @@ export default function Home() {
           animate={{ opacity: 1, scale: 1 }}
           className="text-center relative z-10"
         >
-          <p className="font-arabic text-4xl text-primary mb-3">نُور</p>
+          <p className="font-arabic-display text-4xl text-primary mb-3">نُور</p>
           <p className="text-sm text-muted-foreground">Loading prayer times...</p>
         </motion.div>
       </div>
     );
   }
 
-  const now = new Date();
-  const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
   const currentPrayerData = prayers.find(p => p.name === currentPrayer);
-
-  // Get suhoor (fajr) and iftar (maghrib) times
   const fajrTime = prayers.find(p => p.name === 'fajr');
   const maghribTime = prayers.find(p => p.name === 'maghrib');
+  const progress = getPrayerProgress(prayers, currentPrayer);
 
   return (
     <GradientBackground prayer={currentPrayer}>
       <div className="min-h-screen pb-24 px-5 safe-area-top">
-        {/* Top bar: time + hijri date */}
+        {/* Top bar: hijri date only */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="pt-12 pb-1 flex items-center justify-between"
+          className="pt-12 pb-1 flex justify-center"
         >
-          <p className="text-sm text-white/50 tracking-wide">{timeStr}</p>
           <p className="text-xs text-white/40 font-arabic">{getHijriDate()}</p>
         </motion.div>
 
-        {/* Hero: Current prayer name large */}
+        {/* Hero: Arabic calligraphy name → English → countdown */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="text-center pt-10 pb-5"
+          className="text-center pt-8 pb-5"
         >
           {currentPrayerData && (
-            <p className="font-arabic text-lg text-white/40 mb-2">{currentPrayerData.arabicLabel}</p>
+            <p className="font-arabic-display text-white leading-none" style={{ fontSize: '76px' }}>
+              {currentPrayerData.arabicLabel}
+            </p>
           )}
-          <h1 className="text-6xl font-light tracking-tight text-white">
+          <h1 className="text-2xl font-light tracking-wide text-white/70 mt-2">
             {currentPrayerData?.label || 'Prayer'}
           </h1>
           {nextPrayer && (
@@ -116,7 +127,7 @@ export default function Home() {
           )}
         </motion.div>
 
-        {/* Prayer times row — frosted glass, tight */}
+        {/* Prayer times row */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -170,14 +181,20 @@ export default function Home() {
           </div>
         </motion.div>
 
-        {/* Daily Verse card */}
+        {/* Daily Verse card — soft frosted glass */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
           className="mt-6"
         >
-          <div className="rounded-2xl px-5 py-4 border bg-white/[0.07] border-white/[0.08] backdrop-blur-xl">
+          <div
+            className="rounded-2xl px-5 py-4 backdrop-blur-xl"
+            style={{
+              background: 'rgba(255,255,255,0.07)',
+              border: '1px solid rgba(255,255,255,0.08)',
+            }}
+          >
             <p className="text-[9px] uppercase tracking-widest text-white/40 mb-3">Daily Verse</p>
             <p className="font-arabic text-xl text-white/90 text-center leading-relaxed mb-3">{verse.arabic}</p>
             <p className="text-sm text-white/60 text-center italic leading-relaxed">{verse.translation}</p>
@@ -204,6 +221,30 @@ export default function Home() {
               <span className="text-xs font-semibold text-white/80">{formatTime(maghribTime.time)}</span>
             </div>
           )}
+        </motion.div>
+
+        {/* Prayer window progress bar */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+          className="mt-5 px-1"
+        >
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[9px] uppercase tracking-widest text-white/30">
+              {currentPrayerData?.label} window
+            </span>
+            <span className="text-[9px] text-white/30">{Math.round(progress)}%</span>
+          </div>
+          <div className="w-full h-[3px] rounded-full bg-white/[0.08] overflow-hidden">
+            <motion.div
+              className="h-full rounded-full"
+              style={{ background: 'linear-gradient(90deg, #C9A84C, #E8D48B)' }}
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 1, ease: 'easeOut' }}
+            />
+          </div>
         </motion.div>
       </div>
     </GradientBackground>
