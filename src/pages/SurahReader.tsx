@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { surahs } from '@/data/surahs';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -29,8 +29,41 @@ const getStoredFontSize = () => {
   return stored ? parseInt(stored, 10) : 28;
 };
 
+function saveLastRead(surahNumber: number, verseNumber: number) {
+  localStorage.setItem('nur_last_read', JSON.stringify({
+    surahNumber, verseNumber, timestamp: Date.now()
+  }));
+}
+
+export interface Bookmark {
+  surahNumber: number;
+  verseNumber: number;
+  surahName: string;
+  timestamp: number;
+}
+
+export function getBookmarks(): Bookmark[] {
+  try {
+    return JSON.parse(localStorage.getItem('nur_bookmarks') || '[]');
+  } catch { return []; }
+}
+
+function toggleBookmark(surahNumber: number, verseNumber: number, surahName: string) {
+  const bookmarks = getBookmarks();
+  const idx = bookmarks.findIndex(b => b.surahNumber === surahNumber && b.verseNumber === verseNumber);
+  if (idx !== -1) {
+    bookmarks.splice(idx, 1);
+  } else {
+    bookmarks.push({ surahNumber, verseNumber, surahName, timestamp: Date.now() });
+  }
+  localStorage.setItem('nur_bookmarks', JSON.stringify(bookmarks));
+  return bookmarks;
+}
+
 export default function SurahReader() {
   const { number } = useParams<{ number: string }>();
+  const [searchParams] = useSearchParams();
+  const scrollToVerse = searchParams.get('verse') ? parseInt(searchParams.get('verse')!, 10) : null;
   const navigate = useNavigate();
   const chapterNum = parseInt(number || '1', 10);
   const surah = surahs.find(s => s.number === chapterNum);
@@ -42,6 +75,7 @@ export default function SurahReader() {
   const [totalPages, setTotalPages] = useState(1);
   const [fontSize, setFontSize] = useState(getStoredFontSize);
   const [showTranslation, setShowTranslation] = useState(false);
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>(getBookmarks);
 
   // Audio
   const [isPlaying, setIsPlaying] = useState(false);
@@ -51,6 +85,12 @@ export default function SurahReader() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const verseRefs = useRef<Map<number, HTMLSpanElement>>(new Map());
+  const scrollDoneRef = useRef(false);
+
+  // Track visible verse for last-read saving
+  const visibleVerseRef = useRef<number>(1);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setVerses([]);
@@ -61,6 +101,7 @@ export default function SurahReader() {
     setAudioCurrentTime(0);
     setAudioDuration(0);
     setAudioUrl(null);
+    scrollDoneRef.current = false;
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
   }, [chapterNum]);
 
@@ -84,6 +125,18 @@ export default function SurahReader() {
     };
     fetchVerses();
   }, [chapterNum, page]);
+
+  // Scroll to verse after load
+  useEffect(() => {
+    if (!scrollToVerse || scrollDoneRef.current || verses.length === 0) return;
+    const el = verseRefs.current.get(scrollToVerse);
+    if (el) {
+      setTimeout(() => {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        scrollDoneRef.current = true;
+      }, 300);
+    }
+  }, [verses, scrollToVerse]);
 
   useEffect(() => {
     const fetchAudio = async () => {
@@ -109,6 +162,38 @@ export default function SurahReader() {
     observerRef.current.observe(sentinel);
     return () => observerRef.current?.disconnect();
   }, [loading, page, totalPages]);
+
+  // Save reading progress on scroll (debounced)
+  useEffect(() => {
+    const handleScroll = () => {
+      // Find which verse badge is closest to viewport center
+      const viewportCenter = window.innerHeight / 2;
+      let closestVerse = 1;
+      let closestDist = Infinity;
+      verseRefs.current.forEach((el, num) => {
+        const rect = el.getBoundingClientRect();
+        const dist = Math.abs(rect.top - viewportCenter);
+        if (dist < closestDist) { closestDist = dist; closestVerse = num; }
+      });
+      visibleVerseRef.current = closestVerse;
+
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = setTimeout(() => {
+        saveLastRead(chapterNum, visibleVerseRef.current);
+      }, 1000);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+  }, [chapterNum]);
+
+  // Save on mount too
+  useEffect(() => {
+    if (verses.length > 0) saveLastRead(chapterNum, scrollToVerse || 1);
+  }, [chapterNum, verses.length, scrollToVerse]);
 
   const adjustFontSize = (delta: number) => {
     setFontSize(prev => {
@@ -152,10 +237,19 @@ export default function SurahReader() {
     return `${m}:${sec.toString().padStart(2, '0')}`;
   };
 
-  // Verse number badge component — small inline gold circle
+  const handleBookmark = (verseNum: number) => {
+    const updated = toggleBookmark(chapterNum, verseNum, surah?.name || '');
+    setBookmarks(updated);
+    if (navigator.vibrate) navigator.vibrate(15);
+  };
+
+  const isBookmarked = (verseNum: number) =>
+    bookmarks.some(b => b.surahNumber === chapterNum && b.verseNumber === verseNum);
+
   const VerseBadge = ({ num }: { num: number }) => (
     <span
-      className="inline-flex items-center justify-center mx-1 align-middle rounded-full border border-primary/30 text-primary"
+      ref={(el) => { if (el) verseRefs.current.set(num, el); }}
+      className="inline-flex items-center justify-center mx-1 align-middle rounded-full border border-primary/30 text-primary cursor-pointer"
       style={{
         width: '20px',
         height: '20px',
@@ -164,8 +258,9 @@ export default function SurahReader() {
         fontWeight: 600,
         lineHeight: 1,
         verticalAlign: 'middle',
-        background: 'hsla(var(--primary) / 0.12)',
+        background: isBookmarked(num) ? 'hsla(var(--primary) / 0.35)' : 'hsla(var(--primary) / 0.12)',
       }}
+      onClick={(e) => { e.stopPropagation(); handleBookmark(num); }}
     >
       {num}
     </span>
@@ -200,7 +295,7 @@ export default function SurahReader() {
           </div>
         </div>
 
-        {/* Floating toolbar: EN toggle + font size pill */}
+        {/* Floating toolbar */}
         <div className="fixed top-20 right-4 z-30 flex items-center gap-2">
           <button
             onClick={() => setShowTranslation(t => !t)}
@@ -211,19 +306,9 @@ export default function SurahReader() {
             EN
           </button>
           <div className="flex items-center bg-secondary/70 backdrop-blur-sm rounded-full overflow-hidden">
-            <button
-              onClick={() => adjustFontSize(-2)}
-              className="h-8 w-8 flex items-center justify-center text-primary text-[11px] font-bold hover:bg-secondary/90 transition-colors"
-            >
-              A-
-            </button>
+            <button onClick={() => adjustFontSize(-2)} className="h-8 w-8 flex items-center justify-center text-primary text-[11px] font-bold">A-</button>
             <div className="w-px h-4 bg-muted-foreground/20" />
-            <button
-              onClick={() => adjustFontSize(2)}
-              className="h-8 w-8 flex items-center justify-center text-primary text-[12px] font-bold hover:bg-secondary/90 transition-colors"
-            >
-              A+
-            </button>
+            <button onClick={() => adjustFontSize(2)} className="h-8 w-8 flex items-center justify-center text-primary text-[12px] font-bold">A+</button>
           </div>
         </div>
 
@@ -237,12 +322,7 @@ export default function SurahReader() {
         {/* Continuous flowing text */}
         <div className="px-6">
           {verses.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4 }}
-            >
-              {/* Arabic — one continuous flowing block */}
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
               <p
                 className="font-arabic-display text-primary/90 text-right leading-[2.4]"
                 style={{ fontSize: `${fontSize}px` }}
@@ -257,7 +337,6 @@ export default function SurahReader() {
                 ))}
               </p>
 
-              {/* Translations — shown when toggled */}
               {showTranslation && (
                 <div className="mt-8 space-y-4">
                   {verses.map(verse => (
@@ -297,39 +376,20 @@ export default function SurahReader() {
         <div className="fixed bottom-[68px] left-0 right-0 z-40 px-3 pb-2">
           <div
             className="rounded-2xl border p-3 flex items-center gap-3"
-            style={{
-              background: 'hsla(230, 20%, 12%, 0.92)',
-              borderColor: 'hsla(0, 0%, 100%, 0.1)',
-              backdropFilter: 'blur(30px)',
-              WebkitBackdropFilter: 'blur(30px)',
-            }}
+            style={{ background: 'hsla(230, 20%, 12%, 0.92)', borderColor: 'hsla(0, 0%, 100%, 0.1)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)' }}
           >
-            {/* Skip back */}
             <button onClick={skipBack} className="w-8 h-8 flex items-center justify-center flex-shrink-0 text-muted-foreground">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M1 4v6h6" />
-                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+                <path d="M1 4v6h6" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
               </svg>
             </button>
-
-            {/* Play/Pause */}
-            <button
-              onClick={togglePlay}
-              className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0"
-            >
+            <button onClick={togglePlay} className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
               {isPlaying ? (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))">
-                  <rect x="6" y="4" width="4" height="16" rx="1" />
-                  <rect x="14" y="4" width="4" height="16" rx="1" />
-                </svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
               ) : (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))">
-                  <polygon points="6,3 20,12 6,21" />
-                </svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><polygon points="6,3 20,12 6,21" /></svg>
               )}
             </button>
-
-            {/* Info + progress */}
             <div className="flex-1 min-w-0">
               <p className="text-xs text-foreground truncate">{surah?.name}</p>
               <p className="text-[10px] text-muted-foreground">Mishary Rashid Al-Afasy</p>
