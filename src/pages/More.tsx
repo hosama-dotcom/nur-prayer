@@ -145,11 +145,10 @@ function LanguageScreen({ onBack }: { onBack: () => void }) {
   );
 }
 
-function AboutScreen({ onBack }: { onBack: () => void }) {
+function AboutScreen() {
   return (
-    <div>
-      <BackButton onClick={onBack} />
-      <div className="text-center py-8">
+    <div className="flex flex-col items-center justify-center min-h-[60vh]">
+      <div className="text-center">
         <p className="font-arabic-display text-5xl text-primary mb-2">نُور</p>
         <p className="text-xl font-semibold text-foreground">Nur</p>
         <p className="text-xs text-muted-foreground mt-1">Version 1.0</p>
@@ -161,17 +160,18 @@ function AboutScreen({ onBack }: { onBack: () => void }) {
           <p className="font-arabic text-lg text-primary/60 mt-2">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</p>
         </div>
 
-        <div className="space-y-2 mt-6">
-          <button className="w-full glass-card px-5 py-4 flex items-center justify-between">
-            <span className="text-sm text-foreground">Privacy Policy</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--muted-foreground))" strokeWidth="2" strokeLinecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
-          </button>
-          <button className="w-full glass-card px-5 py-4 flex items-center justify-between">
+        <div className="mt-6">
+          <button
+            onClick={() => window.open('https://apps.apple.com', '_blank')}
+            className="w-full glass-card px-5 py-4 flex items-center justify-between"
+          >
             <span className="text-sm text-foreground">Rate the App</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--muted-foreground))" strokeWidth="2" strokeLinecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
           </button>
         </div>
       </div>
+
+      <p className="text-[10px] text-muted-foreground/40 mt-auto pt-12">© 2025 Nur · All rights reserved</p>
     </div>
   );
 }
@@ -198,15 +198,10 @@ export default function More() {
     <div className="min-h-screen gradient-isha safe-area-top pb-24">
       <div className="geometric-pattern absolute inset-0 pointer-events-none" />
       <div className="relative z-10 px-5">
-        {/* Header with brand */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="pt-12 pb-6 text-center"
-        >
-          <p className="font-arabic-display text-4xl text-primary">نُور</p>
-          <p className="text-xs text-muted-foreground mt-1 tracking-widest uppercase">Settings</p>
-        </motion.div>
+        {/* Header */}
+        <div className="pt-12 pb-6 text-center">
+          <p className="text-xs text-muted-foreground tracking-widest uppercase">Settings</p>
+        </div>
 
         <AnimatePresence mode="wait">
           {view === 'main' ? (
@@ -245,7 +240,7 @@ export default function More() {
             <motion.div key={view} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.15 }}>
               {view === 'notifications' && <NotificationsScreen onBack={() => setView('main')} />}
               {view === 'language' && <LanguageScreen onBack={() => setView('main')} />}
-              {view === 'about' && <AboutScreen onBack={() => setView('main')} />}
+              {view === 'about' && <AboutScreen />}
             </motion.div>
           )}
         </AnimatePresence>
