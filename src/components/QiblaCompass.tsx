@@ -15,31 +15,18 @@ export function QiblaCompass({ open, onClose, qiblaDirection, latitude, longitud
   const [aligned, setAligned] = useState(false);
 
   const requestPermission = useCallback(async () => {
-    // iOS 13+ requires explicit permission
     if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
       try {
         const perm = await (DeviceOrientationEvent as any).requestPermission();
-        if (perm !== 'granted') {
-          setPermissionDenied(true);
-          return;
-        }
-      } catch {
-        setPermissionDenied(true);
-        return;
-      }
+        if (perm !== 'granted') { setPermissionDenied(true); return; }
+      } catch { setPermissionDenied(true); return; }
     }
-
     const handler = (e: DeviceOrientationEvent) => {
-      // Use webkitCompassHeading for iOS, alpha for Android
       let h: number | null = null;
-      if ((e as any).webkitCompassHeading != null) {
-        h = (e as any).webkitCompassHeading;
-      } else if (e.alpha != null) {
-        h = 360 - e.alpha;
-      }
+      if ((e as any).webkitCompassHeading != null) h = (e as any).webkitCompassHeading;
+      else if (e.alpha != null) h = 360 - e.alpha;
       if (h !== null) setHeading(h);
     };
-
     window.addEventListener('deviceorientation', handler, true);
     return () => window.removeEventListener('deviceorientation', handler, true);
   }, []);
@@ -50,27 +37,32 @@ export function QiblaCompass({ open, onClose, qiblaDirection, latitude, longitud
     return () => { cleanup?.then?.(fn => fn?.()); };
   }, [open, requestPermission]);
 
-  // Check alignment
   useEffect(() => {
     if (heading === null) return;
     const diff = Math.abs(((heading - qiblaDirection) % 360 + 360) % 360);
     const isAligned = diff < 5 || diff > 355;
     setAligned(isAligned);
-
-    if (isAligned && navigator.vibrate) {
-      navigator.vibrate(30);
-    }
+    if (isAligned && navigator.vibrate) navigator.vibrate(30);
   }, [heading, qiblaDirection]);
 
   const compassRotation = heading !== null ? -heading : 0;
-  const qiblaAngle = qiblaDirection;
 
-  const cardinalPoints = [
-    { label: 'N', angle: 0 },
-    { label: 'E', angle: 90 },
-    { label: 'S', angle: 180 },
-    { label: 'W', angle: 270 },
+  const cardinals = [
+    { label: 'N', angle: 0, gold: true },
+    { label: 'NE', angle: 45, gold: false },
+    { label: 'E', angle: 90, gold: false },
+    { label: 'SE', angle: 135, gold: false },
+    { label: 'S', angle: 180, gold: false },
+    { label: 'SW', angle: 225, gold: false },
+    { label: 'W', angle: 270, gold: false },
+    { label: 'NW', angle: 315, gold: false },
   ];
+
+  const size = 300;
+  const cx = size / 2;
+  const cy = size / 2;
+  const outerR = 140;
+  const tickOuterR = 132;
 
   return (
     <AnimatePresence>
@@ -80,164 +72,203 @@ export function QiblaCompass({ open, onClose, qiblaDirection, latitude, longitud
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="fixed inset-0 z-[100] flex flex-col items-center justify-center"
-          style={{ background: 'radial-gradient(ellipse at center, #0D1420 0%, #060810 100%)' }}
+          className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden"
+          style={{ background: 'radial-gradient(ellipse at 50% 40%, #0F1825 0%, #070B12 100%)' }}
         >
-          {/* Close button */}
+          {/* Close */}
           <button
             onClick={onClose}
-            className="absolute top-12 left-5 z-10 w-10 h-10 rounded-xl bg-white/[0.08] flex items-center justify-center"
+            className="absolute top-12 left-5 z-10 w-10 h-10 rounded-xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" opacity="0.7">
               <path d="M18 6L6 18M6 6l12 12" />
             </svg>
           </button>
 
-          {/* Title */}
+          {/* Kaaba icon — sits close above compass */}
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="absolute top-14 text-center"
+            className="flex flex-col items-center mb-5"
           >
-            <p className="text-xs text-white/40 uppercase tracking-[0.2em]">Qibla Direction</p>
-          </motion.div>
-
-          {/* Fixed Kaaba arrow at top — points to Qibla */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
-            className="absolute top-28 flex flex-col items-center"
-          >
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-              <rect x="6" y="6" width="12" height="12" rx="1.5" fill={aligned ? '#4ADE80' : '#C9A84C'} opacity={aligned ? 1 : 0.9} />
-              <rect x="9" y="3" width="6" height="4" rx="0.5" fill={aligned ? '#4ADE80' : '#C9A84C'} opacity={aligned ? 0.9 : 0.6} />
-              <circle cx="12" cy="12" r="1.5" fill={aligned ? '#166534' : '#7A5E1E'} />
+            {/* Stylized Kaaba SVG */}
+            <svg width="44" height="44" viewBox="0 0 64 64" fill="none">
+              {/* Main cube body */}
+              <rect x="12" y="16" width="40" height="38" rx="2" fill={aligned ? '#34D399' : '#1A1A2E'} stroke={aligned ? '#34D399' : '#C9A84C'} strokeWidth="1.5" />
+              {/* Gold band (Kiswah band) */}
+              <rect x="12" y="28" width="40" height="6" fill={aligned ? '#6EE7B7' : '#C9A84C'} opacity="0.85" />
+              {/* Door */}
+              <rect x="28" y="36" width="8" height="14" rx="1" fill={aligned ? '#166534' : '#C9A84C'} opacity="0.5" />
+              {/* Gold calligraphy suggestion lines on band */}
+              <line x1="16" y1="31" x2="24" y2="31" stroke={aligned ? '#065F46' : '#8B6914'} strokeWidth="0.7" opacity="0.6" />
+              <line x1="40" y1="31" x2="48" y2="31" stroke={aligned ? '#065F46' : '#8B6914'} strokeWidth="0.7" opacity="0.6" />
+              {/* Top edge highlight */}
+              <line x1="12" y1="16" x2="52" y2="16" stroke={aligned ? '#6EE7B7' : '#C9A84C'} strokeWidth="0.5" opacity="0.4" />
             </svg>
-            <p className={`text-[10px] mt-1 font-semibold tracking-wider ${aligned ? 'text-green-400' : 'text-primary/70'}`}>
-              {aligned ? 'ALIGNED' : 'KAABA'}
+            <p className={`text-[10px] mt-2 font-semibold tracking-[0.15em] uppercase ${aligned ? 'text-emerald-400' : 'text-primary/60'}`}>
+              {aligned ? '✓ Qibla Found' : 'Kaaba · Makkah'}
             </p>
           </motion.div>
 
-          {/* Compass rose */}
+          {/* Compass */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.85 }}
+            initial={{ opacity: 0, scale: 0.88 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.25, type: 'spring', stiffness: 200, damping: 25 }}
+            transition={{ delay: 0.2, type: 'spring', stiffness: 180, damping: 22 }}
             className="relative"
-            style={{ width: 280, height: 280 }}
+            style={{ width: size, height: size }}
           >
-            <svg
-              width="280"
-              height="280"
-              viewBox="0 0 280 280"
-              style={{ transform: `rotate(${compassRotation}deg)`, transition: 'transform 0.15s ease-out' }}
-            >
-              {/* Outer ring */}
-              <circle cx="140" cy="140" r="130" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-              <circle cx="140" cy="140" r="120" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
+            {/* Outer gold glow ring */}
+            <div
+              className="absolute inset-0 rounded-full"
+              style={{
+                boxShadow: aligned
+                  ? '0 0 40px rgba(52, 211, 153, 0.2), inset 0 0 30px rgba(52, 211, 153, 0.05)'
+                  : '0 0 40px rgba(201, 168, 76, 0.15), inset 0 0 30px rgba(201, 168, 76, 0.05)',
+              }}
+            />
 
-              {/* Degree marks */}
+            <svg
+              width={size}
+              height={size}
+              viewBox={`0 0 ${size} ${size}`}
+              style={{ transform: `rotate(${compassRotation}deg)`, transition: 'transform 0.12s ease-out' }}
+            >
+              {/* Background circle */}
+              <circle cx={cx} cy={cy} r={outerR} fill="#0C1219" />
+
+              {/* Gold outer ring */}
+              <circle cx={cx} cy={cy} r={outerR} fill="none" stroke={aligned ? '#34D399' : '#C9A84C'} strokeWidth="2" opacity="0.5" />
+              <circle cx={cx} cy={cy} r={outerR - 3} fill="none" stroke={aligned ? '#34D399' : '#C9A84C'} strokeWidth="0.5" opacity="0.2" />
+
+              {/* Inner subtle ring */}
+              <circle cx={cx} cy={cy} r="50" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="0.5" />
+
+              {/* Tick marks — 72 marks at every 5° */}
               {Array.from({ length: 72 }).map((_, i) => {
                 const angle = i * 5;
-                const isMajor = angle % 30 === 0;
-                const r1 = isMajor ? 108 : 114;
-                const r2 = 120;
+                const isMajor = angle % 45 === 0;
+                const isMinor = angle % 15 === 0 && !isMajor;
+                const len = isMajor ? 16 : isMinor ? 10 : 5;
+                const r1 = tickOuterR - len;
+                const r2 = tickOuterR;
                 const rad = (angle * Math.PI) / 180;
+                const color = isMajor ? (aligned ? '#34D399' : '#C9A84C') : 'rgba(255,255,255,0.12)';
+                const width = isMajor ? 2 : isMinor ? 1 : 0.5;
                 return (
                   <line
                     key={i}
-                    x1={140 + r1 * Math.sin(rad)}
-                    y1={140 - r1 * Math.cos(rad)}
-                    x2={140 + r2 * Math.sin(rad)}
-                    y2={140 - r2 * Math.cos(rad)}
-                    stroke={isMajor ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.08)'}
-                    strokeWidth={isMajor ? 1.5 : 0.5}
+                    x1={cx + r1 * Math.sin(rad)}
+                    y1={cy - r1 * Math.cos(rad)}
+                    x2={cx + r2 * Math.sin(rad)}
+                    y2={cy - r2 * Math.cos(rad)}
+                    stroke={color}
+                    strokeWidth={width}
+                    strokeLinecap="round"
                   />
                 );
               })}
 
-              {/* Cardinal points */}
-              {cardinalPoints.map(({ label, angle }) => {
+              {/* Cardinal labels */}
+              {cardinals.map(({ label, angle, gold }) => {
                 const rad = (angle * Math.PI) / 180;
-                const r = 96;
+                const r = outerR - 26;
+                const isPrimary = ['N', 'S', 'E', 'W'].includes(label);
                 return (
                   <text
                     key={label}
-                    x={140 + r * Math.sin(rad)}
-                    y={140 - r * Math.cos(rad)}
+                    x={cx + r * Math.sin(rad)}
+                    y={cy - r * Math.cos(rad)}
                     textAnchor="middle"
                     dominantBaseline="central"
-                    fill={label === 'N' ? '#C9A84C' : 'rgba(255,255,255,0.4)'}
-                    fontSize={label === 'N' ? 16 : 13}
-                    fontWeight={label === 'N' ? 700 : 400}
+                    fill={gold ? (aligned ? '#34D399' : '#C9A84C') : 'rgba(255,255,255,0.5)'}
+                    fontSize={isPrimary ? 14 : 10}
+                    fontWeight={isPrimary ? 700 : 400}
                     fontFamily="Inter, sans-serif"
+                    letterSpacing="0.05em"
                   >
                     {label}
                   </text>
                 );
               })}
 
-              {/* North needle */}
-              <polygon points="140,35 136,60 144,60" fill="#C9A84C" />
-
-              {/* Qibla direction line */}
-              <line
-                x1="140"
-                y1="140"
-                x2={140 + 105 * Math.sin((qiblaAngle * Math.PI) / 180)}
-                y2={140 - 105 * Math.cos((qiblaAngle * Math.PI) / 180)}
-                stroke={aligned ? '#4ADE80' : '#C9A84C'}
-                strokeWidth="2"
-                strokeLinecap="round"
-                opacity="0.6"
-                strokeDasharray="4 4"
+              {/* Compass needle — red/gold pointed arrow */}
+              {/* North half (gold/red) */}
+              <polygon
+                points={`${cx},${cy - 65} ${cx - 7},${cy} ${cx},${cy - 10} ${cx + 7},${cy}`}
+                fill={aligned ? '#34D399' : '#C9A84C'}
+                opacity="0.9"
+              />
+              {/* South half (dim) */}
+              <polygon
+                points={`${cx},${cy + 65} ${cx - 7},${cy} ${cx},${cy + 10} ${cx + 7},${cy}`}
+                fill="rgba(255,255,255,0.15)"
               />
 
-              {/* Qibla marker on ring */}
-              <circle
-                cx={140 + 120 * Math.sin((qiblaAngle * Math.PI) / 180)}
-                cy={140 - 120 * Math.cos((qiblaAngle * Math.PI) / 180)}
-                r="6"
-                fill={aligned ? '#4ADE80' : '#C9A84C'}
-              />
+              {/* Center jewel */}
+              <circle cx={cx} cy={cy} r="6" fill="#0C1219" stroke={aligned ? '#34D399' : '#C9A84C'} strokeWidth="1.5" />
+              <circle cx={cx} cy={cy} r="2.5" fill={aligned ? '#34D399' : '#C9A84C'} opacity="0.8" />
 
-              {/* Center dot */}
-              <circle cx="140" cy="140" r="4" fill="rgba(255,255,255,0.15)" />
-              <circle cx="140" cy="140" r="2" fill="#C9A84C" />
+              {/* Qibla direction marker on ring */}
+              <g>
+                {/* Outer marker */}
+                <circle
+                  cx={cx + (outerR - 1) * Math.sin((qiblaDirection * Math.PI) / 180)}
+                  cy={cy - (outerR - 1) * Math.cos((qiblaDirection * Math.PI) / 180)}
+                  r="5"
+                  fill={aligned ? '#34D399' : '#C9A84C'}
+                />
+                {/* Mini Kaaba icon on ring */}
+                <rect
+                  x={cx + (outerR - 1) * Math.sin((qiblaDirection * Math.PI) / 180) - 3}
+                  y={cy - (outerR - 1) * Math.cos((qiblaDirection * Math.PI) / 180) - 3}
+                  width="6"
+                  height="6"
+                  rx="0.5"
+                  fill={aligned ? '#065F46' : '#7A5E1E'}
+                />
+              </g>
             </svg>
           </motion.div>
 
-          {/* Alignment status */}
+          {/* Info below compass — tight spacing */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.35 }}
-            className="mt-8 text-center"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-6 text-center px-8"
           >
             {heading !== null ? (
               <>
-                <p className={`text-lg font-semibold ${aligned ? 'text-green-400' : 'text-white/60'}`}>
-                  {aligned ? 'You are facing the Qibla' : 'Rotate to find Qibla'}
+                <p className={`text-base font-medium ${aligned ? 'text-emerald-400' : 'text-white/70'}`}>
+                  {aligned ? 'You are facing the Qibla ✦' : 'Face this direction to pray'}
                 </p>
-                <p className="text-xs text-white/30 mt-2">{Math.round(qiblaDirection)}° from North</p>
+                <p className="text-xs text-white/30 mt-1.5">{Math.round(qiblaDirection)}° from North</p>
               </>
             ) : permissionDenied ? (
-              <p className="text-sm text-white/50 px-8 text-center">
-                Compass access denied. Please enable motion sensors in your device settings.
+              <p className="text-sm text-white/50 leading-relaxed">
+                Compass access denied. Enable motion sensors in your device settings.
               </p>
             ) : (
-              <p className="text-sm text-white/40">
-                Waiting for compass data...
-              </p>
+              <p className="text-sm text-white/40">Waiting for compass data...</p>
             )}
           </motion.div>
 
-          {/* Location info */}
-          <div className="absolute bottom-12 text-center">
-            <p className="text-[10px] text-white/20">
-              {latitude.toFixed(4)}°, {longitude.toFixed(4)}°
+          {/* Instruction */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="absolute bottom-20 text-[11px] text-white/20 text-center px-10 leading-relaxed italic"
+          >
+            On mobile, rotate your device until the needle points to the Kaaba marker
+          </motion.p>
+
+          {/* Coordinates */}
+          <div className="absolute bottom-10 text-center">
+            <p className="text-[9px] text-white/15 tracking-wider">
+              {latitude.toFixed(4)}° N, {longitude.toFixed(4)}° E
             </p>
           </div>
         </motion.div>
