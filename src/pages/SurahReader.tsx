@@ -460,7 +460,7 @@ export default function SurahReader() {
         </AnimatePresence>
 
         {/* Continuous flowing text */}
-        <div className="px-6" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 80px)', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 90px)' }}>
+        <div className="px-6" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 80px)', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 160px)' }}>
           {/* Bismillah */}
           {chapterNum !== 9 && chapterNum !== 1 && (
             <div className="text-center py-8">
