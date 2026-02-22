@@ -417,7 +417,7 @@ export default function SurahReader() {
         {/* Floating Juz/Page indicator */}
         {(currentJuz || currentPage) && (
           <div
-            className="fixed top-[72px] left-1/2 -translate-x-1/2 z-25 pointer-events-none transition-opacity duration-500"
+            className="fixed top-[82px] left-1/2 -translate-x-1/2 z-25 pointer-events-none transition-opacity duration-500"
             style={{ opacity: scrollActive ? 1 : 0.4 }}
           >
             <div
