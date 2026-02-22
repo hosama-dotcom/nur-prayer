@@ -79,42 +79,41 @@ export function usePrayerTimes() {
     };
   }, [method]);
 
-  // Get location — use cached position first, only request geolocation if stale (>1hr)
+  // Get location — always use cache if available, only prompt once (first visit)
   useEffect(() => {
     const CACHE_KEY = 'nur_cached_location';
-    const CACHE_MAX_AGE = 60 * 60 * 1000; // 1 hour
+    const HAS_PROMPTED_KEY = 'nur_location_prompted';
 
-    const loadCached = (): { lat: number; lng: number; city: string; ts: number } | null => {
+    const loadCached = (): { lat: number; lng: number; city: string } | null => {
       try { return JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch { return null; }
     };
 
     const saveCache = (lat: number, lng: number, city: string) => {
-      localStorage.setItem(CACHE_KEY, JSON.stringify({ lat, lng, city, ts: Date.now() }));
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ lat, lng, city }));
     };
 
+    // Always load cached location first
     const cached = loadCached();
-    if (cached && Date.now() - cached.ts < CACHE_MAX_AGE) {
+    if (cached) {
       setLocation({ lat: cached.lat, lng: cached.lng, city: cached.city });
       setCityName(cached.city || localStorage.getItem('nur_location_name') || '');
       setQiblaDirection(getQiblaDirection(cached.lat, cached.lng));
       setLoading(false);
-      return; // use cache, skip geolocation request
     }
 
     if (!navigator.geolocation) {
-      setLocation({ lat: 21.4225, lng: 39.8262, city: 'Makkah' });
-      setCityName('Makkah');
-      setLoading(false);
+      if (!cached) {
+        setLocation({ lat: 21.4225, lng: 39.8262, city: 'Makkah' });
+        setCityName('Makkah');
+        setLoading(false);
+      }
       return;
     }
 
-    let lastLat = 0, lastLng = 0;
-
     const handlePosition = async (pos: GeolocationPosition) => {
       const { latitude, longitude } = pos.coords;
-      if (lastLat !== 0 && haversineKm(lastLat, lastLng, latitude, longitude) < 10) return;
-      lastLat = latitude;
-      lastLng = longitude;
+      // Skip if location hasn't meaningfully changed (>10km)
+      if (cached && haversineKm(cached.lat, cached.lng, latitude, longitude) < 10) return;
 
       setLocation({ lat: latitude, lng: longitude });
       setQiblaDirection(getQiblaDirection(latitude, longitude));
@@ -131,28 +130,41 @@ export function usePrayerTimes() {
     };
 
     const handleError = () => {
-      setLocation({ lat: 21.4225, lng: 39.8262, city: 'Makkah' });
-      setCityName('');
-      setQiblaDirection(0);
-      setLoading(false);
+      if (!cached) {
+        setLocation({ lat: 21.4225, lng: 39.8262, city: 'Makkah' });
+        setCityName('');
+        setQiblaDirection(0);
+        setLoading(false);
+      }
     };
 
-    // Check permission state first to avoid prompting
+    // Only prompt on very first visit; after that silently update if already granted
+    const hasPrompted = localStorage.getItem(HAS_PROMPTED_KEY);
+
+    const requestLocation = (shouldPrompt: boolean) => {
+      if (shouldPrompt) {
+        localStorage.setItem(HAS_PROMPTED_KEY, 'true');
+        navigator.geolocation.getCurrentPosition(handlePosition, handleError);
+      }
+    };
+
     if (navigator.permissions) {
       navigator.permissions.query({ name: 'geolocation' }).then(result => {
         if (result.state === 'granted') {
+          // Already granted — silently refresh in background (no prompt)
           navigator.geolocation.getCurrentPosition(handlePosition, handleError);
-        } else if (result.state === 'prompt') {
-          // Only prompt once — use fallback if denied
-          navigator.geolocation.getCurrentPosition(handlePosition, handleError);
+        } else if (result.state === 'prompt' && !hasPrompted) {
+          // First time ever — ask once
+          requestLocation(true);
         } else {
           handleError();
         }
       }).catch(() => {
-        navigator.geolocation.getCurrentPosition(handlePosition, handleError);
+        if (!hasPrompted) requestLocation(true);
+        else handleError();
       });
-    } else {
-      navigator.geolocation.getCurrentPosition(handlePosition, handleError);
+    } else if (!hasPrompted) {
+      requestLocation(true);
     }
   }, []);
 
