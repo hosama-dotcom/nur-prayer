@@ -293,26 +293,28 @@ export default function Home() {
           </div>
         </motion.div>
 
-        {/* Suhoor & Iftar chips */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-          className="mt-4 flex gap-3 justify-center"
-        >
-          {fajrTime && (
-            <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.07] border border-white/[0.08] backdrop-blur-lg">
-              <span className="text-[10px] uppercase tracking-wider text-white/40">Suhoor</span>
-              <span className="text-xs font-semibold text-white/80">{formatTime(new Date(fajrTime.time.getTime() - 10 * 60 * 1000))}</span>
-            </div>
-          )}
-          {maghribTime && (
-            <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.07] border border-white/[0.08] backdrop-blur-lg">
-              <span className="text-[10px] uppercase tracking-wider text-white/40">Iftar</span>
-              <span className="text-xs font-semibold text-white/80">{formatTime(maghribTime.time)}</span>
-            </div>
-          )}
-        </motion.div>
+        {/* Imsak & Iftar chips — only during Ramadan */}
+        {isRamadan() && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="mt-4 flex gap-3 justify-center"
+          >
+            {fajrTime && (
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.07] border border-white/[0.08] backdrop-blur-lg">
+                <span className="text-[10px] uppercase tracking-wider text-white/40">Imsak</span>
+                <span className="text-xs font-semibold text-white/80">{formatTime(new Date(fajrTime.time.getTime() - 10 * 60 * 1000))}</span>
+              </div>
+            )}
+            {maghribTime && (
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.07] border border-white/[0.08] backdrop-blur-lg">
+                <span className="text-[10px] uppercase tracking-wider text-white/40">Iftar</span>
+                <span className="text-xs font-semibold text-white/80">{formatTime(maghribTime.time)}</span>
+              </div>
+            )}
+          </motion.div>
+        )}
 
         {/* Ramadan countdown */}
         {isRamadan() && maghribTime && fajrTime && (
