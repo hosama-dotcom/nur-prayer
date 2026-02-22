@@ -153,8 +153,15 @@
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
-  .safe-area-top {
+.safe-area-top {
     padding-top: env(safe-area-inset-top, 0px);
+  }
+}
+
+/* Landscape mobile: hide bottom nav for immersive reading */
+@media (orientation: landscape) and (max-height: 500px) {
+  .bottom-nav-container {
+    display: none !important;
   }
 }
 

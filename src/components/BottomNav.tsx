@@ -14,7 +14,7 @@ export function BottomNav() {
   const navigate = useNavigate();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom bottom-nav-container">
       <div className="rounded-none border-t border-x-0 border-b-0" style={{ background: '#0A2A3B', borderColor: 'rgba(255,255,255,0.06)' }}>
         <div className="flex items-center justify-around px-2 py-2">
           {tabs.map((tab) => {
