@@ -73,7 +73,7 @@ export function QiblaCompass({ open, onClose, qiblaDirection, latitude, longitud
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
           className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden"
-          style={{ background: 'radial-gradient(ellipse at 50% 40%, #0F1825 0%, #070B12 100%)' }}
+          style={{ background: 'radial-gradient(ellipse at 50% 40%, #0F1825 0%, #070B12 100%)', paddingBottom: '40px' }}
         >
           {/* Close */}
           <button
@@ -90,20 +90,14 @@ export function QiblaCompass({ open, onClose, qiblaDirection, latitude, longitud
             initial={{ opacity: 0, y: -15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="flex flex-col items-center mb-5"
+            className="flex flex-col items-center mb-4"
           >
-            {/* Stylized Kaaba SVG */}
             <svg width="44" height="44" viewBox="0 0 64 64" fill="none">
-              {/* Main cube body */}
               <rect x="12" y="16" width="40" height="38" rx="2" fill={aligned ? '#34D399' : '#1A1A2E'} stroke={aligned ? '#34D399' : '#C9A84C'} strokeWidth="1.5" />
-              {/* Gold band (Kiswah band) */}
               <rect x="12" y="28" width="40" height="6" fill={aligned ? '#6EE7B7' : '#C9A84C'} opacity="0.85" />
-              {/* Door */}
               <rect x="28" y="36" width="8" height="14" rx="1" fill={aligned ? '#166534' : '#C9A84C'} opacity="0.5" />
-              {/* Gold calligraphy suggestion lines on band */}
               <line x1="16" y1="31" x2="24" y2="31" stroke={aligned ? '#065F46' : '#8B6914'} strokeWidth="0.7" opacity="0.6" />
               <line x1="40" y1="31" x2="48" y2="31" stroke={aligned ? '#065F46' : '#8B6914'} strokeWidth="0.7" opacity="0.6" />
-              {/* Top edge highlight */}
               <line x1="12" y1="16" x2="52" y2="16" stroke={aligned ? '#6EE7B7' : '#C9A84C'} strokeWidth="0.5" opacity="0.4" />
             </svg>
             <p className={`text-[10px] mt-2 font-semibold tracking-[0.15em] uppercase ${aligned ? 'text-emerald-400' : 'text-primary/60'}`}>
@@ -119,7 +113,6 @@ export function QiblaCompass({ open, onClose, qiblaDirection, latitude, longitud
             className="relative"
             style={{ width: size, height: size }}
           >
-            {/* Outer gold glow ring */}
             <div
               className="absolute inset-0 rounded-full"
               style={{
@@ -135,17 +128,12 @@ export function QiblaCompass({ open, onClose, qiblaDirection, latitude, longitud
               viewBox={`0 0 ${size} ${size}`}
               style={{ transform: `rotate(${compassRotation}deg)`, transition: 'transform 0.12s ease-out' }}
             >
-              {/* Background circle */}
               <circle cx={cx} cy={cy} r={outerR} fill="#0C1219" />
-
-              {/* Gold outer ring */}
               <circle cx={cx} cy={cy} r={outerR} fill="none" stroke={aligned ? '#34D399' : '#C9A84C'} strokeWidth="2" opacity="0.5" />
               <circle cx={cx} cy={cy} r={outerR - 3} fill="none" stroke={aligned ? '#34D399' : '#C9A84C'} strokeWidth="0.5" opacity="0.2" />
-
-              {/* Inner subtle ring */}
               <circle cx={cx} cy={cy} r="50" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="0.5" />
 
-              {/* Tick marks — 72 marks at every 5° */}
+              {/* Tick marks */}
               {Array.from({ length: 72 }).map((_, i) => {
                 const angle = i * 5;
                 const isMajor = angle % 45 === 0;
@@ -193,14 +181,12 @@ export function QiblaCompass({ open, onClose, qiblaDirection, latitude, longitud
                 );
               })}
 
-              {/* Compass needle — red/gold pointed arrow */}
-              {/* North half (gold/red) */}
+              {/* Compass needle */}
               <polygon
                 points={`${cx},${cy - 65} ${cx - 7},${cy} ${cx},${cy - 10} ${cx + 7},${cy}`}
                 fill={aligned ? '#34D399' : '#C9A84C'}
                 opacity="0.9"
               />
-              {/* South half (dim) */}
               <polygon
                 points={`${cx},${cy + 65} ${cx - 7},${cy} ${cx},${cy + 10} ${cx + 7},${cy}`}
                 fill="rgba(255,255,255,0.15)"
@@ -209,35 +195,15 @@ export function QiblaCompass({ open, onClose, qiblaDirection, latitude, longitud
               {/* Center jewel */}
               <circle cx={cx} cy={cy} r="6" fill="#0C1219" stroke={aligned ? '#34D399' : '#C9A84C'} strokeWidth="1.5" />
               <circle cx={cx} cy={cy} r="2.5" fill={aligned ? '#34D399' : '#C9A84C'} opacity="0.8" />
-
-              {/* Qibla direction marker on ring */}
-              <g>
-                {/* Outer marker */}
-                <circle
-                  cx={cx + (outerR - 1) * Math.sin((qiblaDirection * Math.PI) / 180)}
-                  cy={cy - (outerR - 1) * Math.cos((qiblaDirection * Math.PI) / 180)}
-                  r="5"
-                  fill={aligned ? '#34D399' : '#C9A84C'}
-                />
-                {/* Mini Kaaba icon on ring */}
-                <rect
-                  x={cx + (outerR - 1) * Math.sin((qiblaDirection * Math.PI) / 180) - 3}
-                  y={cy - (outerR - 1) * Math.cos((qiblaDirection * Math.PI) / 180) - 3}
-                  width="6"
-                  height="6"
-                  rx="0.5"
-                  fill={aligned ? '#065F46' : '#7A5E1E'}
-                />
-              </g>
             </svg>
           </motion.div>
 
-          {/* Info below compass — tight spacing */}
+          {/* Info below compass */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="mt-6 text-center px-8"
+            className="mt-5 text-center px-8"
           >
             {heading !== null ? (
               <>
@@ -262,7 +228,7 @@ export function QiblaCompass({ open, onClose, qiblaDirection, latitude, longitud
             transition={{ delay: 0.5 }}
             className="absolute bottom-20 text-[11px] text-white/20 text-center px-10 leading-relaxed italic"
           >
-            On mobile, rotate your device until the needle points to the Kaaba marker
+            On mobile, rotate your device until the needle points to the Kaaba
           </motion.p>
 
           {/* Coordinates */}
