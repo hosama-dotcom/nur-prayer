@@ -116,6 +116,8 @@ export default function SurahReader() {
   const [currentPage, setCurrentPage] = useState<number | null>(null);
   const [scrollActive, setScrollActive] = useState(false);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(getBookmarks);
+  const [isLandscape, setIsLandscape] = useState(false);
+  const [audioExpanded, setAudioExpanded] = useState(false);
 
   // Audio
   const [isPlaying, setIsPlaying] = useState(false);
@@ -136,6 +138,15 @@ export default function SurahReader() {
   // Track visible verse for last-read saving
   const visibleVerseRef = useRef<number>(1);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Detect landscape orientation
+  useEffect(() => {
+    const mql = window.matchMedia('(orientation: landscape) and (max-height: 500px)');
+    const onChange = () => setIsLandscape(mql.matches);
+    mql.addEventListener('change', onChange);
+    setIsLandscape(mql.matches);
+    return () => mql.removeEventListener('change', onChange);
+  }, []);
 
   useEffect(() => {
     setVerses([]);
@@ -368,54 +379,77 @@ export default function SurahReader() {
     </span>
   );
 
+  const landscapeFontSize = Math.round(fontSize * 0.7);
+  const effectiveFontSize = isLandscape ? landscapeFontSize : fontSize;
+  const audioProgress = audioDuration > 0 ? (audioCurrentTime / audioDuration) * 100 : 0;
+
   return (
     <div className="min-h-screen gradient-isha safe-area-top">
       <div className="geometric-pattern absolute inset-0 pointer-events-none opacity-30" />
       <div className="relative z-10">
 
-        {/* Header */}
-        <div className="sticky top-0 z-20 px-5 pt-12 pb-4" style={{ background: 'linear-gradient(180deg, #0A0A1A 0%, #0A0A1Ae6 60%, #0A0A1A00 100%)' }}>
-          <div className="flex items-center gap-3">
+        {/* Header - landscape: compact top-left label; portrait: full header */}
+        {isLandscape ? (
+          <div className="fixed top-0 left-0 z-20 px-3 py-2 flex items-center gap-2">
             <button
               onClick={() => navigate('/quran')}
-              className="w-10 h-10 rounded-xl bg-secondary/50 flex items-center justify-center backdrop-blur-sm"
+              className="w-7 h-7 rounded-lg bg-secondary/50 flex items-center justify-center backdrop-blur-sm"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <path d="M15 18l-6-6 6-6" />
               </svg>
             </button>
-            <div className="flex-1 text-center min-w-0">
-              <p className="font-arabic-display text-xl text-primary leading-relaxed">{surah?.arabicName}</p>
-            </div>
-            <div className="w-10" />
+            <span className="text-[12px] text-muted-foreground">
+              {surah?.arabicName}
+              {currentJuz && ` · Juz ${currentJuz}`}
+            </span>
           </div>
-        </div>
+        ) : (
+          <div className="sticky top-0 z-20 px-5 pt-12 pb-4" style={{ background: 'linear-gradient(180deg, #0A0A1A 0%, #0A0A1Ae6 60%, #0A0A1A00 100%)' }}>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate('/quran')}
+                className="w-10 h-10 rounded-xl bg-secondary/50 flex items-center justify-center backdrop-blur-sm"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M15 18l-6-6 6-6" />
+                </svg>
+              </button>
+              <div className="flex-1 text-center min-w-0">
+                <p className="font-arabic-display text-xl text-primary leading-relaxed">{surah?.arabicName}</p>
+              </div>
+              <div className="w-10" />
+            </div>
+          </div>
+        )}
 
-        {/* Floating toolbar */}
-        <div className="fixed top-20 right-4 z-30 flex items-center gap-2">
+        {/* Floating toolbar - landscape: compact top-right; portrait: normal */}
+        <div className={`fixed z-30 flex items-center gap-1.5 ${isLandscape ? 'top-1.5 right-3' : 'top-20 right-4 gap-2'}`}>
           <button
             onClick={() => setShowReciterPicker(p => !p)}
-            className="h-8 px-2.5 rounded-full text-[10px] font-semibold backdrop-blur-sm bg-secondary/70 text-muted-foreground transition-colors"
+            className={`rounded-full font-semibold backdrop-blur-sm bg-secondary/70 text-muted-foreground transition-colors ${
+              isLandscape ? 'h-7 px-2 text-[9px]' : 'h-8 px-2.5 text-[10px]'
+            }`}
           >
             {RECITERS.find(r => r.id === reciterId)?.short || 'Afasy'}
           </button>
           <button
             onClick={() => setShowTranslation(t => !t)}
-            className={`h-8 px-2.5 rounded-full text-[10px] font-semibold backdrop-blur-sm transition-colors ${
+            className={`rounded-full font-semibold backdrop-blur-sm transition-colors ${
               showTranslation ? 'bg-primary/25 text-primary' : 'bg-secondary/70 text-muted-foreground'
-            }`}
+            } ${isLandscape ? 'h-7 px-2 text-[9px]' : 'h-8 px-2.5 text-[10px]'}`}
           >
             EN
           </button>
-          <div className="flex items-center bg-secondary/70 backdrop-blur-sm rounded-full overflow-hidden">
-            <button onClick={() => adjustFontSize(-2)} className="h-8 w-8 flex items-center justify-center text-primary text-[11px] font-bold">A-</button>
-            <div className="w-px h-4 bg-muted-foreground/20" />
-            <button onClick={() => adjustFontSize(2)} className="h-8 w-8 flex items-center justify-center text-primary text-[12px] font-bold">A+</button>
+          <div className={`flex items-center bg-secondary/70 backdrop-blur-sm rounded-full overflow-hidden ${isLandscape ? 'h-7' : ''}`}>
+            <button onClick={() => adjustFontSize(-2)} className={`flex items-center justify-center text-primary font-bold ${isLandscape ? 'h-7 w-7 text-[9px]' : 'h-8 w-8 text-[11px]'}`}>A-</button>
+            <div className={`w-px bg-muted-foreground/20 ${isLandscape ? 'h-3' : 'h-4'}`} />
+            <button onClick={() => adjustFontSize(2)} className={`flex items-center justify-center text-primary font-bold ${isLandscape ? 'h-7 w-7 text-[10px]' : 'h-8 w-8 text-[12px]'}`}>A+</button>
           </div>
         </div>
 
-        {/* Floating Juz/Page indicator */}
-        {(currentJuz || currentPage) && (
+        {/* Floating Juz/Page indicator - hidden in landscape (shown in header label) */}
+        {!isLandscape && (currentJuz || currentPage) && (
           <div
             className="fixed top-[82px] left-1/2 -translate-x-1/2 z-25 pointer-events-none transition-opacity duration-500"
             style={{ opacity: scrollActive ? 1 : 0.4 }}
@@ -434,6 +468,7 @@ export default function SurahReader() {
             </div>
           </div>
         )}
+
         {/* Reciter picker */}
         <AnimatePresence>
           {showReciterPicker && (
@@ -441,7 +476,7 @@ export default function SurahReader() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="fixed top-[108px] right-4 z-40 rounded-xl border overflow-hidden"
+              className={`fixed z-40 rounded-xl border overflow-hidden ${isLandscape ? 'top-[36px] right-3' : 'top-[108px] right-4'}`}
               style={{ background: 'hsla(230, 20%, 12%, 0.95)', borderColor: 'hsla(0, 0%, 100%, 0.1)', backdropFilter: 'blur(20px)' }}
             >
               {RECITERS.map(r => (
@@ -460,7 +495,13 @@ export default function SurahReader() {
         </AnimatePresence>
 
         {/* Continuous flowing text */}
-        <div className="px-6" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 80px)', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 160px)' }}>
+        <div
+          className={isLandscape ? 'px-8' : 'px-6'}
+          style={{
+            paddingTop: isLandscape ? '40px' : 'calc(env(safe-area-inset-top, 0px) + 80px)',
+            paddingBottom: isLandscape ? '60px' : 'calc(env(safe-area-inset-bottom, 0px) + 160px)',
+          }}
+        >
           {/* Bismillah */}
           {chapterNum !== 9 && chapterNum !== 1 && (
             <div className="text-center py-8">
@@ -470,7 +511,6 @@ export default function SurahReader() {
           {verses.length > 0 && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
               {showTranslation ? (
-                // Interleaved mode: each verse with its translation
                 <div className="space-y-0">
                   {verses.map((verse, idx) => {
                     const prevVerse = idx > 0 ? verses[idx - 1] : null;
@@ -491,7 +531,7 @@ export default function SurahReader() {
                         )}
                         <p
                           className="font-arabic-display text-primary/90 text-right leading-[2.4]"
-                          style={{ fontSize: `${fontSize}px` }}
+                          style={{ fontSize: `${effectiveFontSize}px` }}
                           dir="rtl"
                         >
                           {verse.text_uthmani}
@@ -511,7 +551,6 @@ export default function SurahReader() {
                   })}
                 </div>
               ) : (
-                // Continuous flowing mode with Juz/page markers
                 <div dir="rtl">
                   {verses.map((verse, idx) => {
                     const prevVerse = idx > 0 ? verses[idx - 1] : null;
@@ -534,7 +573,7 @@ export default function SurahReader() {
                         )}
                         <span
                           className="font-arabic-display text-primary/90 leading-[2.4]"
-                          style={{ fontSize: `${fontSize}px` }}
+                          style={{ fontSize: `${effectiveFontSize}px` }}
                         >
                           {verse.text_uthmani}
                           <VerseBadge num={verse.verse_number} />
@@ -567,36 +606,109 @@ export default function SurahReader() {
         </div>
       </div>
 
-      {/* Mini audio player */}
+      {/* Audio player */}
       {audioUrl && (
-        <div className="fixed bottom-[100px] left-0 right-0 z-40 px-3 pb-2">
-          <div
-            className="rounded-2xl border p-3 flex items-center gap-3"
-            style={{ background: 'hsla(230, 20%, 12%, 0.92)', borderColor: 'hsla(0, 0%, 100%, 0.1)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)' }}
-          >
-            <button onClick={skipBack} className="w-8 h-8 flex items-center justify-center flex-shrink-0 text-muted-foreground">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M1 4v6h6" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
-              </svg>
-            </button>
-            <button onClick={togglePlay} className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-              {isPlaying ? (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
+        isLandscape ? (
+          // Landscape: minimal circular play button with progress arc, bottom-right
+          <div className="fixed bottom-3 right-3 z-40">
+            <AnimatePresence mode="wait">
+              {audioExpanded ? (
+                <motion.div
+                  key="expanded"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="rounded-2xl border p-2.5 flex items-center gap-2"
+                  style={{ background: 'hsla(230, 20%, 12%, 0.95)', borderColor: 'hsla(0, 0%, 100%, 0.1)', backdropFilter: 'blur(30px)', width: '280px' }}
+                >
+                  <button onClick={skipBack} className="w-7 h-7 flex items-center justify-center flex-shrink-0 text-muted-foreground">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 4v6h6" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+                    </svg>
+                  </button>
+                  <button onClick={togglePlay} className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    {isPlaying ? (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="hsl(var(--primary))"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
+                    ) : (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="hsl(var(--primary))"><polygon points="6,3 20,12 6,21" /></svg>
+                    )}
+                  </button>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[8px] text-muted-foreground w-6 text-right">{formatTime(audioCurrentTime)}</span>
+                      <Slider value={[audioCurrentTime]} max={audioDuration || 1} step={1} onValueChange={seekAudio} className="flex-1 h-1" />
+                      <span className="text-[8px] text-muted-foreground w-6">{formatTime(audioDuration)}</span>
+                    </div>
+                  </div>
+                  <button onClick={() => setAudioExpanded(false)} className="w-6 h-6 flex items-center justify-center text-muted-foreground">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                  </button>
+                </motion.div>
               ) : (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><polygon points="6,3 20,12 6,21" /></svg>
+                <motion.button
+                  key="collapsed"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  onClick={() => setAudioExpanded(true)}
+                  className="relative w-12 h-12 rounded-full flex items-center justify-center"
+                  style={{ background: 'hsla(230, 20%, 12%, 0.92)', border: '1px solid hsla(0, 0%, 100%, 0.1)' }}
+                >
+                  {/* Progress arc */}
+                  <svg className="absolute inset-0 w-12 h-12 -rotate-90" viewBox="0 0 48 48">
+                    <circle cx="24" cy="24" r="22" fill="none" stroke="hsla(0, 0%, 100%, 0.08)" strokeWidth="2" />
+                    <circle
+                      cx="24" cy="24" r="22" fill="none"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeDasharray={`${2 * Math.PI * 22}`}
+                      strokeDashoffset={`${2 * Math.PI * 22 * (1 - audioProgress / 100)}`}
+                      style={{ transition: 'stroke-dashoffset 0.3s ease' }}
+                    />
+                  </svg>
+                  <span className="relative z-10">
+                    {isPlaying ? (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
+                    ) : (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><polygon points="6,3 20,12 6,21" /></svg>
+                    )}
+                  </span>
+                </motion.button>
               )}
-            </button>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs text-foreground truncate">{surah?.name}</p>
-              <p className="text-[10px] text-muted-foreground">{RECITERS.find(r => r.id === reciterId)?.name || 'Unknown'}</p>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-[9px] text-muted-foreground w-7 text-right">{formatTime(audioCurrentTime)}</span>
-                <Slider value={[audioCurrentTime]} max={audioDuration || 1} step={1} onValueChange={seekAudio} className="flex-1 h-1" />
-                <span className="text-[9px] text-muted-foreground w-7">{formatTime(audioDuration)}</span>
+            </AnimatePresence>
+          </div>
+        ) : (
+          // Portrait: full mini player
+          <div className="fixed bottom-[100px] left-0 right-0 z-40 px-3 pb-2">
+            <div
+              className="rounded-2xl border p-3 flex items-center gap-3"
+              style={{ background: 'hsla(230, 20%, 12%, 0.92)', borderColor: 'hsla(0, 0%, 100%, 0.1)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)' }}
+            >
+              <button onClick={skipBack} className="w-8 h-8 flex items-center justify-center flex-shrink-0 text-muted-foreground">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 4v6h6" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+                </svg>
+              </button>
+              <button onClick={togglePlay} className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                {isPlaying ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><polygon points="6,3 20,12 6,21" /></svg>
+                )}
+              </button>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-foreground truncate">{surah?.name}</p>
+                <p className="text-[10px] text-muted-foreground">{RECITERS.find(r => r.id === reciterId)?.name || 'Unknown'}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-[9px] text-muted-foreground w-7 text-right">{formatTime(audioCurrentTime)}</span>
+                  <Slider value={[audioCurrentTime]} max={audioDuration || 1} step={1} onValueChange={seekAudio} className="flex-1 h-1" />
+                  <span className="text-[9px] text-muted-foreground w-7">{formatTime(audioDuration)}</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )
       )}
     </div>
   );
