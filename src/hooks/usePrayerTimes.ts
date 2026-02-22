@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getPrayerTimes, getCurrentPrayer, getNextPrayer, getTimeUntil, getQiblaDirection, type PrayerTime, type PrayerName, type CalcMethod } from '@/lib/prayer-utils';
 
 interface LocationState {
@@ -7,7 +7,7 @@ interface LocationState {
   city?: string;
 }
 
-export function usePrayerTimes(method: CalcMethod = 'NorthAmerica') {
+export function usePrayerTimes() {
   const [location, setLocation] = useState<LocationState | null>(null);
   const [prayers, setPrayers] = useState<PrayerTime[]>([]);
   const [currentPrayer, setCurrentPrayer] = useState<PrayerName>('fajr');
@@ -16,6 +16,26 @@ export function usePrayerTimes(method: CalcMethod = 'NorthAmerica') {
   const [qiblaDirection, setQiblaDirection] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [method, setMethod] = useState<CalcMethod>(() => {
+    return (localStorage.getItem('nur-calc-method') as CalcMethod) || 'UmmAlQura';
+  });
+
+  // Listen for calc method changes from Settings
+  useEffect(() => {
+    const handleStorage = () => {
+      const stored = localStorage.getItem('nur-calc-method') as CalcMethod;
+      if (stored && stored !== method) {
+        setMethod(stored);
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    // Also listen for custom event for same-tab updates
+    window.addEventListener('nur-method-changed', handleStorage);
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('nur-method-changed', handleStorage);
+    };
+  }, [method]);
 
   // Get location
   useEffect(() => {
@@ -28,7 +48,6 @@ export function usePrayerTimes(method: CalcMethod = 'NorthAmerica') {
           setLoading(false);
         },
         () => {
-          // Default to Makkah if location denied
           setLocation({ lat: 21.4225, lng: 39.8262, city: 'Makkah' });
           setQiblaDirection(0);
           setLoading(false);
@@ -40,13 +59,20 @@ export function usePrayerTimes(method: CalcMethod = 'NorthAmerica') {
     }
   }, []);
 
-  // Calculate prayer times
+  // Calculate prayer times — reactive to location, method, and date
   useEffect(() => {
     if (!location) return;
     const times = getPrayerTimes(location.lat, location.lng, new Date(), method);
     setPrayers(times);
     setCurrentPrayer(getCurrentPrayer(times));
     setNextPrayer(getNextPrayer(times));
+
+    // Debug logging
+    console.log('[Nur] Prayer Times Calculated:', {
+      method,
+      coordinates: { lat: location.lat, lng: location.lng },
+      times: times.map(t => ({ name: t.name, time: t.time.toLocaleTimeString() })),
+    });
   }, [location, method]);
 
   // Countdown timer
@@ -54,7 +80,6 @@ export function usePrayerTimes(method: CalcMethod = 'NorthAmerica') {
     if (!nextPrayer) return;
     const interval = setInterval(() => {
       setCountdown(getTimeUntil(nextPrayer.time));
-      // Recalculate current prayer
       if (prayers.length > 0) {
         const cp = getCurrentPrayer(prayers);
         if (cp !== currentPrayer) {

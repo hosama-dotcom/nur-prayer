@@ -17,12 +17,13 @@ const calcMethods: { value: CalcMethod; label: string }[] = [
 
 export default function More() {
   const [selectedMethod, setSelectedMethod] = useState<CalcMethod>(() => {
-    return (localStorage.getItem('nur-calc-method') as CalcMethod) || 'NorthAmerica';
+    return (localStorage.getItem('nur-calc-method') as CalcMethod) || 'UmmAlQura';
   });
 
   const handleMethodChange = (method: CalcMethod) => {
     setSelectedMethod(method);
     localStorage.setItem('nur-calc-method', method);
+    window.dispatchEvent(new Event('nur-method-changed'));
   };
 
   return (
