@@ -9,7 +9,7 @@ import Quran from "./pages/Quran";
 import SurahReader from "./pages/SurahReader";
 import Dhikr from "./pages/Dhikr";
 import Tracker from "./pages/Tracker";
-import Duas from "./pages/Duas";
+
 import More from "./pages/More";
 import NotFound from "./pages/NotFound";
 
@@ -27,7 +27,7 @@ const App = () => (
           <Route path="/quran/:number" element={<SurahReader />} />
           <Route path="/dhikr" element={<Dhikr />} />
           <Route path="/tracker" element={<Tracker />} />
-          <Route path="/duas" element={<Duas />} />
+          
           <Route path="/more" element={<More />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
