@@ -76,12 +76,6 @@ export function usePrayerTimes() {
     setCurrentPrayer(getCurrentPrayer(times));
     setNextPrayer(getNextPrayer(times, location.lat, location.lng, method));
 
-    // Debug logging
-    console.log('[Nur] Prayer Times Calculated:', {
-      method,
-      coordinates: { lat: location.lat, lng: location.lng },
-      times: times.map(t => ({ name: t.name, time: t.time.toLocaleTimeString() })),
-    });
   }, [location, method, today]);
 
   // Countdown timer

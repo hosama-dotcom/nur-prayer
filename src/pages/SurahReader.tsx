@@ -4,6 +4,30 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { surahs } from '@/data/surahs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Slider } from '@/components/ui/slider';
+import { z } from 'zod';
+
+const verseSchema = z.object({
+  id: z.number(),
+  verse_key: z.string(),
+  verse_number: z.number(),
+  text_uthmani: z.string(),
+  translations: z.array(z.object({ text: z.string() })).optional().default([]),
+});
+
+const apiResponseSchema = z.object({
+  verses: z.array(verseSchema),
+  pagination: z.object({
+    total_pages: z.number(),
+    current_page: z.number(),
+    total_records: z.number(),
+  }),
+});
+
+const audioResponseSchema = z.object({
+  audio_file: z.object({
+    audio_url: z.string().url(),
+  }).nullable().optional(),
+});
 
 const RECITERS = [
   { id: 7, name: 'Mishary Rashid Al-Afasy', short: 'Afasy' },
@@ -127,8 +151,10 @@ export default function SurahReader() {
           `https://api.quran.com/api/v4/verses/by_chapter/${chapterNum}?language=en&words=false&translations=131&fields=text_uthmani&per_page=50&page=${page}`
         );
         if (!res.ok) throw new Error('Failed to fetch verses');
-        const data: ApiResponse = await res.json();
-        console.log(`[SurahReader] Chapter ${chapterNum}, page ${page}:`, data);
+        const raw = await res.json();
+        const parsed = apiResponseSchema.safeParse(raw);
+        if (!parsed.success) throw new Error('Invalid verse data received');
+        const data = parsed.data as ApiResponse;
         setVerses(prev => page === 1 ? data.verses : [...prev, ...data.verses]);
         setTotalPages(data.pagination.total_pages);
       } catch (e: any) {
@@ -156,9 +182,11 @@ export default function SurahReader() {
     const fetchAudio = async () => {
       try {
         const res = await fetch(`https://api.quran.com/api/v4/chapter_recitations/${reciterId}/${chapterNum}`);
-        const data = await res.json();
-        const url = data.audio_file?.audio_url;
-        if (url) setAudioUrl(url);
+        const raw = await res.json();
+        const parsed = audioResponseSchema.safeParse(raw);
+        if (parsed.success && parsed.data.audio_file?.audio_url) {
+          setAudioUrl(parsed.data.audio_file.audio_url);
+        }
       } catch { /* silent */ }
     };
     fetchAudio();
