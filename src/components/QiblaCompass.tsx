@@ -209,19 +209,19 @@ export function QiblaCompass({ open, onClose, qiblaDirection, latitude, longitud
             transition={{ delay: 0.3 }}
             className="mt-5 text-center px-8"
           >
-            {heading !== null ? (
+          {heading !== null ? (
               <>
                 <p className={`text-base font-medium ${aligned ? 'text-emerald-400' : 'text-white/70'}`}>
-                  {aligned ? 'You are facing the Qibla ✦' : 'Face this direction to pray'}
+                  {aligned ? t('qibla.facingQibla') : t('qibla.faceDirection')}
                 </p>
-                <p className="text-xs text-white/30 mt-1.5">{Math.round(qiblaDirection)}° from North</p>
+                <p className="text-xs text-white/30 mt-1.5">{Math.round(qiblaDirection)}{t('qibla.fromNorth')}</p>
               </>
             ) : permissionDenied ? (
               <p className="text-sm text-white/50 leading-relaxed">
-                Compass access denied. Enable motion sensors in your device settings.
+                {t('qibla.permissionDenied')}
               </p>
             ) : (
-              <p className="text-sm text-white/40">Waiting for compass data...</p>
+              <p className="text-sm text-white/40">{t('qibla.waiting')}</p>
             )}
           </motion.div>
 
