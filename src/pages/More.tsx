@@ -145,7 +145,7 @@ export default function More() {
                             : 'bg-secondary/20 text-foreground/70 border border-transparent'
                         }`}
                       >
-                        {m.label}
+                        {isAr ? m.labelAr : m.label}
                       </button>
                     ))}
                   </motion.div>
