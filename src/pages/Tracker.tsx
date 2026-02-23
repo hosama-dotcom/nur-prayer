@@ -132,15 +132,15 @@ function KhatmCounter({ khatmLog }: { khatmLog: ReturnType<typeof useKhatmLog> }
           <DialogHeader className="text-center">
             <DialogTitle className="text-primary font-arabic text-lg">الحمد لله</DialogTitle>
             <DialogDescription className="text-foreground/80 text-sm mt-2">
-              Alhamdulillah! Record a completed Quran reading?
+              {t('tracker.alhamdulillah')}
             </DialogDescription>
           </DialogHeader>
           <p className="text-xs text-muted-foreground text-center">
-            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+            {new Date().toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
           </p>
           <button onClick={confirmKhatm}
             className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm active:scale-[0.97] transition-all">
-            Confirm ✓
+            {t('tracker.confirm')}
           </button>
         </DialogContent>
       </Dialog>
