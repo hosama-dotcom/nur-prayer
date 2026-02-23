@@ -594,7 +594,7 @@ function DhikrCounter() {
         </button>
         <button onClick={(e) => { e.stopPropagation(); setShowPresets(!showPresets); }}
           className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/[0.06] border border-white/[0.08] backdrop-blur-sm active:scale-95 transition-transform">
-          <span className="text-xs text-white/60">{lang === 'ar' ? selectedPreset.arabic : selectedPreset.transliteration}</span>
+          <span className="text-white/60" style={{ fontSize: lang === 'ar' ? '16px' : '12px' }}>{lang === 'ar' ? selectedPreset.arabic : selectedPreset.transliteration}</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" opacity="0.4"><path d="M7 10l5 5 5-5" /></svg>
         </button>
       </div>
