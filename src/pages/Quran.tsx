@@ -53,22 +53,22 @@ export default function Quran() {
         {/* Surah / Juz toggle */}
         <div className="flex justify-center mb-4">
           <div className="inline-flex rounded-full p-1 bg-white/[0.06] border border-white/[0.08] backdrop-blur-sm">
-            {(['surah', 'juz'] as const).map((m) => (
+           {([{ key: 'surah', label: t('quran.surah') }, { key: 'juz', label: t('quran.juz') }] as const).map((m) => (
               <button
-                key={m}
-                onClick={() => setViewMode(m)}
+                key={m.key}
+                onClick={() => setViewMode(m.key as ViewMode)}
                 className={`relative px-6 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  viewMode === m ? 'text-primary' : 'text-muted-foreground'
+                  viewMode === m.key ? 'text-primary' : 'text-muted-foreground'
                 }`}
               >
-                {viewMode === m && (
+                {viewMode === m.key && (
                   <motion.div
                     layoutId="quran-view-pill"
                     className="absolute inset-0 rounded-full bg-primary/15 border border-primary/25"
                     transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                   />
                 )}
-                <span className="relative z-10 capitalize">{m}</span>
+                <span className="relative z-10">{m.label}</span>
               </button>
             ))}
           </div>
