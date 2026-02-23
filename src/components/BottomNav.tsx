@@ -14,9 +14,29 @@ export function BottomNav() {
   const navigate = useNavigate();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom bottom-nav-container">
-      <div className="rounded-none border-t border-x-0 border-b-0" style={{ background: '#0A2A3B', borderColor: 'rgba(255,255,255,0.06)' }}>
-        <div className="flex items-center justify-around px-2 py-2">
+    <>
+      {/* Subtle bottom gradient for contrast */}
+      <div
+        className="fixed bottom-0 left-0 right-0 z-40 pointer-events-none"
+        style={{
+          height: '120px',
+          background: 'linear-gradient(to top, rgba(0,0,0,0.15) 0%, transparent 100%)',
+        }}
+      />
+      <nav className="fixed bottom-0 left-0 right-0 z-50 flex justify-center bottom-nav-container" style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))' }}>
+        <div
+          className="flex items-center justify-around"
+          style={{
+            width: '90%',
+            maxWidth: '420px',
+            background: 'rgba(255,255,255,0.15)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            borderRadius: '32px',
+            padding: '10px 24px',
+          }}
+        >
           {tabs.map((tab) => {
             const isActive = location.pathname === tab.path;
             return (
@@ -26,35 +46,21 @@ export function BottomNav() {
                 className="relative flex flex-col items-center gap-1 py-1 px-3"
               >
                 <tab.icon active={isActive} />
-                <span className={`text-[10px] font-medium transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                <span className={`text-[10px] font-medium transition-colors ${isActive ? 'text-primary' : 'text-white/60'}`}>
                   {tab.label}
                 </span>
-                {isActive && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      bottom: 0,
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      width: '20px',
-                      height: '3px',
-                      borderRadius: '2px',
-                      background: 'hsl(43, 50%, 54%)',
-                    }}
-                  />
-                )}
               </button>
             );
           })}
         </div>
-      </div>
-    </nav>
+      </nav>
+    </>
   );
 }
 
 function HomeIcon({ active }: { active: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? 'hsl(43, 50%, 54%)' : 'hsl(220, 10%, 60%)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? 'hsl(43, 50%, 54%)' : 'rgba(255,255,255,0.6)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
       <polyline points="9 22 9 12 15 12 15 22" />
     </svg>
@@ -63,7 +69,7 @@ function HomeIcon({ active }: { active: boolean }) {
 
 function QuranIcon({ active }: { active: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? 'hsl(43, 50%, 54%)' : 'hsl(220, 10%, 60%)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? 'hsl(43, 50%, 54%)' : 'rgba(255,255,255,0.6)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
       <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
       <path d="M12 6v7" />
@@ -74,7 +80,7 @@ function QuranIcon({ active }: { active: boolean }) {
 
 function DhikrIcon({ active }: { active: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? 'hsl(43, 50%, 54%)' : 'hsl(220, 10%, 60%)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? 'hsl(43, 50%, 54%)' : 'rgba(255,255,255,0.6)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="10" />
       <circle cx="12" cy="12" r="3" />
       <path d="M12 2v4" />
@@ -87,7 +93,7 @@ function DhikrIcon({ active }: { active: boolean }) {
 
 function TrackerIcon({ active }: { active: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? 'hsl(43, 50%, 54%)' : 'hsl(220, 10%, 60%)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? 'hsl(43, 50%, 54%)' : 'rgba(255,255,255,0.6)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
     </svg>
   );
@@ -95,7 +101,7 @@ function TrackerIcon({ active }: { active: boolean }) {
 
 function MoreIcon({ active }: { active: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? 'hsl(43, 50%, 54%)' : 'hsl(220, 10%, 60%)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? 'hsl(43, 50%, 54%)' : 'rgba(255,255,255,0.6)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="1" />
       <circle cx="19" cy="12" r="1" />
       <circle cx="5" cy="12" r="1" />
