@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { z } from 'zod';
 import { useAudioPlayer } from '@/contexts/AudioContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const verseSchema = z.object({
   id: z.number(),
