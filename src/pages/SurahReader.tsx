@@ -405,6 +405,9 @@ export default function SurahReader() {
     preScrolledRef.current = null;
   }, [activeVerseNumber]);
 
+  // Helper to check if a verse is currently being played
+  const isVerseActive = (verseNum: number) => isThisSurahPlaying && activeVerseNumber === verseNum;
+
   // Render verse text with word-level spans
   const renderWords = useCallback((text: string, verseNum: number, fSize: number) => {
     const words = text.split(/\s+/);
@@ -426,10 +429,7 @@ export default function SurahReader() {
         {word}{' '}
       </span>
     ));
-  }, [activeWordIdx, isVerseActive]);
-
-  // Helper to check if a verse is currently being played
-  const isVerseActive = (verseNum: number) => isThisSurahPlaying && activeVerseNumber === verseNum;
+  }, [activeWordIdx, isThisSurahPlaying, activeVerseNumber]);
 
   return (
     <div className="min-h-screen night-sky-bg safe-area-top relative">
