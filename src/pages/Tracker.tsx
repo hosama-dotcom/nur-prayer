@@ -89,7 +89,7 @@ function KhatmCounter({ khatmLog }: { khatmLog: ReturnType<typeof useKhatmLog> }
 
         <button onClick={() => setShowConfirm(true)}
           className="w-full py-3.5 rounded-xl bg-primary/15 text-primary text-sm font-semibold border border-primary/25 active:scale-[0.97] transition-all">
-          Record Khatm ✦
+          {t('tracker.recordKhatm')}
         </button>
 
         {khatms.length > 0 && (
