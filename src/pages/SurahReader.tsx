@@ -105,6 +105,8 @@ export default function SurahReader() {
   const navigate = useNavigate();
   const chapterNum = parseInt(number || '1', 10);
   const surah = surahs.find(s => s.number === chapterNum);
+  const { lang } = useLanguage();
+  const isAr = lang === 'ar';
 
   const [verses, setVerses] = useState<Verse[]>([]);
   const [loading, setLoading] = useState(true);
