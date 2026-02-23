@@ -733,7 +733,7 @@ export default function Dhikr() {
                   transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                 />
               )}
-              <span className="relative z-10">{tabKey === 'dhikr' ? t('nav.dhikr') : t('duas.title')}</span>
+              <span className="relative z-10">{tabKey === 'dhikr' ? t('dhikr.tabAdhkar') : t('dhikr.tabDuas')}</span>
             </button>
           ))}
         </div>
