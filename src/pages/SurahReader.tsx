@@ -628,13 +628,15 @@ export default function SurahReader() {
                           </span>
                         )}
                         <span
-                          className="font-arabic-display text-primary/90 leading-[2.4] rounded-lg transition-colors duration-300"
+                          className="font-arabic-display text-primary/90 leading-[2.4] rounded-lg transition-all duration-300 inline"
                           style={{
-                            fontSize: `${effectiveFontSize}px`,
-                            ...(active ? { background: 'rgba(201, 168, 76, 0.2)', padding: '2px 4px' } : {}),
+                            ...(active ? {
+                              borderLeft: '2px solid rgba(100, 220, 220, 0.4)',
+                              paddingLeft: '4px',
+                            } : {}),
                           }}
                         >
-                          {verse.text_uthmani}
+                          {renderWords(verse.text_uthmani, verse.verse_number, effectiveFontSize)}
                           <VerseBadge num={verse.verse_number} />
                           {' '}
                         </span>
