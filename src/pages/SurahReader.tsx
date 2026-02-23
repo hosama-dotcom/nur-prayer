@@ -573,15 +573,22 @@ export default function SurahReader() {
                           </div>
                         )}
                         <div
-                          className="rounded-xl px-2 py-1 transition-colors duration-300"
-                          style={active ? { background: 'rgba(201, 168, 76, 0.2)' } : {}}
+                          className="rounded-xl px-2 py-1 transition-all duration-300"
+                          style={{
+                            ...(active ? {
+                              borderLeft: '2px solid rgba(100, 220, 220, 0.4)',
+                              paddingLeft: '8px',
+                            } : {
+                              borderLeft: '2px solid transparent',
+                              paddingLeft: '8px',
+                            }),
+                          }}
                         >
                           <p
                             className="font-arabic-display text-primary/90 text-right leading-[2.4]"
-                            style={{ fontSize: `${effectiveFontSize}px` }}
                             dir="rtl"
                           >
-                            {verse.text_uthmani}
+                            {renderWords(verse.text_uthmani, verse.verse_number, effectiveFontSize)}
                             <VerseBadge num={verse.verse_number} />
                           </p>
                           {verse.translations?.[0] && (
