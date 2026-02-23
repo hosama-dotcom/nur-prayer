@@ -281,6 +281,7 @@ function JuzProgress({ onAllComplete }: { onAllComplete: () => void }) {
 /* ── Main Page ── */
 
 export default function Tracker() {
+  const { t, lang } = useLanguage();
   const khatmLog = useKhatmLog();
   const [showAutoKhatm, setShowAutoKhatm] = useState(false);
 
@@ -290,10 +291,8 @@ export default function Tracker() {
 
   const confirmAutoKhatm = () => {
     khatmLog.addKhatm();
-    // Reset juz progress
     localStorage.setItem('nur_juz_progress', JSON.stringify(new Array(30).fill(false)));
     setShowAutoKhatm(false);
-    // Force re-render by reloading juz state — trigger via page remount
     window.location.reload();
   };
 
@@ -302,7 +301,6 @@ export default function Tracker() {
       <div className="geometric-pattern absolute inset-0 pointer-events-none" />
 
       <div className="relative z-10 px-5">
-        {/* Header */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="pt-12 pb-6 text-center">
           <p className="font-arabic-display text-5xl text-primary leading-tight">رِحْلَتِي</p>
         </motion.div>
@@ -312,21 +310,20 @@ export default function Tracker() {
         <JuzProgress onAllComplete={handleAllJuzComplete} />
       </div>
 
-      {/* Auto Khatm modal */}
       <Dialog open={showAutoKhatm} onOpenChange={setShowAutoKhatm}>
         <DialogContent className="glass-card-strong border-primary/20 max-w-[340px] rounded-2xl">
           <DialogHeader className="text-center">
             <DialogTitle className="text-primary font-arabic text-2xl">مَاشَاءَ اللّٰه!</DialogTitle>
             <DialogDescription className="text-foreground/80 text-sm mt-3">
-              You have completed the Quran!
+              {t('tracker.completedQuran')}
             </DialogDescription>
           </DialogHeader>
           <p className="text-xs text-muted-foreground text-center">
-            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+            {new Date().toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
           </p>
           <button onClick={confirmAutoKhatm}
             className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm active:scale-[0.97] transition-all">
-            Alhamdulillah, record this Khatm ✓
+            {t('tracker.confirmKhatm')}
           </button>
         </DialogContent>
       </Dialog>
