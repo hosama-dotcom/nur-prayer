@@ -206,14 +206,19 @@ export default function Home() {
               return (
                 <div
                   key={prayer.name}
-                  className={`relative rounded-xl px-3.5 py-2.5 text-center min-w-[78px] transition-all border backdrop-blur-xl
+                  className={`relative rounded-xl px-3.5 py-2.5 text-center min-w-[78px] transition-all border
                     ${isActive
-                      ? 'bg-white/25 border-[#C9A84C]/40'
-                      : 'bg-white/[0.15] border-white/[0.1]'
+                      ? 'border-[#C9A84C]/40'
+                      : 'border-white/[0.1]'
                     }
                     ${isNext ? 'border-white/15' : ''}
                   `}
-                  style={isActive ? { boxShadow: '0 0 16px rgba(201, 168, 76, 0.25), 0 0 32px rgba(201, 168, 76, 0.1)' } : {}}
+                  style={{
+                    backdropFilter: 'blur(8px)',
+                    WebkitBackdropFilter: 'blur(8px)',
+                    background: isActive ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.35)',
+                    ...(isActive ? { boxShadow: '0 0 16px rgba(201, 168, 76, 0.25), 0 0 32px rgba(201, 168, 76, 0.1)' } : {}),
+                  }}
                 >
                   <p className="font-arabic text-sm text-white/30 mb-0.5">{prayer.arabicLabel}</p>
                   <p className={`text-[10px] font-semibold ${isActive ? 'text-[#C9A84C]' : 'text-white/75'}`}>
@@ -269,7 +274,7 @@ export default function Home() {
           <div
             className="rounded-2xl px-5 py-4 backdrop-blur-xl"
             style={{
-              background: 'rgba(0,0,0,0.5)',
+              background: 'rgba(0,0,0,0.25)',
               border: '1px solid rgba(255,255,255,0.1)',
             }}
           >
