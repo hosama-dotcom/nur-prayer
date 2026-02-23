@@ -126,7 +126,7 @@ export default function SurahReader() {
   });
 
   // Global audio
-  const { state: audioState, playVerse: globalPlayVerse, togglePlay: globalTogglePlay, stop: globalStop, activeVerseNumber } = useAudioPlayer();
+  const { state: audioState, playVerse: globalPlayVerse, togglePlay: globalTogglePlay, stop: globalStop, activeVerseNumber, audioElement } = useAudioPlayer();
   const isThisSurahPlaying = audioState.surahNumber === chapterNum;
   const isPlaying = isThisSurahPlaying && audioState.isPlaying;
 
