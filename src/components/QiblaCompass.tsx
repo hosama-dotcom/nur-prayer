@@ -103,7 +103,7 @@ export function QiblaCompass({ open, onClose, qiblaDirection, latitude, longitud
               <line x1="12" y1="16" x2="52" y2="16" stroke={aligned ? '#6EE7B7' : '#C9A84C'} strokeWidth="0.5" opacity="0.4" />
             </svg>
             <p className={`text-[10px] mt-2 font-semibold tracking-[0.15em] uppercase ${aligned ? 'text-emerald-400' : 'text-primary/60'}`}>
-              {aligned ? '✓ Qibla Found' : 'Kaaba · Makkah'}
+              {aligned ? t('qibla.qiblaFound') : t('qibla.kaabaMakkah')}
             </p>
           </motion.div>
 
