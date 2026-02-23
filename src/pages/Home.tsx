@@ -121,7 +121,7 @@ function RamadanCountdown({ maghribTime, fajrTime, lang, t }: { maghribTime: Dat
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <p className="text-[9px] uppercase tracking-[0.15em] text-white/40 mb-0.5">{label}</p>
+              <p className="uppercase tracking-[0.15em] text-white/40 mb-0.5" style={{ fontSize: '15px' }}>{label}</p>
               <p className="leading-none">
                 <span className="text-[26px] font-light text-[#C9A84C]">{hours}</span>
                 <span className="text-[12px] text-white/30 mx-0.5">{hLabel}</span>
