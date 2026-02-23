@@ -448,18 +448,18 @@ export default function SurahReader() {
         <Drawer open={showReciterPicker} onOpenChange={setShowReciterPicker}>
           <DrawerContent className="night-sky-bg border-t border-white/10">
             <DrawerHeader>
-              <DrawerTitle className="text-center text-foreground">Select Reciter</DrawerTitle>
+              <DrawerTitle className="text-center text-foreground">{isAr ? 'اختر القارئ' : 'Select Reciter'}</DrawerTitle>
             </DrawerHeader>
             <div className="px-4 pb-8 space-y-1">
               {RECITERS.map(r => (
                 <button
                   key={r.id}
                   onClick={() => changeReciter(r.id)}
-                  className={`block w-full text-left px-4 py-3 rounded-xl text-sm transition-colors ${
+                  className={`block w-full text-start px-4 py-3 rounded-xl text-sm transition-colors ${
                     r.id === reciterId ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:bg-secondary/50'
                   }`}
                 >
-                  {r.name}
+                  {isAr ? r.nameAr : r.name}
                 </button>
               ))}
             </div>
