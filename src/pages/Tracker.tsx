@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 /* ── Types ── */
 
@@ -23,12 +24,14 @@ interface KhatmLog {
 
 /* ── Helpers ── */
 
-function formatKhatmDate(dateStr: string): string {
+function formatKhatmDate(dateStr: string, lang: string): string {
   const d = new Date(dateStr);
-  const hijri = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
+  const locale = lang === 'ar' ? 'ar-u-ca-islamic-umalqura' : 'en-u-ca-islamic-umalqura';
+  const gregLocale = lang === 'ar' ? 'ar-SA' : 'en-US';
+  const hijri = new Intl.DateTimeFormat(locale, {
     month: 'long', year: 'numeric',
   }).format(d);
-  const greg = d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  const greg = d.toLocaleDateString(gregLocale, { month: 'short', year: 'numeric' });
   return `${hijri} — ${greg}`;
 }
 
@@ -65,6 +68,7 @@ function useKhatmLog() {
 
 function KhatmCounter({ khatmLog }: { khatmLog: ReturnType<typeof useKhatmLog> }) {
   const { khatms, addKhatm, deleteKhatm, updateDate } = khatmLog;
+  const { t, lang } = useLanguage();
   const [showConfirm, setShowConfirm] = useState(false);
   const [deleteIdx, setDeleteIdx] = useState<number | null>(null);
 
@@ -80,12 +84,12 @@ function KhatmCounter({ khatmLog }: { khatmLog: ReturnType<typeof useKhatmLog> }
           <div className="w-24 h-24 rounded-full bg-primary/10 border-2 border-primary/25 flex items-center justify-center mb-3">
             <p className="text-3xl font-bold text-primary">{khatms.length}</p>
           </div>
-          <p className="text-xs text-muted-foreground">Complete Quran readings</p>
+          <p className="text-xs text-muted-foreground">{t('tracker.completeReadings')}</p>
         </div>
 
         <button onClick={() => setShowConfirm(true)}
           className="w-full py-3.5 rounded-xl bg-primary/15 text-primary text-sm font-semibold border border-primary/25 active:scale-[0.97] transition-all">
-          Record Khatm ✦
+          {t('tracker.recordKhatm')}
         </button>
 
         {khatms.length > 0 && (
@@ -98,7 +102,7 @@ function KhatmCounter({ khatmLog }: { khatmLog: ReturnType<typeof useKhatmLog> }
                   <Popover>
                     <PopoverTrigger asChild>
                       <button className="text-muted-foreground hover:text-foreground transition-colors truncate text-right">
-                        {formatKhatmDate(k.date)}
+                        {formatKhatmDate(k.date, lang)}
                       </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="end">
@@ -128,15 +132,15 @@ function KhatmCounter({ khatmLog }: { khatmLog: ReturnType<typeof useKhatmLog> }
           <DialogHeader className="text-center">
             <DialogTitle className="text-primary font-arabic text-lg">الحمد لله</DialogTitle>
             <DialogDescription className="text-foreground/80 text-sm mt-2">
-              Alhamdulillah! Record a completed Quran reading?
+              {t('tracker.alhamdulillah')}
             </DialogDescription>
           </DialogHeader>
           <p className="text-xs text-muted-foreground text-center">
-            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+            {new Date().toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
           </p>
           <button onClick={confirmKhatm}
             className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm active:scale-[0.97] transition-all">
-            Confirm ✓
+            {t('tracker.confirm')}
           </button>
         </DialogContent>
       </Dialog>
@@ -145,17 +149,17 @@ function KhatmCounter({ khatmLog }: { khatmLog: ReturnType<typeof useKhatmLog> }
       <Dialog open={deleteIdx !== null} onOpenChange={() => setDeleteIdx(null)}>
         <DialogContent className="glass-card-strong border-primary/20 max-w-[340px] rounded-2xl">
           <DialogHeader className="text-center">
-            <DialogTitle className="text-foreground text-sm">Remove this Khatm record?</DialogTitle>
-            <DialogDescription className="text-muted-foreground text-xs mt-1">This action cannot be undone.</DialogDescription>
+            <DialogTitle className="text-foreground text-sm">{t('tracker.removeKhatm')}</DialogTitle>
+            <DialogDescription className="text-muted-foreground text-xs mt-1">{t('tracker.cannotUndo')}</DialogDescription>
           </DialogHeader>
           <div className="flex gap-3">
             <button onClick={() => setDeleteIdx(null)}
               className="flex-1 py-2.5 rounded-xl bg-secondary/30 text-foreground/70 text-sm font-medium">
-              Cancel
+              {t('common.cancel')}
             </button>
             <button onClick={() => deleteIdx !== null && (deleteKhatm(deleteIdx), setDeleteIdx(null))}
               className="flex-1 py-2.5 rounded-xl bg-red-500/20 text-red-400 text-sm font-semibold border border-red-500/20">
-              Remove
+              {t('tracker.remove')}
             </button>
           </div>
         </DialogContent>
@@ -167,6 +171,7 @@ function KhatmCounter({ khatmLog }: { khatmLog: ReturnType<typeof useKhatmLog> }
 /* ── Reading Streak ── */
 
 function ReadingStreak() {
+  const { t } = useLanguage();
   const getStreak = (): number => {
     try {
       const raw = localStorage.getItem('nur_last_read');
@@ -197,8 +202,8 @@ function ReadingStreak() {
       <div className="flex items-center gap-3">
         <span className="text-2xl">🔥</span>
         <div>
-          <p className="text-sm font-semibold text-primary">{streak} day streak</p>
-          <p className="text-[11px] text-muted-foreground">Consecutive days with Quran reading</p>
+          <p className="text-sm font-semibold text-primary">{streak} {t('tracker.dayStreak')}</p>
+          <p className="text-[11px] text-muted-foreground">{t('tracker.consecutiveDays')}</p>
         </div>
       </div>
     </motion.div>
@@ -208,6 +213,7 @@ function ReadingStreak() {
 /* ── Juz Progress Grid ── */
 
 function JuzProgress({ onAllComplete }: { onAllComplete: () => void }) {
+  const { t } = useLanguage();
   const [completed, setCompleted] = useState<boolean[]>(() => {
     try {
       const saved = localStorage.getItem('nur_juz_progress');
@@ -226,7 +232,6 @@ function JuzProgress({ onAllComplete }: { onAllComplete: () => void }) {
     persist(updated);
     if (navigator.vibrate) navigator.vibrate(15);
 
-    // Check if all 30 are now complete
     if (updated.every(Boolean)) {
       setTimeout(() => onAllComplete(), 500);
     }
@@ -242,8 +247,8 @@ function JuzProgress({ onAllComplete }: { onAllComplete: () => void }) {
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="glass-card p-5 mb-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-sm font-semibold text-foreground">Juz Progress</p>
-          <p className="text-[11px] text-muted-foreground">{doneCount}/30 completed</p>
+          <p className="text-sm font-semibold text-foreground">{t('tracker.juzProgress')}</p>
+          <p className="text-[11px] text-muted-foreground">{doneCount}/30 {t('tracker.completed')}</p>
         </div>
       </div>
 
@@ -266,7 +271,7 @@ function JuzProgress({ onAllComplete }: { onAllComplete: () => void }) {
 
       <div className="flex justify-end mt-3">
         <button onClick={reset} className="text-[11px] text-muted-foreground/50 hover:text-muted-foreground transition-colors">
-          Reset
+          {t('common.reset')}
         </button>
       </div>
     </motion.div>
@@ -276,6 +281,7 @@ function JuzProgress({ onAllComplete }: { onAllComplete: () => void }) {
 /* ── Main Page ── */
 
 export default function Tracker() {
+  const { t, lang } = useLanguage();
   const khatmLog = useKhatmLog();
   const [showAutoKhatm, setShowAutoKhatm] = useState(false);
 
@@ -285,10 +291,8 @@ export default function Tracker() {
 
   const confirmAutoKhatm = () => {
     khatmLog.addKhatm();
-    // Reset juz progress
     localStorage.setItem('nur_juz_progress', JSON.stringify(new Array(30).fill(false)));
     setShowAutoKhatm(false);
-    // Force re-render by reloading juz state — trigger via page remount
     window.location.reload();
   };
 
@@ -297,7 +301,6 @@ export default function Tracker() {
       <div className="geometric-pattern absolute inset-0 pointer-events-none" />
 
       <div className="relative z-10 px-5">
-        {/* Header */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="pt-12 pb-6 text-center">
           <p className="font-arabic-display text-5xl text-primary leading-tight">رِحْلَتِي</p>
         </motion.div>
@@ -307,21 +310,20 @@ export default function Tracker() {
         <JuzProgress onAllComplete={handleAllJuzComplete} />
       </div>
 
-      {/* Auto Khatm modal */}
       <Dialog open={showAutoKhatm} onOpenChange={setShowAutoKhatm}>
         <DialogContent className="glass-card-strong border-primary/20 max-w-[340px] rounded-2xl">
           <DialogHeader className="text-center">
             <DialogTitle className="text-primary font-arabic text-2xl">مَاشَاءَ اللّٰه!</DialogTitle>
             <DialogDescription className="text-foreground/80 text-sm mt-3">
-              You have completed the Quran!
+              {t('tracker.completedQuran')}
             </DialogDescription>
           </DialogHeader>
           <p className="text-xs text-muted-foreground text-center">
-            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+            {new Date().toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
           </p>
           <button onClick={confirmAutoKhatm}
             className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm active:scale-[0.97] transition-all">
-            Alhamdulillah, record this Khatm ✓
+            {t('tracker.confirmKhatm')}
           </button>
         </DialogContent>
       </Dialog>

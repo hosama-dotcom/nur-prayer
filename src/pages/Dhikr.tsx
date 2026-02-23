@@ -486,7 +486,7 @@ function DuasSection() {
 /* ── Dhikr Counter Section ── */
 
 function DhikrCounter() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [session, setSession] = useState<Record<string, number>>(getDhikrSession);
   const [selectedPreset, setSelectedPreset] = useState<DhikrPreset>(dhikrPresets[0]);
   const [count, setCount] = useState(() => {
@@ -593,7 +593,7 @@ function DhikrCounter() {
         </button>
         <button onClick={(e) => { e.stopPropagation(); setShowPresets(!showPresets); }}
           className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/[0.06] border border-white/[0.08] backdrop-blur-sm active:scale-95 transition-transform">
-          <span className="text-xs text-white/60">{selectedPreset.transliteration}</span>
+          <span className="text-xs text-white/60">{lang === 'ar' ? selectedPreset.arabic : selectedPreset.transliteration}</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" opacity="0.4"><path d="M7 10l5 5 5-5" /></svg>
         </button>
       </div>
@@ -668,7 +668,7 @@ function DhikrCounter() {
                       <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0">
                           <p className={`text-sm font-medium ${isSelected ? 'text-primary' : 'text-white/70'}`}>
-                            {preset.transliteration}
+                            {lang === 'ar' ? preset.arabic : preset.transliteration}
                             {isInSequence && <span className="text-[9px] text-white/20 ms-2">tasbih</span>}
                           </p>
                           <p className="text-[11px] text-white/30 mt-0.5">{preset.translation}</p>
