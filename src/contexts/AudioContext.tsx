@@ -146,6 +146,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       togglePlay,
       stop: stopAudio,
       activeVerseNumber: state.isPlaying ? state.currentVerse : null,
+      audioElement: audioRef.current,
     }}>
       {children}
     </AudioCtx.Provider>
