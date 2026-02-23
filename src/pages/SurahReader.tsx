@@ -358,6 +358,8 @@ export default function SurahReader() {
     );
   };
 
+  const effectiveFontSize = isLandscape ? landscapeFontSize : fontSize;
+
   // Word-by-word highlight: track active word index based on audio progress
   const [activeWordIdx, setActiveWordIdx] = useState(-1);
   const preScrolledRef = useRef<number | null>(null);
