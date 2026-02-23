@@ -642,14 +642,14 @@ export default function SurahReader() {
                     )}
                   </button>
                   <div className="flex-1 min-w-0 pr-4">
-                    <p className="text-xs text-foreground truncate">{surah?.name}</p>
+                    <p className="text-xs text-foreground truncate">{isAr ? surah?.arabicName : surah?.name}</p>
                     <button
                       onClick={() => setShowReciterPicker(true)}
                       className="text-[10px] text-muted-foreground flex items-center gap-0.5"
                     >
-                      {isThisSurahPlaying && audioState.currentVerse ? `Verse ${audioState.currentVerse} · ` : ''}
-                      {RECITERS.find(r => r.id === reciterId)?.name || 'Al-Afasy'}
-                      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="ml-0.5 opacity-50"><path d="M6 9l6 6 6-6" /></svg>
+                      {isThisSurahPlaying && audioState.currentVerse ? (isAr ? `الآية ${audioState.currentVerse} · ` : `Verse ${audioState.currentVerse} · `) : ''}
+                      {(() => { const r = RECITERS.find(r => r.id === reciterId); return isAr ? (r?.nameAr || 'العفاسي') : (r?.name || 'Al-Afasy'); })()}
+                      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="ms-0.5 opacity-50"><path d="M6 9l6 6 6-6" /></svg>
                     </button>
                   </div>
                 </div>
