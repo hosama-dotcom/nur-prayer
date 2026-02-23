@@ -123,7 +123,7 @@ export default function More() {
                   </div>
                   <svg
                     width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--muted-foreground))" strokeWidth="2" strokeLinecap="round"
-                    className={`transition-transform duration-200 ${calcOpen ? 'rotate-90' : ''} ${lang === 'ar' ? '-scale-x-100' : ''}`}
+                    className={`transition-transform duration-200 ${calcOpen ? 'rotate-90' : ''}`}
                   >
                     <polyline points="9 18 15 12 9 6" />
                   </svg>
