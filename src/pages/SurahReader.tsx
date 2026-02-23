@@ -61,9 +61,14 @@ function stripHtml(html: string): string {
 }
 
 const FONT_SIZE_KEY = 'nur-quran-font-size';
+const LANDSCAPE_FONT_SIZE_KEY = 'nur-quran-font-size-landscape';
 const getStoredFontSize = () => {
   const stored = localStorage.getItem(FONT_SIZE_KEY);
   return stored ? parseInt(stored, 10) : 28;
+};
+const getStoredLandscapeFontSize = () => {
+  const stored = localStorage.getItem(LANDSCAPE_FONT_SIZE_KEY);
+  return stored ? parseInt(stored, 10) : Math.round(getStoredFontSize() * 0.7);
 };
 
 function saveLastRead(surahNumber: number, verseNumber: number) {
@@ -111,6 +116,7 @@ export default function SurahReader() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [fontSize, setFontSize] = useState(getStoredFontSize);
+  const [landscapeFontSize, setLandscapeFontSize] = useState(getStoredLandscapeFontSize);
   const [showTranslation, setShowTranslation] = useState(false);
   const [currentJuz, setCurrentJuz] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState<number | null>(null);
@@ -306,11 +312,19 @@ export default function SurahReader() {
   }, [chapterNum, verses.length, scrollToVerse]);
 
   const adjustFontSize = (delta: number) => {
-    setFontSize(prev => {
-      const next = Math.max(20, Math.min(40, prev + delta));
-      localStorage.setItem(FONT_SIZE_KEY, String(next));
-      return next;
-    });
+    if (isLandscape) {
+      setLandscapeFontSize(prev => {
+        const next = Math.max(20, Math.min(40, prev + delta));
+        localStorage.setItem(LANDSCAPE_FONT_SIZE_KEY, String(next));
+        return next;
+      });
+    } else {
+      setFontSize(prev => {
+        const next = Math.max(20, Math.min(40, prev + delta));
+        localStorage.setItem(FONT_SIZE_KEY, String(next));
+        return next;
+      });
+    }
   };
 
   const togglePlay = useCallback(() => {
@@ -380,7 +394,6 @@ export default function SurahReader() {
     </span>
   );
 
-  const landscapeFontSize = Math.round(fontSize * 0.7);
   const effectiveFontSize = isLandscape ? landscapeFontSize : fontSize;
   const audioProgress = audioDuration > 0 ? (audioCurrentTime / audioDuration) * 100 : 0;
 
@@ -497,10 +510,15 @@ export default function SurahReader() {
 
         {/* Continuous flowing text */}
         <div
-          className={isLandscape ? 'px-8' : 'px-6'}
-          style={{
-            paddingTop: isLandscape ? '40px' : '24px',
-            paddingBottom: isLandscape ? '60px' : 'calc(env(safe-area-inset-bottom, 0px) + 90px)',
+          className={isLandscape ? '' : 'px-6'}
+          style={isLandscape ? {
+            paddingTop: '40px',
+            paddingBottom: '60px',
+            paddingLeft: 'max(20px, calc(env(safe-area-inset-left, 0px) + 8px))',
+            paddingRight: 'max(16px, env(safe-area-inset-right, 0px))',
+          } : {
+            paddingTop: '24px',
+            paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 90px)',
           }}
         >
           {/* Bismillah */}
