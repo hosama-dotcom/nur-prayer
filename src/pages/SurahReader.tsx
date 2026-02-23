@@ -406,14 +406,6 @@ export default function SurahReader() {
         {/* Floating toolbar */}
         <div className={`fixed z-30 flex items-center gap-1.5 ${isLandscape ? 'top-1.5' : 'top-20 right-4 gap-2'}`} style={isLandscape ? { right: 'calc(16px + env(safe-area-inset-right, 0px))' } : undefined}>
           <button
-            onClick={() => setShowReciterPicker(p => !p)}
-            className={`rounded-full font-semibold backdrop-blur-sm bg-secondary/70 text-muted-foreground transition-colors ${
-              isLandscape ? 'h-7 px-2 text-[9px]' : 'h-8 px-2.5 text-[10px]'
-            }`}
-          >
-            {RECITERS.find(r => r.id === reciterId)?.short || 'Afasy'}
-          </button>
-          <button
             onClick={() => setShowTranslation(t => !t)}
             className={`rounded-full font-semibold backdrop-blur-sm transition-colors ${
               showTranslation ? 'bg-primary/25 text-primary' : 'bg-secondary/70 text-muted-foreground'
