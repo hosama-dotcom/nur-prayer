@@ -599,7 +599,7 @@ function DhikrCounter() {
         </button>
       </div>
 
-      <motion.p className="font-arabic-display text-3xl text-primary/70 mb-10" animate={justTapped ? { scale: [1, 1.06, 1] } : {}} transition={{ duration: 0.12 }}>
+      <motion.p className="font-arabic-display text-primary/70 mb-10" style={{ fontSize: '36px' }} animate={justTapped ? { scale: [1, 1.06, 1] } : {}} transition={{ duration: 0.12 }}>
         {selectedPreset.arabic}
       </motion.p>
 
