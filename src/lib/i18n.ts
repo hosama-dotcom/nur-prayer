@@ -9,17 +9,21 @@ const translations = {
   'nav.more': { en: 'More', ar: 'المزيد' },
 
   // Home
-  'home.dailyVerse': { en: 'Daily Verse', ar: 'آية اليوم' },
+  'home.dailyVerse': { en: 'Daily Verse', ar: 'الآية اليومية' },
   'home.qibla': { en: 'Qibla', ar: 'القبلة' },
   'home.location': { en: 'Location unknown', ar: 'الموقع غير معروف' },
-  'home.method': { en: 'Method', ar: 'طريقة الحساب' },
+  'home.method': { en: 'Method', ar: 'طريقة' },
   'home.loading': { en: 'Loading prayer times...', ar: 'جاري تحميل مواقيت الصلاة...' },
-  'home.iftarIn': { en: 'Iftar in', ar: 'الإفطار بعد' },
+  'home.iftarIn': { en: 'Iftar in', ar: 'موعد الإفطار بعد' },
   'home.nextSuhoor': { en: 'Next Suhoor in', ar: 'السحور بعد' },
   'home.untilMaghrib': { en: 'Until Maghrib', ar: 'حتى المغرب' },
   'home.untilFajr': { en: 'Until Fajr', ar: 'حتى الفجر' },
-  'home.imsak': { en: 'Imsak', ar: 'الإمساك' },
-  'home.iftar': { en: 'Iftar', ar: 'الإفطار' },
+  'home.imsak': { en: 'IMSAK', ar: 'إمساك' },
+  'home.iftar': { en: 'IFTAR', ar: 'إفطار' },
+  'home.nextPrayerIn': { en: 'in', ar: 'بعد' },
+  'home.hours': { en: 'h', ar: 'س' },
+  'home.minutes': { en: 'm', ar: 'د' },
+  'home.seconds': { en: 's', ar: 'ث' },
 
   // Prayer names
   'prayer.fajr': { en: 'Fajr', ar: 'الفجر' },
@@ -87,7 +91,7 @@ const translations = {
   'quran.searchSurah': { en: 'Search surah...', ar: 'ابحث عن سورة...' },
   'quran.surah': { en: 'Surah', ar: 'سورة' },
   'quran.juz': { en: 'Juz', ar: 'جزء' },
-  'quran.verse': { en: 'Verse', ar: 'آية' },
+  'quran.verse': { en: 'Verse', ar: 'الآية' },
   'quran.verses': { en: 'verses', ar: 'آيات' },
   'quran.surahs': { en: 'Surahs', ar: 'السور' },
 
@@ -101,6 +105,63 @@ export type TranslationKey = keyof typeof translations;
 
 export function t(key: TranslationKey, lang: Language): string {
   return translations[key]?.[lang] || translations[key]?.en || key;
+}
+
+/** Format Arabic streak text with proper grammar */
+export function formatStreakArabic(n: number): string {
+  if (n === 0) return '٠ أيام متتالية';
+  if (n === 1) return 'يوم متتالي واحد';
+  if (n === 2) return 'يومان متتاليان';
+  return `${n} أيام متتالية`;
+}
+
+/** Get Hijri date formatted for the given language */
+export function getHijriDateLocalized(lang: Language): string {
+  const now = new Date();
+  if (lang === 'ar') {
+    const formatter = new Intl.DateTimeFormat('ar-u-ca-islamic-umalqura', {
+      day: 'numeric', month: 'long', year: 'numeric'
+    });
+    return formatter.format(now) + ' هـ';
+  }
+  // English
+  const formatter = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
+    day: 'numeric', month: 'long', year: 'numeric'
+  });
+  return formatter.format(now) + ' AH';
+}
+
+/** Map English verse reference to Arabic surah name */
+const verseRefArabicMap: Record<string, string> = {
+  'Ash-Sharh': 'الشرح',
+  'At-Talaq': 'الطلاق',
+  'Al-Baqarah': 'البقرة',
+  'Taha': 'طه',
+  'Ad-Duhaa': 'الضحى',
+  'Al-Hadid': 'الحديد',
+  'Ghafir': 'غافر',
+  'Qaf': 'ق',
+  'Al-A\'raf': 'الأعراف',
+  'Yusuf': 'يوسف',
+  'Adh-Dhariyat': 'الذاريات',
+  'Al-Jumu\'ah': 'الجمعة',
+  'Ar-Ra\'d': 'الرعد',
+  'Ali \'Imran': 'آل عمران',
+  'Al-Ikhlas': 'الإخلاص',
+  'Al-Isra': 'الإسراء',
+  'Hud': 'هود',
+  'Al-Furqan': 'الفرقان',
+  'At-Tawbah': 'التوبة',
+};
+
+export function localizeVerseRef(ref: string, lang: Language): string {
+  if (lang !== 'ar') return ref;
+  // ref format: "SurahName Number:Verse"
+  const match = ref.match(/^(.+?)\s+(\d+:\d+)$/);
+  if (!match) return ref;
+  const [, surahName, verseNum] = match;
+  const arabicName = verseRefArabicMap[surahName] || surahName;
+  return `${arabicName} ${verseNum}`;
 }
 
 export function getStoredLanguage(): Language {

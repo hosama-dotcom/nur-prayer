@@ -487,6 +487,7 @@ function DuasSection() {
 
 function DhikrCounter() {
   const { t, lang } = useLanguage();
+  const isAr = lang === 'ar';
   const [session, setSession] = useState<Record<string, number>>(getDhikrSession);
   const [selectedPreset, setSelectedPreset] = useState<DhikrPreset>(dhikrPresets[0]);
   const [count, setCount] = useState(() => {
@@ -593,12 +594,12 @@ function DhikrCounter() {
         </button>
         <button onClick={(e) => { e.stopPropagation(); setShowPresets(!showPresets); }}
           className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/[0.06] border border-white/[0.08] backdrop-blur-sm active:scale-95 transition-transform">
-          <span className="text-xs text-white/60">{lang === 'ar' ? selectedPreset.arabic : selectedPreset.transliteration}</span>
+          <span className="text-white/60" style={{ fontSize: lang === 'ar' ? '16px' : '12px' }}>{lang === 'ar' ? selectedPreset.arabic : selectedPreset.transliteration}</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" opacity="0.4"><path d="M7 10l5 5 5-5" /></svg>
         </button>
       </div>
 
-      <motion.p className="font-arabic-display text-3xl text-primary/70 mb-10" animate={justTapped ? { scale: [1, 1.06, 1] } : {}} transition={{ duration: 0.12 }}>
+      <motion.p className="font-arabic-display text-primary/70 mb-10" style={{ fontSize: '36px' }} animate={justTapped ? { scale: [1, 1.06, 1] } : {}} transition={{ duration: 0.12 }}>
         {selectedPreset.arabic}
       </motion.p>
 
@@ -624,7 +625,7 @@ function DhikrCounter() {
         </div>
       </div>
 
-      <p className="text-sm text-white/30 italic">{selectedPreset.translation}</p>
+      {!isAr && <p className="text-sm text-white/30 italic">{selectedPreset.translation}</p>}
 
       <AnimatePresence>
         {completed && (
@@ -671,7 +672,7 @@ function DhikrCounter() {
                             {lang === 'ar' ? preset.arabic : preset.transliteration}
                             {isInSequence && <span className="text-[9px] text-white/20 ms-2">tasbih</span>}
                           </p>
-                          <p className="text-[11px] text-white/30 mt-0.5">{preset.translation}</p>
+                          {!isAr && <p className="text-[11px] text-white/30 mt-0.5">{preset.translation}</p>}
                           {savedCount > 0 && (
                             <div className="flex items-center gap-2 mt-1.5">
                               <div className="flex-1 h-1 rounded-full bg-white/[0.06] overflow-hidden max-w-[100px]">
@@ -732,7 +733,7 @@ export default function Dhikr() {
                   transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                 />
               )}
-              <span className="relative z-10 capitalize">{tabKey === 'dhikr' ? t('nav.dhikr') : t('duas.title')}</span>
+              <span className="relative z-10">{tabKey === 'dhikr' ? t('nav.dhikr') : t('duas.title')}</span>
             </button>
           ))}
         </div>

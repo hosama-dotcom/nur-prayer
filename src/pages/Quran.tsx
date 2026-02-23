@@ -28,6 +28,7 @@ export default function Quran() {
   const [expandedJuz, setExpandedJuz] = useState<number | null>(null);
   const lastRead = getLastRead();
   const lastReadSurah = lastRead ? surahs.find(s => s.number === lastRead.surahNumber) : null;
+  const isAr = lang === 'ar';
 
   const filtered = surahs.filter(
     (s) =>
@@ -92,10 +93,13 @@ export default function Quran() {
             <div className="flex-1 min-w-0">
               <p className="text-[10px] text-primary/60 uppercase tracking-wider mb-0.5">{t('quran.continueReading')}</p>
               <p className="text-sm text-foreground font-medium truncate">
-                {lastReadSurah.name}, {t('quran.verse')} {lastRead.verseNumber}
+                {isAr
+                  ? `${lastReadSurah.arabicName}، ${t('quran.verse')} ${lastRead.verseNumber}`
+                  : `${lastReadSurah.name}, ${t('quran.verse')} ${lastRead.verseNumber}`
+                }
               </p>
             </div>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="hsl(43, 50%, 54%)" strokeWidth="2" strokeLinecap="round" opacity="0.5">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="hsl(43, 50%, 54%)" strokeWidth="2" strokeLinecap="round" opacity="0.5" className={isAr ? '-scale-x-100' : ''}>
               <path d="M9 18l6-6-6-6" />
             </svg>
           </motion.button>
@@ -137,15 +141,13 @@ export default function Quran() {
                     <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <span className="text-xs font-semibold text-primary">{surah.number}</span>
                     </div>
-                    {lang === 'ar' ? (
+                    {isAr ? (
                       <>
                         <div className="flex-1 min-w-0">
-                          <p className="font-arabic text-lg text-primary/80">{surah.arabicName}</p>
                           <p className="text-xs text-muted-foreground">{surah.versesCount} {t('quran.verses')} · {surah.revelationType === 'Meccan' ? 'مكية' : 'مدنية'}</p>
                         </div>
                         <div className="text-left flex-shrink-0">
-                          <p className="text-sm font-medium text-foreground">{surah.name}</p>
-                          <p className="text-[10px] text-muted-foreground">{surah.englishName}</p>
+                          <p className="font-arabic text-primary/80" style={{ fontSize: '18px' }}>{surah.arabicName}</p>
                         </div>
                       </>
                     ) : (
@@ -186,11 +188,13 @@ export default function Quran() {
                           <span className="text-xs font-semibold text-primary">{juz.number}</span>
                         </div>
                         <div className="flex-1 min-w-0 text-left">
-                          <p className="text-sm font-medium text-foreground">{lang === 'ar' ? juz.arabicName : `${t('quran.juz')} ${juz.number}`} — {lang === 'ar' ? `${t('quran.juz')} ${juz.number}` : juz.name}</p>
-                          <p className="text-xs text-muted-foreground">{juz.surahs.length} {t('quran.surah')}{juz.surahs.length > 1 ? (lang === 'ar' ? '' : 's') : ''}</p>
+                          <p className="text-sm font-medium text-foreground">
+                            {isAr ? juz.arabicName : `${t('quran.juz')} ${juz.number} — ${juz.name}`}
+                          </p>
+                          <p className="text-xs text-muted-foreground">{juz.surahs.length} {t('quran.surah')}{juz.surahs.length > 1 && !isAr ? 's' : ''}</p>
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
-                          <p className="font-arabic text-lg text-primary/80">{juz.arabicName}</p>
+                          {!isAr && <p className="font-arabic text-lg text-primary/80">{juz.arabicName}</p>}
                           <svg
                             width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--muted-foreground))" strokeWidth="2" strokeLinecap="round"
                             className={`transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
@@ -221,12 +225,12 @@ export default function Quran() {
                                   >
                                     <span className="text-[10px] font-semibold text-primary/60 w-6 text-center">{surah.number}</span>
                                     <div className="flex-1 min-w-0">
-                                      <p className="text-xs font-medium text-foreground">{surah.name}</p>
+                                      <p className="text-xs font-medium text-foreground">{isAr ? surah.arabicName : surah.name}</p>
                                       <p className="text-[10px] text-muted-foreground">
                                         {t('quran.verses')} {js.startVerse}–{js.endVerse}
                                       </p>
                                     </div>
-                                    <p className="font-arabic text-sm text-primary/60">{surah.arabicName}</p>
+                                    {!isAr && <p className="font-arabic text-sm text-primary/60">{surah.arabicName}</p>}
                                   </button>
                                 );
                               })}
