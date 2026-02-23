@@ -625,7 +625,7 @@ export default function SurahReader() {
                 className="fixed bottom-[100px] left-0 right-0 z-40 px-3 pb-2"
               >
                 <div
-                  className={`relative rounded-2xl border p-3 flex items-center gap-3 ${isAr ? 'flex-row-reverse' : ''}`}
+                  className="relative rounded-2xl border p-3 flex items-center gap-3"
                   style={{ background: 'hsla(230, 20%, 12%, 0.92)', borderColor: 'hsla(0, 0%, 100%, 0.1)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)' }}
                 >
                   <button
@@ -641,7 +641,7 @@ export default function SurahReader() {
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><polygon points="6,3 20,12 6,21" /></svg>
                     )}
                   </button>
-                  <div className={`flex-1 min-w-0 ${isAr ? 'pl-4 text-right' : 'pr-4'}`}>
+                  <div className={`flex-1 min-w-0 ${isAr ? 'pe-4' : 'pr-4'}`}>
                     <p className="text-xs text-foreground truncate">{isAr ? surah?.arabicName : surah?.name}</p>
                     <button
                       onClick={() => setShowReciterPicker(true)}
