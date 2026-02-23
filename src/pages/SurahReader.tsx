@@ -215,13 +215,18 @@ export default function SurahReader() {
     }
   }, [verses, scrollToVerse]);
 
-  // Auto-scroll to active verse during playback
+  // Scroll to active verse on first play (pre-scroll handles subsequent verses)
+  const lastScrolledVerseRef = useRef<number | null>(null);
   useEffect(() => {
-    if (isThisSurahPlaying && activeVerseNumber) {
-      const el = verseRefs.current.get(activeVerseNumber);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (isThisSurahPlaying && activeVerseNumber && lastScrolledVerseRef.current !== activeVerseNumber) {
+      // Only scroll if pre-scroll hasn't already handled it
+      if (preScrolledRef.current !== activeVerseNumber - 1) {
+        const el = verseRefs.current.get(activeVerseNumber);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       }
+      lastScrolledVerseRef.current = activeVerseNumber;
     }
   }, [activeVerseNumber, isThisSurahPlaying]);
 
