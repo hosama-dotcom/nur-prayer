@@ -499,13 +499,13 @@ export default function SurahReader() {
         <div
           className={isLandscape ? 'px-8' : 'px-6'}
           style={{
-            paddingTop: isLandscape ? '40px' : 'calc(env(safe-area-inset-top, 0px) + 80px)',
-            paddingBottom: isLandscape ? '60px' : 'calc(env(safe-area-inset-bottom, 0px) + 160px)',
+            paddingTop: isLandscape ? '40px' : '24px',
+            paddingBottom: isLandscape ? '60px' : 'calc(env(safe-area-inset-bottom, 0px) + 90px)',
           }}
         >
           {/* Bismillah */}
           {chapterNum !== 9 && chapterNum !== 1 && (
-            <div className="text-center py-8">
+            <div className="text-center py-4">
               <p className="font-arabic-display text-2xl text-primary/50">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</p>
             </div>
           )}
@@ -611,7 +611,7 @@ export default function SurahReader() {
       {audioUrl && (
         isLandscape ? (
           // Landscape: minimal circular play button with progress arc, bottom-right with safe area
-          <div className="fixed z-40" style={{ bottom: '12px', right: 'calc(16px + env(safe-area-inset-right, 0px))' }}>
+          <div className="fixed z-40" style={{ bottom: '28px', right: 'calc(16px + env(safe-area-inset-right, 0px))' }}>
             <AnimatePresence mode="wait">
               {audioExpanded ? (
                 <motion.div
@@ -653,18 +653,17 @@ export default function SurahReader() {
                   exit={{ opacity: 0, scale: 0.8 }}
                   onClick={() => setAudioExpanded(true)}
                   className="relative w-12 h-12 rounded-full flex items-center justify-center"
-                  style={{ background: 'hsla(230, 20%, 12%, 0.92)', border: '1px solid hsla(0, 0%, 100%, 0.1)' }}
+                  style={{ background: 'hsla(230, 20%, 12%, 0.92)', boxShadow: '0 4px 16px hsla(0, 0%, 0%, 0.4)' }}
                 >
                   {/* Progress arc */}
                   <svg className="absolute inset-0 w-12 h-12 -rotate-90" viewBox="0 0 48 48">
-                    <circle cx="24" cy="24" r="22" fill="none" stroke="hsla(0, 0%, 100%, 0.08)" strokeWidth="2" />
                     <circle
-                      cx="24" cy="24" r="22" fill="none"
+                      cx="24" cy="24" r="21" fill="none"
                       stroke="hsl(var(--primary))"
-                      strokeWidth="2"
+                      strokeWidth="2.5"
                       strokeLinecap="round"
-                      strokeDasharray={`${2 * Math.PI * 22}`}
-                      strokeDashoffset={`${2 * Math.PI * 22 * (1 - audioProgress / 100)}`}
+                      strokeDasharray={`${2 * Math.PI * 21}`}
+                      strokeDashoffset={`${2 * Math.PI * 21 * (1 - audioProgress / 100)}`}
                       style={{ transition: 'stroke-dashoffset 0.3s ease' }}
                     />
                   </svg>
@@ -682,26 +681,6 @@ export default function SurahReader() {
         ) : (
           // Portrait: collapsible mini player + floating FAB
           <>
-            {/* Floating play/pause FAB - always visible in portrait */}
-            <motion.button
-              onClick={() => setShowPlayer(p => !p)}
-              className="fixed z-50 w-10 h-10 rounded-full flex items-center justify-center"
-              style={{
-                bottom: '108px',
-                right: '12px',
-                background: 'hsla(230, 20%, 12%, 0.88)',
-                border: '1px solid hsla(0, 0%, 100%, 0.1)',
-                backdropFilter: 'blur(20px)',
-              }}
-              whileTap={{ scale: 0.9 }}
-            >
-              {isPlaying ? (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="hsl(var(--primary))"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
-              ) : (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="hsl(var(--primary))"><polygon points="6,3 20,12 6,21" /></svg>
-              )}
-            </motion.button>
-
             {/* Sliding audio player */}
             <AnimatePresence>
               {showPlayer && (
@@ -713,9 +692,16 @@ export default function SurahReader() {
                   className="fixed bottom-[100px] left-0 right-0 z-40 px-3 pb-2"
                 >
                   <div
-                    className="rounded-2xl border p-3 flex items-center gap-3"
+                    className="relative rounded-2xl border p-3 flex items-center gap-3"
                     style={{ background: 'hsla(230, 20%, 12%, 0.92)', borderColor: 'hsla(0, 0%, 100%, 0.1)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)' }}
                   >
+                    {/* Close button */}
+                    <button
+                      onClick={() => setShowPlayer(false)}
+                      className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center text-muted-foreground"
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                    </button>
                     <button onClick={skipBack} className="w-8 h-8 flex items-center justify-center flex-shrink-0 text-muted-foreground">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M1 4v6h6" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
@@ -728,7 +714,7 @@ export default function SurahReader() {
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><polygon points="6,3 20,12 6,21" /></svg>
                       )}
                     </button>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 pr-4">
                       <p className="text-xs text-foreground truncate">{surah?.name}</p>
                       <p className="text-[10px] text-muted-foreground">{RECITERS.find(r => r.id === reciterId)?.name || 'Unknown'}</p>
                       <div className="flex items-center gap-2 mt-1">
@@ -739,6 +725,32 @@ export default function SurahReader() {
                     </div>
                   </div>
                 </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Floating play/pause FAB - only visible when player is hidden */}
+            <AnimatePresence>
+              {!showPlayer && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  onClick={() => setShowPlayer(true)}
+                  className="fixed z-50 w-12 h-12 rounded-full flex items-center justify-center"
+                  style={{
+                    bottom: '108px',
+                    right: '12px',
+                    background: 'hsla(230, 20%, 12%, 0.88)',
+                    boxShadow: '0 4px 16px hsla(0, 0%, 0%, 0.4)',
+                  }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  {isPlaying ? (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
+                  ) : (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><polygon points="6,3 20,12 6,21" /></svg>
+                  )}
+                </motion.button>
               )}
             </AnimatePresence>
           </>
