@@ -90,9 +90,9 @@ export default function Quran() {
               </svg>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] text-primary/60 uppercase tracking-wider mb-0.5">Continue reading</p>
+              <p className="text-[10px] text-primary/60 uppercase tracking-wider mb-0.5">{t('quran.continueReading')}</p>
               <p className="text-sm text-foreground font-medium truncate">
-                {lastReadSurah.name}, Verse {lastRead.verseNumber}
+                {lastReadSurah.name}, {t('quran.verse')} {lastRead.verseNumber}
               </p>
             </div>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="hsl(43, 50%, 54%)" strokeWidth="2" strokeLinecap="round" opacity="0.5">
