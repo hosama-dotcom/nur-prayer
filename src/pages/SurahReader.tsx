@@ -134,6 +134,7 @@ export default function SurahReader() {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const verseRefs = useRef<Map<number, HTMLSpanElement>>(new Map());
   const scrollDoneRef = useRef(false);
+  const preScrolledRef = useRef<number | null>(null);
 
   // Track visible verse for last-read saving
   const visibleVerseRef = useRef<number>(1);
