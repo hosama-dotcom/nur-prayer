@@ -24,12 +24,14 @@ interface KhatmLog {
 
 /* ── Helpers ── */
 
-function formatKhatmDate(dateStr: string): string {
+function formatKhatmDate(dateStr: string, lang: string): string {
   const d = new Date(dateStr);
-  const hijri = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
+  const locale = lang === 'ar' ? 'ar-u-ca-islamic-umalqura' : 'en-u-ca-islamic-umalqura';
+  const gregLocale = lang === 'ar' ? 'ar-SA' : 'en-US';
+  const hijri = new Intl.DateTimeFormat(locale, {
     month: 'long', year: 'numeric',
   }).format(d);
-  const greg = d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  const greg = d.toLocaleDateString(gregLocale, { month: 'short', year: 'numeric' });
   return `${hijri} — ${greg}`;
 }
 
