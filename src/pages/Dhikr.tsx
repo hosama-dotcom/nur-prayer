@@ -668,7 +668,7 @@ function DhikrCounter() {
                       <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0">
                           <p className={`text-sm font-medium ${isSelected ? 'text-primary' : 'text-white/70'}`}>
-                            {preset.transliteration}
+                            {lang === 'ar' ? preset.arabic : preset.transliteration}
                             {isInSequence && <span className="text-[9px] text-white/20 ms-2">tasbih</span>}
                           </p>
                           <p className="text-[11px] text-white/30 mt-0.5">{preset.translation}</p>
