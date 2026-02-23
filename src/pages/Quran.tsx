@@ -186,8 +186,8 @@ export default function Quran() {
                           <span className="text-xs font-semibold text-primary">{juz.number}</span>
                         </div>
                         <div className="flex-1 min-w-0 text-left">
-                          <p className="text-sm font-medium text-foreground">Juz {juz.number} — {juz.name}</p>
-                          <p className="text-xs text-muted-foreground">{juz.surahs.length} surah{juz.surahs.length > 1 ? 's' : ''}</p>
+                          <p className="text-sm font-medium text-foreground">{lang === 'ar' ? juz.arabicName : `${t('quran.juz')} ${juz.number}`} — {lang === 'ar' ? `${t('quran.juz')} ${juz.number}` : juz.name}</p>
+                          <p className="text-xs text-muted-foreground">{juz.surahs.length} {t('quran.surah')}{juz.surahs.length > 1 ? (lang === 'ar' ? '' : 's') : ''}</p>
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <p className="font-arabic text-lg text-primary/80">{juz.arabicName}</p>
