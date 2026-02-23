@@ -28,11 +28,11 @@ const apiResponseSchema = z.object({
 });
 
 const RECITERS = [
-  { id: 7, name: 'Mishary Rashid Al-Afasy', short: 'Afasy' },
-  { id: 1, name: 'Abdul Rahman Al-Sudais', short: 'Sudais' },
-  { id: 5, name: 'Mahmoud Khalil Al-Husary', short: 'Husary' },
-  { id: 9, name: 'Saad Al-Ghamdi', short: 'Ghamdi' },
-  { id: 6, name: 'Abu Bakr Al-Shatri', short: 'Shatri' },
+  { id: 7, name: 'Mishary Rashid Al-Afasy', nameAr: 'مشاري راشد العفاسي', short: 'Afasy' },
+  { id: 1, name: 'Abdul Rahman Al-Sudais', nameAr: 'عبد الرحمن السديس', short: 'Sudais' },
+  { id: 5, name: 'Mahmoud Khalil Al-Husary', nameAr: 'محمود خليل الحصري', short: 'Husary' },
+  { id: 9, name: 'Saad Al-Ghamdi', nameAr: 'سعد الغامدي', short: 'Ghamdi' },
+  { id: 6, name: 'Abu Bakr Al-Shatri', nameAr: 'أبو بكر الشاطري', short: 'Shatri' },
 ];
 const RECITER_KEY = 'nur-reciter-id';
 
