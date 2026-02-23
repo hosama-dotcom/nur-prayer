@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { surahs } from '@/data/surahs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { z } from 'zod';
 import { useAudioPlayer } from '@/contexts/AudioContext';
 
