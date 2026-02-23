@@ -213,6 +213,7 @@ function ReadingStreak() {
 /* ── Juz Progress Grid ── */
 
 function JuzProgress({ onAllComplete }: { onAllComplete: () => void }) {
+  const { t } = useLanguage();
   const [completed, setCompleted] = useState<boolean[]>(() => {
     try {
       const saved = localStorage.getItem('nur_juz_progress');
@@ -231,7 +232,6 @@ function JuzProgress({ onAllComplete }: { onAllComplete: () => void }) {
     persist(updated);
     if (navigator.vibrate) navigator.vibrate(15);
 
-    // Check if all 30 are now complete
     if (updated.every(Boolean)) {
       setTimeout(() => onAllComplete(), 500);
     }
@@ -247,8 +247,8 @@ function JuzProgress({ onAllComplete }: { onAllComplete: () => void }) {
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="glass-card p-5 mb-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-sm font-semibold text-foreground">Juz Progress</p>
-          <p className="text-[11px] text-muted-foreground">{doneCount}/30 completed</p>
+          <p className="text-sm font-semibold text-foreground">{t('tracker.juzProgress')}</p>
+          <p className="text-[11px] text-muted-foreground">{doneCount}/30 {t('tracker.completed')}</p>
         </div>
       </div>
 
@@ -271,7 +271,7 @@ function JuzProgress({ onAllComplete }: { onAllComplete: () => void }) {
 
       <div className="flex justify-end mt-3">
         <button onClick={reset} className="text-[11px] text-muted-foreground/50 hover:text-muted-foreground transition-colors">
-          Reset
+          {t('common.reset')}
         </button>
       </div>
     </motion.div>
