@@ -15,6 +15,7 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { formatStreakArabic } from '@/lib/i18n';
 
 /* ── Types ── */
 
@@ -98,7 +99,7 @@ function KhatmCounter({ khatmLog }: { khatmLog: ReturnType<typeof useKhatmLog> }
               const k = khatms[origIdx];
               return (
                 <div key={origIdx} className="flex items-center justify-between text-xs text-muted-foreground px-1 gap-2">
-                  <span className="shrink-0">Khatm #{origIdx + 1}</span>
+                  <span className="shrink-0">{lang === 'ar' ? `ختمة #${origIdx + 1}` : `Khatm #${origIdx + 1}`}</span>
                   <Popover>
                     <PopoverTrigger asChild>
                       <button className="text-muted-foreground hover:text-foreground transition-colors truncate text-right">
@@ -171,7 +172,7 @@ function KhatmCounter({ khatmLog }: { khatmLog: ReturnType<typeof useKhatmLog> }
 /* ── Reading Streak ── */
 
 function ReadingStreak() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const getStreak = (): number => {
     try {
       const raw = localStorage.getItem('nur_last_read');
@@ -196,13 +197,14 @@ function ReadingStreak() {
   };
 
   const streak = getStreak();
+  const streakText = lang === 'ar' ? formatStreakArabic(streak) : `${streak} ${t('tracker.dayStreak')}`;
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="glass-card p-5 mb-5">
       <div className="flex items-center gap-3">
         <span className="text-2xl">🔥</span>
         <div>
-          <p className="text-sm font-semibold text-primary">{streak} {t('tracker.dayStreak')}</p>
+          <p className="text-sm font-semibold text-primary">{streakText}</p>
           <p className="text-[11px] text-muted-foreground">{t('tracker.consecutiveDays')}</p>
         </div>
       </div>

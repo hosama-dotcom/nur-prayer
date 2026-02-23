@@ -1,10 +1,12 @@
 import { motion } from 'framer-motion';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
 import { GradientBackground } from '@/components/GradientBackground';
-import { formatTime, getHijriDate, isRamadan, getTimeUntil, getPrayerTimes } from '@/lib/prayer-utils';
+import { formatTime, isRamadan, getTimeUntil } from '@/lib/prayer-utils';
+import { getHijriDateLocalized, localizeVerseRef } from '@/lib/i18n';
 import { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QiblaCompass } from '@/components/QiblaCompass';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { PrayerName } from '@/lib/prayer-utils';
 
 const dailyVerses = [
@@ -47,7 +49,21 @@ function getDailyVerse() {
   return dailyVerses[dayOfYear % dailyVerses.length];
 }
 
-function RamadanCountdown({ maghribTime, fajrTime }: { maghribTime: Date; fajrTime: Date }) {
+// Method label translations
+const METHOD_LABELS_AR: Record<string, string> = {
+  'MWL': 'رابطة العالم الإسلامي',
+  'Egyptian': 'الهيئة المصرية',
+  'Karachi': 'كراتشي',
+  'Umm al-Qura': 'أم القرى',
+  'ISNA': 'أمريكا الشمالية',
+  'Dubai': 'دبي',
+  'Kuwait': 'الكويت',
+  'Qatar': 'قطر',
+  'Singapore': 'سنغافورة',
+  'Tehran': 'طهران',
+};
+
+function RamadanCountdown({ maghribTime, fajrTime, lang, t }: { maghribTime: Date; fajrTime: Date; lang: string; t: (key: any) => string }) {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -58,19 +74,23 @@ function RamadanCountdown({ maghribTime, fajrTime }: { maghribTime: Date; fajrTi
   const suhoorTime = new Date(fajrTime.getTime() - 10 * 60 * 1000);
   const beforeIftar = now < maghribTime;
   const target = beforeIftar ? maghribTime : new Date(suhoorTime.getTime() + 24 * 60 * 60 * 1000);
-  const label = beforeIftar ? 'Iftar in' : 'Next Suhoor in';
-  const subtext = beforeIftar ? 'Until Maghrib' : 'Until Fajr';
+  const label = beforeIftar ? t('home.iftarIn') : t('home.nextSuhoor');
+  const subtext = beforeIftar ? t('home.untilMaghrib') : t('home.untilFajr');
 
   const diff = Math.max(0, target.getTime() - now.getTime());
   const hours = Math.floor(diff / (1000 * 60 * 60));
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
+  const radius = 54;
+  const circumference = 2 * Math.PI * radius;
+
   const fastTotal = maghribTime.getTime() - suhoorTime.getTime();
   const fastElapsed = now.getTime() - suhoorTime.getTime();
   const progress = beforeIftar ? Math.min(1, Math.max(0, fastElapsed / fastTotal)) : 0;
-  const radius = 54;
-  const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference * (1 - progress);
+
+  const hLabel = t('home.hours');
+  const mLabel = t('home.minutes');
 
   return (
     <motion.div
@@ -104,17 +124,14 @@ function RamadanCountdown({ maghribTime, fajrTime }: { maghribTime: Date; fajrTi
               <p className="text-[9px] uppercase tracking-[0.15em] text-white/40 mb-0.5">{label}</p>
               <p className="leading-none">
                 <span className="text-[26px] font-light text-[#C9A84C]">{hours}</span>
-                <span className="text-[12px] text-white/30 mx-0.5">h</span>
+                <span className="text-[12px] text-white/30 mx-0.5">{hLabel}</span>
                 <span className="text-[26px] font-light text-[#C9A84C] ml-1">{minutes.toString().padStart(2, '0')}</span>
-                <span className="text-[12px] text-white/30 mx-0.5">m</span>
+                <span className="text-[12px] text-white/30 mx-0.5">{mLabel}</span>
               </p>
               <p className="text-[9px] text-white/25 mt-0.5">{subtext}</p>
             </div>
           </div>
         </div>
-        {beforeIftar && (
-          <p className="text-[9px] text-center text-white/20 mt-2">{Math.round(progress * 100)}% of fast completed</p>
-        )}
       </div>
     </motion.div>
   );
@@ -122,9 +139,12 @@ function RamadanCountdown({ maghribTime, fajrTime }: { maghribTime: Date; fajrTi
 
 export default function Home() {
   const { prayers, currentPrayer, nextPrayer, countdown, qiblaDirection, loading, location, cityName, methodLabel } = usePrayerTimes();
+  const { t, lang } = useLanguage();
   const verse = useMemo(() => getDailyVerse(), []);
   const [compassOpen, setCompassOpen] = useState(false);
   const navigate = useNavigate();
+
+  const isAr = lang === 'ar';
 
   if (loading) {
     return (
@@ -136,7 +156,7 @@ export default function Home() {
           className="text-center relative z-10"
         >
           <p className="font-arabic-display text-4xl text-primary mb-3">نُور</p>
-          <p className="text-sm text-muted-foreground">Loading prayer times...</p>
+          <p className="text-sm text-muted-foreground">{t('home.loading')}</p>
         </motion.div>
       </div>
     );
@@ -146,10 +166,8 @@ export default function Home() {
   const fajrTime = prayers.find(p => p.name === 'fajr');
   const maghribTime = prayers.find(p => p.name === 'maghrib');
 
-  // Dark backgrounds: fajr, isha, maghrib, sunrise (pre-dawn/night/dusk)
   const isDarkBackground = ['fajr', 'isha', 'maghrib', 'sunrise'].includes(currentPrayer || '');
 
-  // Adaptive colors
   const cardText = isDarkBackground ? 'rgba(255,255,255,0.9)' : 'rgba(10,20,40,0.85)';
   const cardTextMuted = isDarkBackground ? 'rgba(255,255,255,0.7)' : 'rgba(10,20,40,0.75)';
   const cardBg = 'rgba(255,255,255,0.12)';
@@ -159,6 +177,9 @@ export default function Home() {
   const countdownColor = isDarkBackground ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.8)';
   const countdownMuted = isDarkBackground ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.5)';
 
+  // Localized method label
+  const localizedMethod = isAr ? `طريقة ${METHOD_LABELS_AR[methodLabel] || methodLabel}` : `${methodLabel} Method`;
+
   return (
     <GradientBackground prayer={currentPrayer}>
       <div className="min-h-screen pb-24 px-5 safe-area-top">
@@ -167,12 +188,12 @@ export default function Home() {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="pt-12 pb-1 flex flex-col items-end"
+          className={`pt-12 pb-1 flex flex-col ${isAr ? 'items-start' : 'items-end'}`}
         >
-          <p className="text-sm text-white/70 font-arabic tracking-wide">{getHijriDate()}</p>
-          <button onClick={() => navigate('/more')} className="text-right active:opacity-70 transition-opacity mt-0.5">
-            <p className="text-[11px] text-white/50">{cityName ? `📍 ${cityName}` : '📍 Location unknown'}</p>
-            <p className="text-[9px] text-white/40">{methodLabel} Method</p>
+          <p className="text-sm text-white/70 font-arabic tracking-wide">{getHijriDateLocalized(lang)}</p>
+          <button onClick={() => navigate('/more')} className={`${isAr ? 'text-left' : 'text-right'} active:opacity-70 transition-opacity mt-0.5`}>
+            <p className="text-[11px] text-white/50">{cityName ? `📍 ${cityName}` : `📍 ${t('home.location')}`}</p>
+            <p className="text-[9px] text-white/40">{localizedMethod}</p>
           </button>
         </motion.div>
 
@@ -196,9 +217,9 @@ export default function Home() {
               className="mt-3"
             >
               <p className="text-sm" style={{ color: countdownMuted }}>
-                {nextPrayer.label} in{' '}
+                {isAr ? nextPrayer.arabicLabel : nextPrayer.label} {t('home.nextPrayerIn')}{' '}
                 <span className="font-medium" style={{ color: countdownColor }}>
-                  {countdown.hours > 0 ? `${countdown.hours}h ` : ''}{countdown.minutes}m {countdown.seconds}s
+                  {countdown.hours > 0 ? `${countdown.hours}${t('home.hours')} ` : ''}{countdown.minutes}{t('home.minutes')} {countdown.seconds}{t('home.seconds')}
                 </span>
               </p>
             </motion.div>
@@ -230,7 +251,10 @@ export default function Home() {
                   <p className="text-[10px] font-semibold" style={{ color: isActive ? '#C9A84C' : cardText }}>
                     {formatTime(prayer.time)}
                   </p>
-                  <p className="text-[9px] uppercase tracking-widest mt-0.5" style={{ color: isActive ? (isDarkBackground ? 'rgba(255,255,255,0.6)' : 'rgba(10,20,40,0.6)') : cardText }}>{prayer.label}</p>
+                  {/* Hide English label in Arabic mode */}
+                  {!isAr && (
+                    <p className="text-[9px] uppercase tracking-widest mt-0.5" style={{ color: isActive ? (isDarkBackground ? 'rgba(255,255,255,0.6)' : 'rgba(10,20,40,0.6)') : cardText }}>{prayer.label}</p>
+                  )}
                 </div>
               );
             })}
@@ -260,7 +284,7 @@ export default function Home() {
               <polygon points="12,2 14.5,9.5 12,8 9.5,9.5" fill={cardTextMuted} />
               <polygon points="12,22 9.5,14.5 12,16 14.5,14.5" fill={isDarkBackground ? 'rgba(255,255,255,0.3)' : 'rgba(10,20,40,0.3)'} />
             </svg>
-            <span className="text-xs" style={{ color: cardText }}>Qibla</span>
+            <span className="text-xs" style={{ color: cardText }}>{t('home.qibla')}</span>
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={isDarkBackground ? 'rgba(255,255,255,0.5)' : 'rgba(10,20,40,0.5)'} strokeWidth="2" strokeLinecap="round">
               <path d="M9 18l6-6-6-6" />
             </svg>
@@ -290,10 +314,13 @@ export default function Home() {
               border: '1px solid rgba(255,255,255,0.08)',
             }}
           >
-            <p className="text-[9px] uppercase tracking-widest text-white/40 mb-3">Daily Verse</p>
+            <p className="text-[9px] uppercase tracking-widest text-white/40 mb-3">{t('home.dailyVerse')}</p>
             <p className="font-arabic text-xl text-white/90 text-center leading-relaxed mb-3">{verse.arabic}</p>
-            <p className="text-sm text-white/60 text-center italic leading-relaxed">{verse.translation}</p>
-            <p className="text-[10px] text-white/30 text-center mt-2">{verse.ref}</p>
+            {/* Hide English translation in Arabic mode */}
+            {!isAr && (
+              <p className="text-sm text-white/60 text-center italic leading-relaxed">{verse.translation}</p>
+            )}
+            <p className="text-[10px] text-white/30 text-center mt-2">{localizeVerseRef(verse.ref, lang)}</p>
           </div>
         </motion.div>
 
@@ -307,13 +334,13 @@ export default function Home() {
           >
             {fajrTime && (
               <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.07] border border-white/[0.08] backdrop-blur-lg">
-                <span className="text-[10px] uppercase tracking-wider text-white/40">Imsak</span>
+                <span className="text-[10px] uppercase tracking-wider text-white/40">{t('home.imsak')}</span>
                 <span className="text-xs font-semibold text-white/80">{formatTime(new Date(fajrTime.time.getTime() - 10 * 60 * 1000))}</span>
               </div>
             )}
             {maghribTime && (
               <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.07] border border-white/[0.08] backdrop-blur-lg">
-                <span className="text-[10px] uppercase tracking-wider text-white/40">Iftar</span>
+                <span className="text-[10px] uppercase tracking-wider text-white/40">{t('home.iftar')}</span>
                 <span className="text-xs font-semibold text-white/80">{formatTime(maghribTime.time)}</span>
               </div>
             )}
@@ -322,7 +349,7 @@ export default function Home() {
 
         {/* Ramadan countdown */}
         {isRamadan() && maghribTime && fajrTime && (
-          <RamadanCountdown maghribTime={maghribTime.time} fajrTime={fajrTime.time} />
+          <RamadanCountdown maghribTime={maghribTime.time} fajrTime={fajrTime.time} lang={lang} t={t} />
         )}
       </div>
     </GradientBackground>
