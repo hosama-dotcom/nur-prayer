@@ -31,11 +31,11 @@ export function GradientBackground({ prayer, children }: GradientBackgroundProps
         className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-[2000ms]"
         style={{ backgroundImage: `url(${bgImage})` }}
       />
-      {/* Dark gradient overlay — bottom 60%, opacity 0.6 */}
+      {/* Top-weighted gradient overlay */}
       <div
         className="absolute inset-0"
         style={{
-          background: 'linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.6) 100%)',
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0) 60%)',
         }}
       />
       <div className="relative z-10">{children}</div>

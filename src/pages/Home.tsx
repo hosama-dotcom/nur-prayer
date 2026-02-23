@@ -80,9 +80,11 @@ function RamadanCountdown({ maghribTime, fajrTime }: { maghribTime: Date; fajrTi
       className="mt-6"
     >
       <div
-        className="rounded-2xl px-5 py-5 backdrop-blur-xl"
+        className="rounded-2xl px-5 py-5"
         style={{
-          background: 'rgba(255,255,255,0.07)',
+          background: 'rgba(0,0,0,0.2)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
           border: '1px solid rgba(255,255,255,0.12)',
         }}
       >
@@ -209,22 +211,22 @@ export default function Home() {
                   className={`relative rounded-xl px-3.5 py-2.5 text-center min-w-[78px] transition-all border
                     ${isActive
                       ? 'border-[#C9A84C]/40'
-                      : 'border-white/[0.1]'
+                      : 'border-white/[0.08]'
                     }
                     ${isNext ? 'border-white/15' : ''}
                   `}
                   style={{
-                    backdropFilter: 'blur(8px)',
-                    WebkitBackdropFilter: 'blur(8px)',
-                    background: isActive ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.35)',
+                    backdropFilter: 'blur(6px)',
+                    WebkitBackdropFilter: 'blur(6px)',
+                    background: 'rgba(255,255,255,0.12)',
                     ...(isActive ? { boxShadow: '0 0 16px rgba(201, 168, 76, 0.25), 0 0 32px rgba(201, 168, 76, 0.1)' } : {}),
                   }}
                 >
-                  <p className="font-arabic text-sm text-white/30 mb-0.5">{prayer.arabicLabel}</p>
-                  <p className={`text-[10px] font-semibold ${isActive ? 'text-[#C9A84C]' : 'text-white/75'}`}>
+                  <p className="font-arabic text-sm text-white/80 mb-0.5" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>{prayer.arabicLabel}</p>
+                  <p className={`text-[10px] font-semibold ${isActive ? 'text-[#C9A84C]' : 'text-white/90'}`} style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>
                     {formatTime(prayer.time)}
                   </p>
-                  <p className="text-[9px] uppercase tracking-widest text-white/45 mt-0.5">{prayer.label}</p>
+                  <p className="text-[9px] uppercase tracking-widest text-white/60 mt-0.5" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>{prayer.label}</p>
                 </div>
               );
             })}
@@ -272,9 +274,11 @@ export default function Home() {
           className="mt-6"
         >
           <div
-            className="rounded-2xl px-5 py-4 backdrop-blur-xl"
+            className="rounded-2xl px-5 py-4"
             style={{
-              background: 'rgba(0,0,0,0.25)',
+              background: 'rgba(0,0,0,0.2)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
               border: '1px solid rgba(255,255,255,0.1)',
             }}
           >
@@ -294,13 +298,13 @@ export default function Home() {
             className="mt-4 flex gap-3 justify-center"
           >
             {fajrTime && (
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.07] border border-white/[0.08] backdrop-blur-lg">
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/[0.08]" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
                 <span className="text-[10px] uppercase tracking-wider text-white/40">Imsak</span>
                 <span className="text-xs font-semibold text-white/80">{formatTime(new Date(fajrTime.time.getTime() - 10 * 60 * 1000))}</span>
               </div>
             )}
             {maghribTime && (
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.07] border border-white/[0.08] backdrop-blur-lg">
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/[0.08]" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
                 <span className="text-[10px] uppercase tracking-wider text-white/40">Iftar</span>
                 <span className="text-xs font-semibold text-white/80">{formatTime(maghribTime.time)}</span>
               </div>
