@@ -153,11 +153,11 @@ export default function More() {
               </motion.div>
 
               {/* Menu items */}
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-3">
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-3 mb-4">
                 {menuItems.map((item) => (
                   <button key={item.label} onClick={() => setView(item.view)} className="w-full glass-card px-5 py-4 flex items-center justify-between">
                     <span className="text-sm text-foreground">{item.label}</span>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--muted-foreground))" strokeWidth="2" strokeLinecap="round" className={lang === 'ar' ? '-scale-x-100' : ''}><polyline points="9 18 15 12 9 6" /></svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--muted-foreground))" strokeWidth="2" strokeLinecap="round" className={lang === 'ar' ? '' : ''}><polyline points="9 18 15 12 9 6" /></svg>
                   </button>
                 ))}
               </motion.div>
