@@ -236,15 +236,21 @@ export default function Home() {
         >
           <button
             onClick={() => setCompassOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.08] border border-white/[0.1] backdrop-blur-lg active:scale-95 transition-transform"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border active:scale-95 transition-transform"
+            style={{
+              background: 'rgba(255,255,255,0.12)',
+              backdropFilter: 'blur(6px)',
+              WebkitBackdropFilter: 'blur(6px)',
+              border: '1px solid rgba(255,255,255,0.2)',
+            }}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(10,20,40,0.75)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" />
-              <polygon points="12,2 14.5,9.5 12,8 9.5,9.5" fill="#C9A84C" />
-              <polygon points="12,22 9.5,14.5 12,16 14.5,14.5" fill="rgba(255,255,255,0.3)" />
+              <polygon points="12,2 14.5,9.5 12,8 9.5,9.5" fill="rgba(10,20,40,0.75)" />
+              <polygon points="12,22 9.5,14.5 12,16 14.5,14.5" fill="rgba(10,20,40,0.3)" />
             </svg>
-            <span className="text-xs text-white/60">Qibla</span>
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" opacity="0.3">
+            <span className="text-xs" style={{ color: 'rgba(10,20,40,0.85)' }}>Qibla</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(10,20,40,0.5)" strokeWidth="2" strokeLinecap="round">
               <path d="M9 18l6-6-6-6" />
             </svg>
           </button>

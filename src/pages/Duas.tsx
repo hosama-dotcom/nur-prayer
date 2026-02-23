@@ -127,8 +127,7 @@ export default function Duas() {
   const bookmarkedDuas = useMemo(() => duas.filter(d => bookmarks.includes(d.id)), [bookmarks]);
 
   return (
-    <div className="min-h-screen safe-area-top pb-24 relative">
-      <div className="absolute inset-0 gradient-isha" />
+    <div className="min-h-screen safe-area-top pb-24 relative night-sky-bg">
       <div className="geometric-pattern absolute inset-0 pointer-events-none" />
 
       <div className="relative z-10 px-5">

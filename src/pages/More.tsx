@@ -71,7 +71,7 @@ export default function More() {
   ];
 
   return (
-    <div className="min-h-screen gradient-isha safe-area-top pb-24">
+    <div className="min-h-screen night-sky-bg safe-area-top pb-24 relative">
       <div className="geometric-pattern absolute inset-0 pointer-events-none" />
       <div className="relative z-10 px-5">
         {/* Header */}

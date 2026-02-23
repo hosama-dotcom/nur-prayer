@@ -35,7 +35,7 @@ export default function Quran() {
   );
 
   return (
-    <div className="min-h-screen gradient-isha pb-24 safe-area-top">
+    <div className="min-h-screen night-sky-bg pb-24 safe-area-top relative">
       <div className="geometric-pattern absolute inset-0 pointer-events-none" />
       <div className="relative z-10 px-5">
         {/* Header */}
