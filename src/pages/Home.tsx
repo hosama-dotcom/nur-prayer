@@ -128,7 +128,7 @@ function RamadanCountdown({ maghribTime, fajrTime, lang, t }: { maghribTime: Dat
                 <span className="text-[26px] font-light text-[#C9A84C] ml-1">{minutes.toString().padStart(2, '0')}</span>
                 <span className="text-[12px] text-white/30 mx-0.5">{mLabel}</span>
               </p>
-              <p className="text-[9px] text-white/25 mt-0.5">{subtext}</p>
+              <p className="text-white/25 mt-0.5" style={{ fontSize: '14px' }}>{subtext}</p>
             </div>
           </div>
         </div>

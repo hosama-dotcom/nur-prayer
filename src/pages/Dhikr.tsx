@@ -711,6 +711,7 @@ export default function Dhikr() {
 
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="relative z-30 pt-12 pb-2 text-center">
         <p className="font-arabic-display text-5xl text-primary leading-tight">الأَذْكَار وَالأَدْعِيَة</p>
+
       </motion.div>
 
       <div className="relative z-30 flex justify-center pt-2 pb-2">

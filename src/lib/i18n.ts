@@ -47,6 +47,8 @@ const translations = {
   'dhikr.tapAnywhere': { en: 'Tap anywhere to count', ar: 'اضغط في أي مكان للعد' },
   'dhikr.advancingNext': { en: 'Advancing to next dhikr...', ar: 'الانتقال إلى الذكر التالي...' },
   'dhikr.tapReset': { en: 'Tap reset to start again', ar: 'اضغط إعادة للبدء من جديد' },
+  'dhikr.tabAdhkar': { en: 'Adhkar', ar: 'الذكر' },
+  'dhikr.tabDuas': { en: 'Duas', ar: 'الأدعية' },
 
   // Duas
   'duas.title': { en: 'Duas & Adhkar', ar: 'الأدعية والأذكار' },

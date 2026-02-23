@@ -232,7 +232,7 @@ export function QiblaCompass({ open, onClose, qiblaDirection, latitude, longitud
             transition={{ delay: 0.5 }}
             className="absolute bottom-20 text-[11px] text-white/20 text-center px-10 leading-relaxed italic"
           >
-            On mobile, rotate your device until the needle points to the Kaaba
+            {t('qibla.instruction')}
           </motion.p>
 
           {/* Coordinates */}
