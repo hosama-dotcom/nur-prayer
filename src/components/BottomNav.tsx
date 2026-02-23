@@ -1,17 +1,19 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const tabs = [
-  { path: '/', label: 'Home', icon: HomeIcon },
-  { path: '/quran', label: 'Quran', icon: QuranIcon },
-  { path: '/dhikr', label: 'Dhikr', icon: DhikrIcon },
-  { path: '/tracker', label: 'Tracker', icon: TrackerIcon },
-  { path: '/more', label: 'More', icon: MoreIcon },
+  { path: '/', labelKey: 'nav.home' as const, icon: HomeIcon },
+  { path: '/quran', labelKey: 'nav.quran' as const, icon: QuranIcon },
+  { path: '/dhikr', labelKey: 'nav.dhikr' as const, icon: DhikrIcon },
+  { path: '/tracker', labelKey: 'nav.tracker' as const, icon: TrackerIcon },
+  { path: '/more', labelKey: 'nav.more' as const, icon: MoreIcon },
 ];
 
 export function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   return (
     <>
@@ -47,7 +49,7 @@ export function BottomNav() {
               >
                 <tab.icon active={isActive} />
                 <span className={`text-[10px] font-medium transition-colors ${isActive ? 'text-primary' : 'text-white/60'}`}>
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </span>
               </button>
             );
