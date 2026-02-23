@@ -368,7 +368,6 @@ export default function SurahReader() {
 
   // Word-by-word highlight: track active word index based on audio progress
   const [activeWordIdx, setActiveWordIdx] = useState(-1);
-  const preScrolledRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!isThisSurahPlaying || !audioElement) {
