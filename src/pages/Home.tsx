@@ -215,11 +215,11 @@ export default function Home() {
                   `}
                   style={isActive ? { boxShadow: '0 0 16px rgba(201, 168, 76, 0.25), 0 0 32px rgba(201, 168, 76, 0.1)' } : {}}
                 >
-                  <p className="font-arabic text-sm text-white/30 mb-0.5">{prayer.arabicLabel}</p>
-                  <p className={`text-[10px] font-semibold ${isActive ? 'text-[#C9A84C]' : 'text-white/75'}`}>
+                  <p className={`font-arabic text-sm mb-0.5 ${isActive ? 'text-[rgba(10,20,40,0.75)]' : 'text-[rgba(10,20,40,0.75)]'}`}>{prayer.arabicLabel}</p>
+                  <p className={`text-[10px] font-semibold ${isActive ? 'text-[#C9A84C]' : 'text-[rgba(10,20,40,0.85)]'}`}>
                     {formatTime(prayer.time)}
                   </p>
-                  <p className="text-[9px] uppercase tracking-widest text-white/45 mt-0.5">{prayer.label}</p>
+                  <p className={`text-[9px] uppercase tracking-widest mt-0.5 ${isActive ? 'text-[rgba(10,20,40,0.6)]' : 'text-[rgba(10,20,40,0.85)]'}`}>{prayer.label}</p>
                 </div>
               );
             })}
