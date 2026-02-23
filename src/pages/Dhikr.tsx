@@ -9,6 +9,18 @@ const TASBIH_SEQUENCE = ['subhanallah', 'alhamdulillah', 'allahuakbar'];
 type ActiveTab = 'dhikr' | 'duas';
 type DuasView = 'topics' | 'list' | 'bookmarks';
 
+const DHIKR_SESSION_KEY = 'nur_dhikr_session';
+
+function getDhikrSession(): Record<string, number> {
+  try {
+    return JSON.parse(localStorage.getItem(DHIKR_SESSION_KEY) || '{}');
+  } catch { return {}; }
+}
+
+function saveDhikrSession(session: Record<string, number>) {
+  localStorage.setItem(DHIKR_SESSION_KEY, JSON.stringify(session));
+}
+
 /* ── Duas Sub-components ── */
 
 function BackButton({ onClick }: { onClick: () => void }) {
@@ -83,13 +95,11 @@ function DuasSection() {
 
   return (
     <div className="px-5 pb-24">
-      {/* Header */}
       <div className="pt-2 pb-2" />
 
       <AnimatePresence mode="wait">
         {view === 'topics' && !selectedTopic && (
           <motion.div key="main" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            {/* Search */}
             <div className="mb-4">
               <div className="glass-card flex items-center px-4 py-2.5 gap-3">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--muted-foreground))" strokeWidth="2" strokeLinecap="round">
@@ -110,7 +120,6 @@ function DuasSection() {
               </div>
             </div>
 
-            {/* Bookmarks pill */}
             <div className="flex gap-2 mb-5">
               <button
                 onClick={() => setView('bookmarks')}
@@ -190,8 +199,12 @@ function DuasSection() {
 /* ── Dhikr Counter Section ── */
 
 function DhikrCounter() {
+  const [session, setSession] = useState<Record<string, number>>(getDhikrSession);
   const [selectedPreset, setSelectedPreset] = useState<DhikrPreset>(dhikrPresets[0]);
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(() => {
+    const s = getDhikrSession();
+    return s[dhikrPresets[0].id] || 0;
+  });
   const [showPresets, setShowPresets] = useState(false);
   const [justTapped, setJustTapped] = useState(false);
   const [completed, setCompleted] = useState(false);
@@ -202,6 +215,13 @@ function DhikrCounter() {
   const progress = Math.min(count / selectedPreset.target, 1);
   const circumference = 2 * Math.PI * 105;
   const strokeDashoffset = circumference * (1 - progress);
+
+  // Save count to session whenever it changes
+  useEffect(() => {
+    const newSession = { ...session, [selectedPreset.id]: count };
+    setSession(newSession);
+    saveDhikrSession(newSession);
+  }, [count, selectedPreset.id]);
 
   const handleTap = useCallback(() => {
     if (completed || showPresets) return;
@@ -225,8 +245,9 @@ function DhikrCounter() {
           advanceTimeoutRef.current = setTimeout(() => {
             setFlashGold(false);
             setSelectedPreset(nextPreset);
-            setCount(0);
-            setCompleted(false);
+            const savedCount = session[nextPreset.id] || 0;
+            setCount(savedCount);
+            setCompleted(savedCount >= nextPreset.target);
             setCompletionText('');
           }, 1800);
         }
@@ -234,13 +255,18 @@ function DhikrCounter() {
         setTimeout(() => setFlashGold(false), 1500);
       }
     }
-  }, [count, completed, selectedPreset, showPresets]);
+  }, [count, completed, selectedPreset, showPresets, session]);
 
   useEffect(() => {
     return () => { if (advanceTimeoutRef.current) clearTimeout(advanceTimeoutRef.current); };
   }, []);
 
   const handleReset = () => {
+    // Reset ALL dhikr progress
+    const cleared: Record<string, number> = {};
+    dhikrPresets.forEach(p => { cleared[p.id] = 0; });
+    setSession(cleared);
+    saveDhikrSession(cleared);
     setCount(0);
     setCompleted(false);
     setFlashGold(false);
@@ -249,9 +275,15 @@ function DhikrCounter() {
   };
 
   const selectPreset = (preset: DhikrPreset) => {
+    // Save current count before switching
+    const newSession = { ...session, [selectedPreset.id]: count };
+    setSession(newSession);
+    saveDhikrSession(newSession);
+
     setSelectedPreset(preset);
-    setCount(0);
-    setCompleted(false);
+    const savedCount = newSession[preset.id] || 0;
+    setCount(savedCount);
+    setCompleted(savedCount >= preset.target);
     setFlashGold(false);
     setCompletionText('');
     setShowPresets(false);
@@ -348,18 +380,35 @@ function DhikrCounter() {
                 {dhikrPresets.map((preset) => {
                   const isSelected = selectedPreset.id === preset.id;
                   const isInSequence = TASBIH_SEQUENCE.includes(preset.id);
+                  const savedCount = session[preset.id] || 0;
+                  const presetProgress = Math.min(savedCount / preset.target, 1);
                   return (
                     <button key={preset.id} onClick={() => selectPreset(preset)}
                       className={`w-full rounded-xl p-4 text-left transition-all border ${isSelected ? 'bg-primary/10 border-primary/30' : 'bg-white/[0.04] border-white/[0.06]'}`}>
                       <div className="flex items-center justify-between">
-                        <div>
+                        <div className="flex-1 min-w-0">
                           <p className={`text-sm font-medium ${isSelected ? 'text-primary' : 'text-white/70'}`}>
                             {preset.transliteration}
                             {isInSequence && <span className="text-[9px] text-white/20 ml-2">tasbih</span>}
                           </p>
                           <p className="text-[11px] text-white/30 mt-0.5">{preset.translation}</p>
+                          {/* Progress indicator */}
+                          {savedCount > 0 && (
+                            <div className="flex items-center gap-2 mt-1.5">
+                              <div className="flex-1 h-1 rounded-full bg-white/[0.06] overflow-hidden max-w-[100px]">
+                                <div
+                                  className="h-full rounded-full transition-all"
+                                  style={{
+                                    width: `${presetProgress * 100}%`,
+                                    background: presetProgress >= 1 ? '#C9A84C' : 'rgba(201, 168, 76, 0.5)',
+                                  }}
+                                />
+                              </div>
+                              <span className="text-[9px] text-white/25">{savedCount}/{preset.target}</span>
+                            </div>
+                          )}
                         </div>
-                        <p className="font-arabic text-lg text-primary/50">{preset.arabic}</p>
+                        <p className="font-arabic text-lg text-primary/50 flex-shrink-0 ml-3">{preset.arabic}</p>
                       </div>
                     </button>
                   );

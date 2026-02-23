@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
+import { AudioProvider } from "@/contexts/AudioContext";
+import { MiniPlayer } from "@/components/MiniPlayer";
 import Home from "./pages/Home";
 import Quran from "./pages/Quran";
 import SurahReader from "./pages/SurahReader";
@@ -21,17 +23,20 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/quran" element={<Quran />} />
-          <Route path="/quran/:number" element={<SurahReader />} />
-          <Route path="/dhikr" element={<Dhikr />} />
-          <Route path="/tracker" element={<Tracker />} />
-          
-          <Route path="/more" element={<More />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <BottomNav />
+        <AudioProvider>
+          <MiniPlayer />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/quran" element={<Quran />} />
+            <Route path="/quran/:number" element={<SurahReader />} />
+            <Route path="/dhikr" element={<Dhikr />} />
+            <Route path="/tracker" element={<Tracker />} />
+            
+            <Route path="/more" element={<More />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          <BottomNav />
+        </AudioProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
