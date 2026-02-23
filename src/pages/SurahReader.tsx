@@ -398,8 +398,8 @@ export default function SurahReader() {
   const audioProgress = audioDuration > 0 ? (audioCurrentTime / audioDuration) * 100 : 0;
 
   return (
-    <div className="min-h-screen gradient-isha safe-area-top">
-      <div className="geometric-pattern absolute inset-0 pointer-events-none opacity-30" />
+    <div className="min-h-screen night-sky-bg safe-area-top relative">
+      <div className="geometric-pattern absolute inset-0 pointer-events-none" />
       <div className="relative z-10">
 
         {/* Header - landscape: compact top-left label; portrait: full header */}

@@ -293,8 +293,7 @@ export default function Tracker() {
   };
 
   return (
-    <div className="min-h-screen safe-area-top pb-24 relative">
-      <div className="absolute inset-0 bg-gradient-to-b from-[hsl(180,30%,12%)] via-[hsl(35,40%,15%)] to-[hsl(230,25%,8%)]" />
+    <div className="min-h-screen safe-area-top pb-24 relative night-sky-bg">
       <div className="geometric-pattern absolute inset-0 pointer-events-none" />
 
       <div className="relative z-10 px-5">

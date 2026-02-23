@@ -379,8 +379,8 @@ export default function Dhikr() {
   const [tab, setTab] = useState<ActiveTab>('dhikr');
 
   return (
-    <div className="min-h-screen safe-area-top relative overflow-hidden flex flex-col" style={{ background: 'linear-gradient(180deg, #070D1A 0%, #0C1629 40%, #0A1020 100%)' }}>
-      <div className="geometric-pattern absolute inset-0 pointer-events-none opacity-20" />
+    <div className="min-h-screen safe-area-top relative overflow-hidden flex flex-col night-sky-bg">
+      <div className="geometric-pattern absolute inset-0 pointer-events-none" />
 
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="relative z-30 pt-12 pb-2 text-center">
