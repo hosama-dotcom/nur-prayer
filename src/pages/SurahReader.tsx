@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { z } from 'zod';
 import { useAudioPlayer } from '@/contexts/AudioContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const verseSchema = z.object({
   id: z.number(),
@@ -27,11 +28,11 @@ const apiResponseSchema = z.object({
 });
 
 const RECITERS = [
-  { id: 7, name: 'Mishary Rashid Al-Afasy', short: 'Afasy' },
-  { id: 1, name: 'Abdul Rahman Al-Sudais', short: 'Sudais' },
-  { id: 5, name: 'Mahmoud Khalil Al-Husary', short: 'Husary' },
-  { id: 9, name: 'Saad Al-Ghamdi', short: 'Ghamdi' },
-  { id: 6, name: 'Abu Bakr Al-Shatri', short: 'Shatri' },
+  { id: 7, name: 'Mishary Rashid Al-Afasy', nameAr: 'مشاري راشد العفاسي', short: 'Afasy' },
+  { id: 1, name: 'Abdul Rahman Al-Sudais', nameAr: 'عبد الرحمن السديس', short: 'Sudais' },
+  { id: 5, name: 'Mahmoud Khalil Al-Husary', nameAr: 'محمود خليل الحصري', short: 'Husary' },
+  { id: 9, name: 'Saad Al-Ghamdi', nameAr: 'سعد الغامدي', short: 'Ghamdi' },
+  { id: 6, name: 'Abu Bakr Al-Shatri', nameAr: 'أبو بكر الشاطري', short: 'Shatri' },
 ];
 const RECITER_KEY = 'nur-reciter-id';
 
@@ -104,6 +105,8 @@ export default function SurahReader() {
   const navigate = useNavigate();
   const chapterNum = parseInt(number || '1', 10);
   const surah = surahs.find(s => s.number === chapterNum);
+  const { lang } = useLanguage();
+  const isAr = lang === 'ar';
 
   const [verses, setVerses] = useState<Verse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -434,9 +437,9 @@ export default function SurahReader() {
                 backdropFilter: 'blur(20px)',
               }}
             >
-              {currentJuz && `Juz ${currentJuz}`}
+              {currentJuz && (isAr ? `جزء ${currentJuz}` : `Juz ${currentJuz}`)}
               {currentJuz && currentPage && ' · '}
-              {currentPage && `Page ${currentPage}`}
+              {currentPage && (isAr ? `الصفحة ${currentPage}` : `Page ${currentPage}`)}
             </div>
           </div>
         )}
@@ -445,18 +448,18 @@ export default function SurahReader() {
         <Drawer open={showReciterPicker} onOpenChange={setShowReciterPicker}>
           <DrawerContent className="night-sky-bg border-t border-white/10">
             <DrawerHeader>
-              <DrawerTitle className="text-center text-foreground">Select Reciter</DrawerTitle>
+              <DrawerTitle className="text-center text-foreground">{isAr ? 'اختر القارئ' : 'Select Reciter'}</DrawerTitle>
             </DrawerHeader>
             <div className="px-4 pb-8 space-y-1">
               {RECITERS.map(r => (
                 <button
                   key={r.id}
                   onClick={() => changeReciter(r.id)}
-                  className={`block w-full text-left px-4 py-3 rounded-xl text-sm transition-colors ${
+                  className={`block w-full text-start px-4 py-3 rounded-xl text-sm transition-colors ${
                     r.id === reciterId ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:bg-secondary/50'
                   }`}
                 >
-                  {r.name}
+                  {isAr ? r.nameAr : r.name}
                 </button>
               ))}
             </div>
@@ -497,9 +500,9 @@ export default function SurahReader() {
                           <div className="flex items-center justify-center gap-3 my-4">
                             <div className="h-px flex-1 bg-primary/10" />
                             <span className="text-[10px] text-primary/50 font-medium tracking-wider">
-                              {showJuzMarker && `Juz ${verse.juz_number}`}
+                              {showJuzMarker && (isAr ? `جزء ${verse.juz_number}` : `Juz ${verse.juz_number}`)}
                               {showJuzMarker && showPageMarker && ' · '}
-                              {showPageMarker && `Page ${verse.page_number}`}
+                              {showPageMarker && (isAr ? `الصفحة ${verse.page_number}` : `Page ${verse.page_number}`)}
                             </span>
                             <div className="h-px flex-1 bg-primary/10" />
                           </div>
@@ -544,9 +547,9 @@ export default function SurahReader() {
                             <span className="flex items-center justify-center gap-3">
                               <span className="h-px flex-1 bg-primary/10" />
                               <span className="text-[10px] text-primary/50 font-medium tracking-wider">
-                                {showJuzMarker && `Juz ${verse.juz_number}`}
+                                {showJuzMarker && (isAr ? `جزء ${verse.juz_number}` : `Juz ${verse.juz_number}`)}
                                 {showJuzMarker && showPageMarker && ' · '}
-                                {showPageMarker && `Page ${verse.page_number}`}
+                                {showPageMarker && (isAr ? `الصفحة ${verse.page_number}` : `Page ${verse.page_number}`)}
                               </span>
                               <span className="h-px flex-1 bg-primary/10" />
                             </span>
@@ -639,14 +642,14 @@ export default function SurahReader() {
                     )}
                   </button>
                   <div className="flex-1 min-w-0 pr-4">
-                    <p className="text-xs text-foreground truncate">{surah?.name}</p>
+                    <p className="text-xs text-foreground truncate">{isAr ? surah?.arabicName : surah?.name}</p>
                     <button
                       onClick={() => setShowReciterPicker(true)}
                       className="text-[10px] text-muted-foreground flex items-center gap-0.5"
                     >
-                      {isThisSurahPlaying && audioState.currentVerse ? `Verse ${audioState.currentVerse} · ` : ''}
-                      {RECITERS.find(r => r.id === reciterId)?.name || 'Al-Afasy'}
-                      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="ml-0.5 opacity-50"><path d="M6 9l6 6 6-6" /></svg>
+                      {isThisSurahPlaying && audioState.currentVerse ? (isAr ? `الآية ${audioState.currentVerse} · ` : `Verse ${audioState.currentVerse} · `) : ''}
+                      {(() => { const r = RECITERS.find(r => r.id === reciterId); return isAr ? (r?.nameAr || 'العفاسي') : (r?.name || 'Al-Afasy'); })()}
+                      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="ms-0.5 opacity-50"><path d="M6 9l6 6 6-6" /></svg>
                     </button>
                   </div>
                 </div>

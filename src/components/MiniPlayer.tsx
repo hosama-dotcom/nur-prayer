@@ -1,14 +1,35 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAudioPlayer } from '@/contexts/AudioContext';
 import { useLocation } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { surahs } from '@/data/surahs';
+
+const RECITER_NAMES_AR: Record<string, string> = {
+  'Al-Afasy': 'العفاسي',
+  'Mishary Rashid Al-Afasy': 'مشاري راشد العفاسي',
+  'Abdul Rahman Al-Sudais': 'عبد الرحمن السديس',
+  'Mahmoud Khalil Al-Husary': 'محمود خليل الحصري',
+  'Saad Al-Ghamdi': 'سعد الغامدي',
+  'Abu Bakr Al-Shatri': 'أبو بكر الشاطري',
+};
 
 export function MiniPlayer() {
   const { state, togglePlay, stop } = useAudioPlayer();
   const location = useLocation();
+  const { lang } = useLanguage();
+  const isAr = lang === 'ar';
 
-  // Don't show on surah reader pages (they have their own controls)
   const isSurahReader = location.pathname.startsWith('/quran/');
   if (isSurahReader || !state.surahNumber) return null;
+
+  // Get Arabic surah name if in Arabic mode
+  const surahData = state.surahNumber ? surahs.find(s => s.number === state.surahNumber) : null;
+  const displayName = isAr && surahData ? surahData.arabicName : state.surahName;
+
+  const reciterName = 'Al-Afasy';
+  const displayReciter = isAr ? (RECITER_NAMES_AR[reciterName] || reciterName) : reciterName;
+  const verseLabel = isAr ? `الآية ${state.currentVerse}` : `Verse ${state.currentVerse}`;
+  const pausedLabel = isAr ? 'متوقف' : 'Paused';
 
   return (
     <AnimatePresence>
@@ -27,6 +48,7 @@ export function MiniPlayer() {
               backdropFilter: 'blur(30px)',
               WebkitBackdropFilter: 'blur(30px)',
               border: '1px solid rgba(255,255,255,0.1)',
+              flexDirection: isAr ? 'row-reverse' : 'row',
             }}
           >
             <button
@@ -44,10 +66,10 @@ export function MiniPlayer() {
                 </svg>
               )}
             </button>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs text-foreground truncate">{state.surahName}</p>
+            <div className={`flex-1 min-w-0 ${isAr ? 'text-right' : 'text-left'}`}>
+              <p className="text-xs text-foreground truncate">{displayName}</p>
               <p className="text-[10px] text-muted-foreground">
-                {state.currentVerse ? `Verse ${state.currentVerse}` : 'Paused'} · Al-Afasy
+                {state.currentVerse ? verseLabel : pausedLabel} · {displayReciter}
               </p>
             </div>
             <button
