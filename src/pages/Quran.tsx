@@ -113,7 +113,7 @@ export default function Quran() {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search surah..."
+                placeholder={t('quran.searchSurah')}
                 className="bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground flex-1"
               />
             </div>
