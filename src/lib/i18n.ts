@@ -128,17 +128,15 @@ export function formatStreakArabic(n: number): string {
 /** Get Hijri date formatted for the given language */
 export function getHijriDateLocalized(lang: Language): string {
   const now = new Date();
-  if (lang === 'ar') {
-    const formatter = new Intl.DateTimeFormat('ar-u-ca-islamic-umalqura', {
-      day: 'numeric', month: 'long', year: 'numeric'
-    });
-    return formatter.format(now) + ' هـ';
-  }
-  // English
-  const formatter = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
+  const locale = lang === 'ar' ? 'ar-u-ca-islamic-umalqura' : 'en-u-ca-islamic-umalqura';
+  const suffix = lang === 'ar' ? ' هـ' : ' AH';
+  const formatter = new Intl.DateTimeFormat(locale, {
     day: 'numeric', month: 'long', year: 'numeric'
   });
-  return formatter.format(now) + ' AH';
+  const raw = formatter.format(now);
+  // Remove any existing AH/هـ suffix to avoid duplication
+  const cleaned = raw.replace(/\s*AH\s*$/i, '').replace(/\s*هـ\s*$/, '').trim();
+  return cleaned + suffix;
 }
 
 /** Map English verse reference to Arabic surah name */

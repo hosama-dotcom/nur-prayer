@@ -219,7 +219,7 @@ export default function Home() {
               <p className="text-sm" style={{ color: countdownMuted }}>
                 {isAr ? nextPrayer.arabicLabel : nextPrayer.label} {t('home.nextPrayerIn')}{' '}
                 <span className="font-medium" style={{ color: countdownColor }}>
-                  {countdown.hours > 0 ? `${countdown.hours}${t('home.hours')} ` : ''}{countdown.minutes}{t('home.minutes')} {countdown.seconds}{t('home.seconds')}
+                  {countdown.hours > 0 ? `${countdown.hours}${t('home.hours')} ` : ''}{countdown.minutes}{t('home.minutes')}
                 </span>
               </p>
             </motion.div>
