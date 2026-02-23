@@ -119,6 +119,7 @@ export default function SurahReader() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(getBookmarks);
   const [isLandscape, setIsLandscape] = useState(false);
   const [showReciterPicker, setShowReciterPicker] = useState(false);
+  const [showPlayer, setShowPlayer] = useState(true);
   const [reciterId, setReciterId] = useState(() => {
     const stored = localStorage.getItem(RECITER_KEY);
     return stored ? parseInt(stored, 10) : 7;
