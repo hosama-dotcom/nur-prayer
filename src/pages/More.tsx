@@ -53,6 +53,7 @@ function AboutScreen({ t }: { t: (key: any) => string }) {
 export default function More() {
   const navigate = useNavigate();
   const { t, lang, setLang } = useLanguage();
+  const isAr = lang === 'ar';
   const [view, setView] = useState<SettingsView>('main');
   const [calcOpen, setCalcOpen] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<CalcMethod>(() => {
