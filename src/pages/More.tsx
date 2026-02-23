@@ -6,17 +6,17 @@ import type { CalcMethod } from '@/lib/prayer-utils';
 
 type SettingsView = 'main' | 'about';
 
-const calcMethods: { value: CalcMethod; label: string }[] = [
-  { value: 'UmmAlQura', label: 'Umm al-Qura (Makkah)' },
-  { value: 'NorthAmerica', label: 'ISNA (North America)' },
-  { value: 'MuslimWorldLeague', label: 'Muslim World League' },
-  { value: 'Egyptian', label: 'Egyptian General Authority' },
-  { value: 'Karachi', label: 'University of Islamic Sciences, Karachi' },
-  { value: 'Dubai', label: 'Dubai' },
-  { value: 'Kuwait', label: 'Kuwait' },
-  { value: 'Qatar', label: 'Qatar' },
-  { value: 'Singapore', label: 'Singapore' },
-  { value: 'Tehran', label: 'Tehran' },
+const calcMethods: { value: CalcMethod; label: string; labelAr: string }[] = [
+  { value: 'Dubai', label: 'Dubai — UAE Islamic Affairs', labelAr: 'دبي — هيئة الإمارات للشؤون الإسلامية' },
+  { value: 'UmmAlQura', label: 'Umm al-Qura — Saudi Arabia', labelAr: 'أم القرى — المملكة العربية السعودية' },
+  { value: 'Kuwait', label: 'Kuwait — Ministry of Awqaf', labelAr: 'الكويت — وزارة الأوقاف الكويتية' },
+  { value: 'Qatar', label: 'Qatar — Islamic Affairs', labelAr: 'قطر — إدارة الشؤون الإسلامية' },
+  { value: 'Egyptian', label: 'Egyptian General Authority', labelAr: 'الهيئة المصرية العامة للمساحة' },
+  { value: 'NorthAmerica', label: 'ISNA — North America', labelAr: 'الجمعية الإسلامية لأمريكا الشمالية' },
+  { value: 'MuslimWorldLeague', label: 'Muslim World League', labelAr: 'رابطة العالم الإسلامي' },
+  { value: 'Karachi', label: 'University of Islamic Sciences, Karachi', labelAr: 'جامعة العلوم الإسلامية، كراتشي' },
+  { value: 'Tehran', label: 'Tehran — Institute of Geophysics', labelAr: 'طهران — معهد الجيوفيزياء' },
+  { value: 'Singapore', label: 'Singapore — MUIS', labelAr: 'سنغافورة — مجلس الشؤون الإسلامية' },
 ];
 
 function AboutScreen({ t }: { t: (key: any) => string }) {
