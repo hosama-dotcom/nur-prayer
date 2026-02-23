@@ -47,7 +47,7 @@ export default function Quran() {
           className="pt-12 pb-6 text-center"
         >
           <p className="font-arabic-display text-5xl text-primary leading-tight">القُرآن الكريم</p>
-          <p className="text-xs text-muted-foreground mt-2">114 Surahs · 30 Juz</p>
+          <p className="text-xs text-muted-foreground mt-2">114 {t('quran.surahs')} · 30 {t('quran.juz')}</p>
         </motion.div>
 
         {/* Surah / Juz toggle */}
