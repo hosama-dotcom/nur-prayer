@@ -149,17 +149,17 @@ function KhatmCounter({ khatmLog }: { khatmLog: ReturnType<typeof useKhatmLog> }
       <Dialog open={deleteIdx !== null} onOpenChange={() => setDeleteIdx(null)}>
         <DialogContent className="glass-card-strong border-primary/20 max-w-[340px] rounded-2xl">
           <DialogHeader className="text-center">
-            <DialogTitle className="text-foreground text-sm">Remove this Khatm record?</DialogTitle>
-            <DialogDescription className="text-muted-foreground text-xs mt-1">This action cannot be undone.</DialogDescription>
+            <DialogTitle className="text-foreground text-sm">{t('tracker.removeKhatm')}</DialogTitle>
+            <DialogDescription className="text-muted-foreground text-xs mt-1">{t('tracker.cannotUndo')}</DialogDescription>
           </DialogHeader>
           <div className="flex gap-3">
             <button onClick={() => setDeleteIdx(null)}
               className="flex-1 py-2.5 rounded-xl bg-secondary/30 text-foreground/70 text-sm font-medium">
-              Cancel
+              {t('common.cancel')}
             </button>
             <button onClick={() => deleteIdx !== null && (deleteKhatm(deleteIdx), setDeleteIdx(null))}
               className="flex-1 py-2.5 rounded-xl bg-red-500/20 text-red-400 text-sm font-semibold border border-red-500/20">
-              Remove
+              {t('tracker.remove')}
             </button>
           </div>
         </DialogContent>
