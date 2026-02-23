@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { surahs } from '@/data/surahs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { z } from 'zod';
 import { useAudioPlayer } from '@/contexts/AudioContext';
 
@@ -118,6 +119,7 @@ export default function SurahReader() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(getBookmarks);
   const [isLandscape, setIsLandscape] = useState(false);
   const [showReciterPicker, setShowReciterPicker] = useState(false);
+  const [showPlayer, setShowPlayer] = useState(true);
   const [reciterId, setReciterId] = useState(() => {
     const stored = localStorage.getItem(RECITER_KEY);
     return stored ? parseInt(stored, 10) : 7;
@@ -404,14 +406,6 @@ export default function SurahReader() {
         {/* Floating toolbar */}
         <div className={`fixed z-30 flex items-center gap-1.5 ${isLandscape ? 'top-1.5' : 'top-20 right-4 gap-2'}`} style={isLandscape ? { right: 'calc(16px + env(safe-area-inset-right, 0px))' } : undefined}>
           <button
-            onClick={() => setShowReciterPicker(p => !p)}
-            className={`rounded-full font-semibold backdrop-blur-sm bg-secondary/70 text-muted-foreground transition-colors ${
-              isLandscape ? 'h-7 px-2 text-[9px]' : 'h-8 px-2.5 text-[10px]'
-            }`}
-          >
-            {RECITERS.find(r => r.id === reciterId)?.short || 'Afasy'}
-          </button>
-          <button
             onClick={() => setShowTranslation(t => !t)}
             className={`rounded-full font-semibold backdrop-blur-sm transition-colors ${
               showTranslation ? 'bg-primary/25 text-primary' : 'bg-secondary/70 text-muted-foreground'
@@ -447,30 +441,27 @@ export default function SurahReader() {
           </div>
         )}
 
-        {/* Reciter picker */}
-        <AnimatePresence>
-          {showReciterPicker && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className={`fixed z-40 rounded-xl border overflow-hidden ${isLandscape ? 'top-[36px] right-3' : 'top-[108px] right-4'}`}
-              style={{ background: 'hsla(230, 20%, 12%, 0.95)', borderColor: 'hsla(0, 0%, 100%, 0.1)', backdropFilter: 'blur(20px)' }}
-            >
+        {/* Reciter picker bottom sheet */}
+        <Drawer open={showReciterPicker} onOpenChange={setShowReciterPicker}>
+          <DrawerContent className="night-sky-bg border-t border-white/10">
+            <DrawerHeader>
+              <DrawerTitle className="text-center text-foreground">Select Reciter</DrawerTitle>
+            </DrawerHeader>
+            <div className="px-4 pb-8 space-y-1">
               {RECITERS.map(r => (
                 <button
                   key={r.id}
                   onClick={() => changeReciter(r.id)}
-                  className={`block w-full text-left px-4 py-2.5 text-[12px] transition-colors ${
+                  className={`block w-full text-left px-4 py-3 rounded-xl text-sm transition-colors ${
                     r.id === reciterId ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:bg-secondary/50'
                   }`}
                 >
                   {r.name}
                 </button>
               ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
+          </DrawerContent>
+        </Drawer>
 
         {/* Continuous flowing text */}
         <div
@@ -599,7 +590,7 @@ export default function SurahReader() {
         </div>
       </div>
 
-      {/* Audio player - simplified, uses global context */}
+      {/* Audio player */}
       {isLandscape ? (
         <div className="fixed z-40" style={{ bottom: '28px', right: 'calc(16px + env(safe-area-inset-right, 0px))' }}>
           <motion.button
@@ -620,9 +611,9 @@ export default function SurahReader() {
         </div>
       ) : (
         <>
-          {/* Portrait: mini player bar */}
+          {/* Portrait: expanded player bar (default) */}
           <AnimatePresence>
-            {isThisSurahPlaying && (
+            {showPlayer && (
               <motion.div
                 initial={{ y: 100, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -635,7 +626,7 @@ export default function SurahReader() {
                   style={{ background: 'hsla(230, 20%, 12%, 0.92)', borderColor: 'hsla(0, 0%, 100%, 0.1)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)' }}
                 >
                   <button
-                    onClick={handleStop}
+                    onClick={() => { handleStop(); setShowPlayer(false); }}
                     className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center text-muted-foreground"
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
@@ -649,21 +640,26 @@ export default function SurahReader() {
                   </button>
                   <div className="flex-1 min-w-0 pr-4">
                     <p className="text-xs text-foreground truncate">{surah?.name}</p>
-                    <p className="text-[10px] text-muted-foreground">
-                      Verse {audioState.currentVerse || '—'} · Al-Afasy
-                    </p>
+                    <button
+                      onClick={() => setShowReciterPicker(true)}
+                      className="text-[10px] text-muted-foreground flex items-center gap-0.5"
+                    >
+                      {isThisSurahPlaying && audioState.currentVerse ? `Verse ${audioState.currentVerse} · ` : ''}
+                      {RECITERS.find(r => r.id === reciterId)?.name || 'Al-Afasy'}
+                      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="ml-0.5 opacity-50"><path d="M6 9l6 6 6-6" /></svg>
+                    </button>
                   </div>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* Floating play FAB when no player showing */}
-          {!isThisSurahPlaying && (
+          {/* Floating play FAB when player is dismissed */}
+          {!showPlayer && (
             <motion.button
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
-              onClick={handleTogglePlay}
+              onClick={() => { setShowPlayer(true); handleTogglePlay(); }}
               className="fixed z-50 w-12 h-12 rounded-full flex items-center justify-center"
               style={{
                 bottom: '108px',
@@ -673,7 +669,11 @@ export default function SurahReader() {
               }}
               whileTap={{ scale: 0.9 }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><polygon points="6,3 20,12 6,21" /></svg>
+              {isPlaying ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><polygon points="6,3 20,12 6,21" /></svg>
+              )}
             </motion.button>
           )}
         </>
