@@ -672,7 +672,7 @@ function DhikrCounter() {
                             {lang === 'ar' ? preset.arabic : preset.transliteration}
                             {isInSequence && <span className="text-[9px] text-white/20 ms-2">tasbih</span>}
                           </p>
-                          <p className="text-[11px] text-white/30 mt-0.5">{preset.translation}</p>
+                          {!isAr && <p className="text-[11px] text-white/30 mt-0.5">{preset.translation}</p>}
                           {savedCount > 0 && (
                             <div className="flex items-center gap-2 mt-1.5">
                               <div className="flex-1 h-1 rounded-full bg-white/[0.06] overflow-hidden max-w-[100px]">

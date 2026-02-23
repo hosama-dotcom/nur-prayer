@@ -183,3 +183,15 @@
   0%, 100% { box-shadow: 0 0 0 0 rgba(201, 168, 76, 0.3); }
   50% { box-shadow: 0 0 0 8px rgba(201, 168, 76, 0); }
 }
+
+/* Arabic mode: enforce minimum font size for legibility */
+html[lang="ar"] .text-\[9px\],
+html[lang="ar"] .text-\[10px\],
+html[lang="ar"] .text-\[11px\] {
+  font-size: 13px !important;
+}
+
+html[lang="ar"] .text-xs {
+  font-size: 15px !important;
+  line-height: 1.4;
+}
