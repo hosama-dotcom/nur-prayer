@@ -68,6 +68,7 @@ function useKhatmLog() {
 
 function KhatmCounter({ khatmLog }: { khatmLog: ReturnType<typeof useKhatmLog> }) {
   const { khatms, addKhatm, deleteKhatm, updateDate } = khatmLog;
+  const { t, lang } = useLanguage();
   const [showConfirm, setShowConfirm] = useState(false);
   const [deleteIdx, setDeleteIdx] = useState<number | null>(null);
 
@@ -83,7 +84,7 @@ function KhatmCounter({ khatmLog }: { khatmLog: ReturnType<typeof useKhatmLog> }
           <div className="w-24 h-24 rounded-full bg-primary/10 border-2 border-primary/25 flex items-center justify-center mb-3">
             <p className="text-3xl font-bold text-primary">{khatms.length}</p>
           </div>
-          <p className="text-xs text-muted-foreground">Complete Quran readings</p>
+          <p className="text-xs text-muted-foreground">{t('tracker.completeReadings')}</p>
         </div>
 
         <button onClick={() => setShowConfirm(true)}
