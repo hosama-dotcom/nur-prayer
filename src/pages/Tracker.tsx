@@ -171,6 +171,7 @@ function KhatmCounter({ khatmLog }: { khatmLog: ReturnType<typeof useKhatmLog> }
 /* ── Reading Streak ── */
 
 function ReadingStreak() {
+  const { t } = useLanguage();
   const getStreak = (): number => {
     try {
       const raw = localStorage.getItem('nur_last_read');
@@ -201,8 +202,8 @@ function ReadingStreak() {
       <div className="flex items-center gap-3">
         <span className="text-2xl">🔥</span>
         <div>
-          <p className="text-sm font-semibold text-primary">{streak} day streak</p>
-          <p className="text-[11px] text-muted-foreground">Consecutive days with Quran reading</p>
+          <p className="text-sm font-semibold text-primary">{streak} {t('tracker.dayStreak')}</p>
+          <p className="text-[11px] text-muted-foreground">{t('tracker.consecutiveDays')}</p>
         </div>
       </div>
     </motion.div>
