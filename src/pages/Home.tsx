@@ -314,7 +314,7 @@ export default function Home() {
               border: '1px solid rgba(255,255,255,0.08)',
             }}
           >
-            <p className="text-[9px] uppercase tracking-widest text-white/40 mb-3">{t('home.dailyVerse')}</p>
+            <p className="uppercase tracking-widest text-white/40 mb-3" style={{ fontSize: '16px' }}>{t('home.dailyVerse')}</p>
             <p className="font-arabic text-xl text-white/90 text-center leading-relaxed mb-3">{verse.arabic}</p>
             {/* Hide English translation in Arabic mode */}
             {!isAr && (
