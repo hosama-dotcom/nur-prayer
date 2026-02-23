@@ -84,10 +84,7 @@ function DuasSection() {
   return (
     <div className="px-5 pb-24">
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="pt-4 pb-4 text-center">
-        <p className="font-arabic-display text-5xl text-primary leading-tight">الأدعية</p>
-        <p className="text-sm font-light text-foreground/80 mt-1 tracking-wide">Duas & Adhkar</p>
-      </motion.div>
+      <div className="pt-2 pb-2" />
 
       <AnimatePresence mode="wait">
         {view === 'topics' && !selectedTopic && (
