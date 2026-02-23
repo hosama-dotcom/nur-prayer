@@ -171,7 +171,7 @@ export default function Home() {
           className="text-center pt-6 pb-5"
         >
           {currentPrayerData && (
-            <p className="font-arabic-display text-white py-3" style={{ fontSize: '64px', lineHeight: 1.3 }}>
+          <p className="font-arabic-display text-white py-3" style={{ fontSize: '64px', lineHeight: 1.3, textShadow: '0 2px 12px rgba(0,0,0,0.4)' }}>
               {currentPrayerData.arabicLabel}
             </p>
           )}
@@ -208,8 +208,8 @@ export default function Home() {
                   key={prayer.name}
                   className={`relative rounded-xl px-3.5 py-2.5 text-center min-w-[78px] transition-all border backdrop-blur-xl
                     ${isActive
-                      ? 'bg-white/15 border-[#C9A84C]/40'
-                      : 'bg-white/[0.07] border-white/[0.08]'
+                      ? 'bg-white/25 border-[#C9A84C]/40'
+                      : 'bg-white/[0.15] border-white/[0.1]'
                     }
                     ${isNext ? 'border-white/15' : ''}
                   `}
@@ -269,8 +269,8 @@ export default function Home() {
           <div
             className="rounded-2xl px-5 py-4 backdrop-blur-xl"
             style={{
-              background: 'rgba(255,255,255,0.07)',
-              border: '1px solid rgba(255,255,255,0.08)',
+              background: 'rgba(0,0,0,0.5)',
+              border: '1px solid rgba(255,255,255,0.1)',
             }}
           >
             <p className="text-[9px] uppercase tracking-widest text-white/40 mb-3">Daily Verse</p>
