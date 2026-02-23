@@ -247,8 +247,8 @@ export default function Home() {
                     ...(isActive ? { boxShadow: '0 0 16px rgba(201, 168, 76, 0.25), 0 0 32px rgba(201, 168, 76, 0.1)' } : {}),
                   }}
                 >
-                  <p className="font-arabic text-sm mb-0.5" style={{ color: cardTextMuted }}>{prayer.arabicLabel}</p>
-                  <p className="text-[10px] font-semibold" style={{ color: isActive ? '#C9A84C' : cardText }}>
+                  <p className="font-arabic mb-0.5" style={{ color: cardTextMuted, fontSize: '16px' }}>{prayer.arabicLabel}</p>
+                  <p className="text-[10px] font-semibold" style={{ color: isActive ? '#C9A84C' : cardText, direction: 'ltr', textAlign: 'center' }}>
                     {formatTime(prayer.time)}
                   </p>
                   {/* Hide English label in Arabic mode */}
