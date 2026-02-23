@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { surahs } from '@/data/surahs';
@@ -126,7 +126,7 @@ export default function SurahReader() {
   });
 
   // Global audio
-  const { state: audioState, playVerse: globalPlayVerse, togglePlay: globalTogglePlay, stop: globalStop, activeVerseNumber, audioElement } = useAudioPlayer();
+  const { state: audioState, playVerse: globalPlayVerse, togglePlay: globalTogglePlay, stop: globalStop, activeVerseNumber } = useAudioPlayer();
   const isThisSurahPlaying = audioState.surahNumber === chapterNum;
   const isPlaying = isThisSurahPlaying && audioState.isPlaying;
 
@@ -134,7 +134,6 @@ export default function SurahReader() {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const verseRefs = useRef<Map<number, HTMLSpanElement>>(new Map());
   const scrollDoneRef = useRef(false);
-  const preScrolledRef = useRef<number | null>(null);
 
   // Track visible verse for last-read saving
   const visibleVerseRef = useRef<number>(1);
@@ -216,18 +215,13 @@ export default function SurahReader() {
     }
   }, [verses, scrollToVerse]);
 
-  // Scroll to active verse on first play (pre-scroll handles subsequent verses)
-  const lastScrolledVerseRef = useRef<number | null>(null);
+  // Auto-scroll to active verse during playback
   useEffect(() => {
-    if (isThisSurahPlaying && activeVerseNumber && lastScrolledVerseRef.current !== activeVerseNumber) {
-      // Only scroll if pre-scroll hasn't already handled it
-      if (preScrolledRef.current !== activeVerseNumber - 1) {
-        const el = verseRefs.current.get(activeVerseNumber);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+    if (isThisSurahPlaying && activeVerseNumber) {
+      const el = verseRefs.current.get(activeVerseNumber);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
-      lastScrolledVerseRef.current = activeVerseNumber;
     }
   }, [activeVerseNumber, isThisSurahPlaying]);
 
@@ -366,75 +360,8 @@ export default function SurahReader() {
 
   const effectiveFontSize = isLandscape ? landscapeFontSize : fontSize;
 
-  // Word-by-word highlight: track active word index based on audio progress
-  const [activeWordIdx, setActiveWordIdx] = useState(-1);
-
-  useEffect(() => {
-    if (!isThisSurahPlaying || !audioElement) {
-      setActiveWordIdx(-1);
-      return;
-    }
-
-    const onTimeUpdate = () => {
-      const { currentTime, duration } = audioElement;
-      if (!duration || !activeVerseNumber) return;
-
-      // Find the active verse to count words
-      const activeVerse = verses.find(v => v.verse_number === activeVerseNumber);
-      if (!activeVerse) return;
-
-      const words = activeVerse.text_uthmani.split(/\s+/);
-      const progress = currentTime / duration;
-      const wordIdx = Math.floor(progress * words.length);
-      setActiveWordIdx(Math.min(wordIdx, words.length - 1));
-
-      // Pre-scroll next verse 300ms before end
-      const timeLeft = duration - currentTime;
-      if (timeLeft > 0 && timeLeft <= 0.3 && preScrolledRef.current !== activeVerseNumber) {
-        preScrolledRef.current = activeVerseNumber;
-        const nextVerseNum = activeVerseNumber + 1;
-        const nextEl = verseRefs.current.get(nextVerseNum);
-        if (nextEl) {
-          nextEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }
-    };
-
-    audioElement.addEventListener('timeupdate', onTimeUpdate);
-    return () => audioElement.removeEventListener('timeupdate', onTimeUpdate);
-  }, [isThisSurahPlaying, audioElement, activeVerseNumber, verses]);
-
-  // Reset word index when active verse changes
-  useEffect(() => {
-    setActiveWordIdx(-1);
-    preScrolledRef.current = null;
-  }, [activeVerseNumber]);
-
   // Helper to check if a verse is currently being played
   const isVerseActive = (verseNum: number) => isThisSurahPlaying && activeVerseNumber === verseNum;
-
-  // Render verse text with word-level spans
-  const renderWords = useCallback((text: string, verseNum: number, fSize: number) => {
-    const words = text.split(/\s+/);
-    const isActive = isVerseActive(verseNum);
-    return words.map((word, i) => (
-      <span
-        key={`${verseNum}-w${i}`}
-        style={{
-          fontSize: `${fSize}px`,
-          transition: 'background 0.15s ease, color 0.15s ease',
-          borderRadius: '4px',
-          padding: '0 2px',
-          ...(isActive && i === activeWordIdx ? {
-            background: 'rgba(100, 220, 220, 0.25)',
-            color: '#7EEAEA',
-          } : {}),
-        }}
-      >
-        {word}{' '}
-      </span>
-    ));
-  }, [activeWordIdx, isThisSurahPlaying, activeVerseNumber]);
 
   return (
     <div className="min-h-screen night-sky-bg safe-area-top relative">
@@ -578,22 +505,15 @@ export default function SurahReader() {
                           </div>
                         )}
                         <div
-                          className="rounded-xl px-2 py-1 transition-all duration-300"
-                          style={{
-                            ...(active ? {
-                              borderLeft: '2px solid rgba(100, 220, 220, 0.4)',
-                              paddingLeft: '8px',
-                            } : {
-                              borderLeft: '2px solid transparent',
-                              paddingLeft: '8px',
-                            }),
-                          }}
+                          className="rounded-xl px-2 py-1 transition-colors duration-300"
+                          style={active ? { background: 'rgba(201, 168, 76, 0.2)' } : {}}
                         >
                           <p
                             className="font-arabic-display text-primary/90 text-right leading-[2.4]"
+                            style={{ fontSize: `${effectiveFontSize}px` }}
                             dir="rtl"
                           >
-                            {renderWords(verse.text_uthmani, verse.verse_number, effectiveFontSize)}
+                            {verse.text_uthmani}
                             <VerseBadge num={verse.verse_number} />
                           </p>
                           {verse.translations?.[0] && (
@@ -633,15 +553,13 @@ export default function SurahReader() {
                           </span>
                         )}
                         <span
-                          className="font-arabic-display text-primary/90 leading-[2.4] rounded-lg transition-all duration-300 inline"
+                          className="font-arabic-display text-primary/90 leading-[2.4] rounded-lg transition-colors duration-300"
                           style={{
-                            ...(active ? {
-                              borderLeft: '2px solid rgba(100, 220, 220, 0.4)',
-                              paddingLeft: '4px',
-                            } : {}),
+                            fontSize: `${effectiveFontSize}px`,
+                            ...(active ? { background: 'rgba(201, 168, 76, 0.2)', padding: '2px 4px' } : {}),
                           }}
                         >
-                          {renderWords(verse.text_uthmani, verse.verse_number, effectiveFontSize)}
+                          {verse.text_uthmani}
                           <VerseBadge num={verse.verse_number} />
                           {' '}
                         </span>
