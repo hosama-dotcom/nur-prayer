@@ -285,7 +285,7 @@ export default function Home() {
               <polygon points="12,22 9.5,14.5 12,16 14.5,14.5" fill={isDarkBackground ? 'rgba(255,255,255,0.3)' : 'rgba(10,20,40,0.3)'} />
             </svg>
             <span className="text-xs" style={{ color: cardText }}>{t('home.qibla')}</span>
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={isDarkBackground ? 'rgba(255,255,255,0.5)' : 'rgba(10,20,40,0.5)'} strokeWidth="2" strokeLinecap="round">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={isDarkBackground ? 'rgba(255,255,255,0.5)' : 'rgba(10,20,40,0.5)'} strokeWidth="2" strokeLinecap="round" className={isAr ? '-scale-x-100' : ''}>
               <path d="M9 18l6-6-6-6" />
             </svg>
           </button>
