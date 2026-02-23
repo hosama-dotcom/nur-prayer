@@ -27,6 +27,7 @@ interface AudioContextValue {
   togglePlay: () => void;
   stop: () => void;
   activeVerseNumber: number | null;
+  audioElement: HTMLAudioElement | null;
 }
 
 const AudioCtx = createContext<AudioContextValue | null>(null);
@@ -145,6 +146,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       togglePlay,
       stop: stopAudio,
       activeVerseNumber: state.isPlaying ? state.currentVerse : null,
+      audioElement: audioRef.current,
     }}>
       {children}
     </AudioCtx.Provider>
