@@ -137,14 +137,29 @@ export default function Quran() {
                     <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <span className="text-xs font-semibold text-primary">{surah.number}</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground">{surah.name}</p>
-                      <p className="text-xs text-muted-foreground">{surah.englishName} · {surah.versesCount} verses</p>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <p className="font-arabic text-lg text-primary/80">{surah.arabicName}</p>
-                      <p className="text-[10px] text-muted-foreground">{surah.revelationType}</p>
-                    </div>
+                    {lang === 'ar' ? (
+                      <>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-arabic text-lg text-primary/80">{surah.arabicName}</p>
+                          <p className="text-xs text-muted-foreground">{surah.versesCount} {t('quran.verses')} · {surah.revelationType === 'Meccan' ? 'مكية' : 'مدنية'}</p>
+                        </div>
+                        <div className="text-left flex-shrink-0">
+                          <p className="text-sm font-medium text-foreground">{surah.name}</p>
+                          <p className="text-[10px] text-muted-foreground">{surah.englishName}</p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground">{surah.name}</p>
+                          <p className="text-xs text-muted-foreground">{surah.englishName} · {surah.versesCount} {t('quran.verses')}</p>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className="font-arabic text-lg text-primary/80">{surah.arabicName}</p>
+                          <p className="text-[10px] text-muted-foreground">{surah.revelationType}</p>
+                        </div>
+                      </>
+                    )}
                   </motion.div>
                 ))}
               </div>
