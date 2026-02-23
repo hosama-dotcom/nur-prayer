@@ -82,9 +82,9 @@ function RamadanCountdown({ maghribTime, fajrTime }: { maghribTime: Date; fajrTi
       <div
         className="rounded-2xl px-5 py-5"
         style={{
-          background: 'rgba(0,0,0,0.2)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
+          background: 'rgba(10, 20, 40, 0.45)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
           border: '1px solid rgba(255,255,255,0.12)',
         }}
       >
@@ -210,7 +210,7 @@ export default function Home() {
                   key={prayer.name}
                   className={`relative rounded-xl px-3.5 py-2.5 text-center min-w-[78px] transition-all border
                     ${isActive
-                      ? 'border-[#C9A84C]/40'
+                      ? 'border-[rgba(201,168,76,0.8)]'
                       : 'border-white/[0.08]'
                     }
                     ${isNext ? 'border-white/15' : ''}
@@ -218,7 +218,8 @@ export default function Home() {
                   style={{
                     backdropFilter: 'blur(6px)',
                     WebkitBackdropFilter: 'blur(6px)',
-                    background: 'rgba(255,255,255,0.12)',
+                    background: isActive ? 'rgba(201, 168, 76, 0.15)' : 'rgba(255,255,255,0.12)',
+                    borderColor: isActive ? 'rgba(201, 168, 76, 0.8)' : undefined,
                     ...(isActive ? { boxShadow: '0 0 16px rgba(201, 168, 76, 0.25), 0 0 32px rgba(201, 168, 76, 0.1)' } : {}),
                   }}
                 >
@@ -276,9 +277,9 @@ export default function Home() {
           <div
             className="rounded-2xl px-5 py-4"
             style={{
-              background: 'rgba(0,0,0,0.2)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
+              background: 'rgba(10, 20, 40, 0.45)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
               border: '1px solid rgba(255,255,255,0.1)',
             }}
           >
@@ -298,13 +299,13 @@ export default function Home() {
             className="mt-4 flex gap-3 justify-center"
           >
             {fajrTime && (
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/[0.08]" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/[0.08]" style={{ background: 'rgba(10, 20, 40, 0.45)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
                 <span className="text-[10px] uppercase tracking-wider text-white/40">Imsak</span>
                 <span className="text-xs font-semibold text-white/80">{formatTime(new Date(fajrTime.time.getTime() - 10 * 60 * 1000))}</span>
               </div>
             )}
             {maghribTime && (
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/[0.08]" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/[0.08]" style={{ background: 'rgba(10, 20, 40, 0.45)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
                 <span className="text-[10px] uppercase tracking-wider text-white/40">Iftar</span>
                 <span className="text-xs font-semibold text-white/80">{formatTime(maghribTime.time)}</span>
               </div>
