@@ -22,6 +22,7 @@ type ViewMode = 'surah' | 'juz';
 
 export default function Quran() {
   const navigate = useNavigate();
+  const { t, lang } = useLanguage();
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('surah');
   const [expandedJuz, setExpandedJuz] = useState<number | null>(null);
