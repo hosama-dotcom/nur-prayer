@@ -11,6 +11,7 @@ interface QiblaCompassProps {
 }
 
 export function QiblaCompass({ open, onClose, qiblaDirection, latitude, longitude }: QiblaCompassProps) {
+  const { t } = useLanguage();
   const [heading, setHeading] = useState<number | null>(null);
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [aligned, setAligned] = useState(false);
