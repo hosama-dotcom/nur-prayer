@@ -441,30 +441,27 @@ export default function SurahReader() {
           </div>
         )}
 
-        {/* Reciter picker */}
-        <AnimatePresence>
-          {showReciterPicker && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className={`fixed z-40 rounded-xl border overflow-hidden ${isLandscape ? 'top-[36px] right-3' : 'top-[108px] right-4'}`}
-              style={{ background: 'hsla(230, 20%, 12%, 0.95)', borderColor: 'hsla(0, 0%, 100%, 0.1)', backdropFilter: 'blur(20px)' }}
-            >
+        {/* Reciter picker bottom sheet */}
+        <Drawer open={showReciterPicker} onOpenChange={setShowReciterPicker}>
+          <DrawerContent className="night-sky-bg border-t border-white/10">
+            <DrawerHeader>
+              <DrawerTitle className="text-center text-foreground">Select Reciter</DrawerTitle>
+            </DrawerHeader>
+            <div className="px-4 pb-8 space-y-1">
               {RECITERS.map(r => (
                 <button
                   key={r.id}
                   onClick={() => changeReciter(r.id)}
-                  className={`block w-full text-left px-4 py-2.5 text-[12px] transition-colors ${
+                  className={`block w-full text-left px-4 py-3 rounded-xl text-sm transition-colors ${
                     r.id === reciterId ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:bg-secondary/50'
                   }`}
                 >
                   {r.name}
                 </button>
               ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
+          </DrawerContent>
+        </Drawer>
 
         {/* Continuous flowing text */}
         <div
