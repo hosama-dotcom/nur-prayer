@@ -82,8 +82,19 @@ const translations = {
   'settings.rateApp': { en: 'Rate the App', ar: 'قيّم التطبيق' },
   'settings.madeWithLove': { en: 'Made with love for the Muslim community', ar: 'صُنع بحب للمجتمع المسلم' },
 
+  // Quran
+  'quran.continueReading': { en: 'Continue reading', ar: 'متابعة القراءة' },
+  'quran.searchSurah': { en: 'Search surah...', ar: 'ابحث عن سورة...' },
+  'quran.surah': { en: 'Surah', ar: 'سورة' },
+  'quran.juz': { en: 'Juz', ar: 'جزء' },
+  'quran.verse': { en: 'Verse', ar: 'آية' },
+  'quran.verses': { en: 'verses', ar: 'آيات' },
+  'quran.surahs': { en: 'Surahs', ar: 'السور' },
+
   // Common
   'common.in': { en: 'in', ar: 'بعد' },
+  'common.cancel': { en: 'Cancel', ar: 'إلغاء' },
+  'common.reset': { en: 'Reset', ar: 'إعادة' },
 } as const;
 
 export type TranslationKey = keyof typeof translations;
