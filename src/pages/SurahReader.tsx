@@ -547,9 +547,9 @@ export default function SurahReader() {
                             <span className="flex items-center justify-center gap-3">
                               <span className="h-px flex-1 bg-primary/10" />
                               <span className="text-[10px] text-primary/50 font-medium tracking-wider">
-                                {showJuzMarker && `Juz ${verse.juz_number}`}
+                                {showJuzMarker && (isAr ? `جزء ${verse.juz_number}` : `Juz ${verse.juz_number}`)}
                                 {showJuzMarker && showPageMarker && ' · '}
-                                {showPageMarker && `Page ${verse.page_number}`}
+                                {showPageMarker && (isAr ? `الصفحة ${verse.page_number}` : `Page ${verse.page_number}`)}
                               </span>
                               <span className="h-px flex-1 bg-primary/10" />
                             </span>
