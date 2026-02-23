@@ -487,6 +487,7 @@ function DuasSection() {
 
 function DhikrCounter() {
   const { t, lang } = useLanguage();
+  const isAr = lang === 'ar';
   const [session, setSession] = useState<Record<string, number>>(getDhikrSession);
   const [selectedPreset, setSelectedPreset] = useState<DhikrPreset>(dhikrPresets[0]);
   const [count, setCount] = useState(() => {
