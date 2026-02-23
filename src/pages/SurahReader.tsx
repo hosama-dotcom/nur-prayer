@@ -437,9 +437,9 @@ export default function SurahReader() {
                 backdropFilter: 'blur(20px)',
               }}
             >
-              {currentJuz && `Juz ${currentJuz}`}
+              {currentJuz && (isAr ? `جزء ${currentJuz}` : `Juz ${currentJuz}`)}
               {currentJuz && currentPage && ' · '}
-              {currentPage && `Page ${currentPage}`}
+              {currentPage && (isAr ? `الصفحة ${currentPage}` : `Page ${currentPage}`)}
             </div>
           </div>
         )}
