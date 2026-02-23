@@ -128,7 +128,6 @@ export function formatStreakArabic(n: number): string {
 /** Get Hijri date formatted for the given language */
 export function getHijriDateLocalized(lang: Language): string {
   const now = new Date();
-  if (lang === 'ar') {
   const locale = lang === 'ar' ? 'ar-u-ca-islamic-umalqura' : 'en-u-ca-islamic-umalqura';
   const suffix = lang === 'ar' ? ' هـ' : ' AH';
   const formatter = new Intl.DateTimeFormat(locale, {
