@@ -625,7 +625,7 @@ export default function SurahReader() {
                 className="fixed bottom-[100px] left-0 right-0 z-40 px-3 pb-2"
               >
                 <div
-                  className={`relative rounded-2xl border p-3 flex items-center gap-3 ${isAr ? 'flex-row-reverse' : ''}`}
+                  className="relative rounded-2xl border p-3 flex items-center gap-3"
                   style={{ background: 'hsla(230, 20%, 12%, 0.92)', borderColor: 'hsla(0, 0%, 100%, 0.1)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)' }}
                 >
                   <button
