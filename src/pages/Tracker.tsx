@@ -102,7 +102,7 @@ function KhatmCounter({ khatmLog }: { khatmLog: ReturnType<typeof useKhatmLog> }
                   <Popover>
                     <PopoverTrigger asChild>
                       <button className="text-muted-foreground hover:text-foreground transition-colors truncate text-right">
-                        {formatKhatmDate(k.date)}
+                        {formatKhatmDate(k.date, lang)}
                       </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="end">
