@@ -3,8 +3,8 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { surahs } from '@/data/surahs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Slider } from '@/components/ui/slider';
 import { z } from 'zod';
+import { useAudioPlayer } from '@/contexts/AudioContext';
 
 const verseSchema = z.object({
   id: z.number(),
@@ -23,12 +23,6 @@ const apiResponseSchema = z.object({
     current_page: z.number(),
     total_records: z.number(),
   }),
-});
-
-const audioResponseSchema = z.object({
-  audio_file: z.object({
-    audio_url: z.string().url(),
-  }).nullable().optional(),
 });
 
 const RECITERS = [
@@ -123,20 +117,17 @@ export default function SurahReader() {
   const [scrollActive, setScrollActive] = useState(false);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(getBookmarks);
   const [isLandscape, setIsLandscape] = useState(false);
-  const [audioExpanded, setAudioExpanded] = useState(false);
-  const [showPlayer, setShowPlayer] = useState(true);
-
-  // Audio
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [audioDuration, setAudioDuration] = useState(0);
-  const [audioCurrentTime, setAudioCurrentTime] = useState(0);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [showReciterPicker, setShowReciterPicker] = useState(false);
   const [reciterId, setReciterId] = useState(() => {
     const stored = localStorage.getItem(RECITER_KEY);
     return stored ? parseInt(stored, 10) : 7;
   });
-  const [showReciterPicker, setShowReciterPicker] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Global audio
+  const { state: audioState, playVerse: globalPlayVerse, togglePlay: globalTogglePlay, stop: globalStop, activeVerseNumber } = useAudioPlayer();
+  const isThisSurahPlaying = audioState.surahNumber === chapterNum;
+  const isPlaying = isThisSurahPlaying && audioState.isPlaying;
+
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const verseRefs = useRef<Map<number, HTMLSpanElement>>(new Map());
@@ -155,24 +146,29 @@ export default function SurahReader() {
     return () => mql.removeEventListener('change', onChange);
   }, []);
 
+  // Stop audio when leaving this surah
+  useEffect(() => {
+    return () => {
+      // Don't stop - the mini-player will handle it on other screens
+    };
+  }, [chapterNum]);
+
   useEffect(() => {
     setVerses([]);
     setPage(1);
     setLoading(true);
     setError(null);
-    setIsPlaying(false);
-    setAudioCurrentTime(0);
-    setAudioDuration(0);
-    setAudioUrl(null);
     scrollDoneRef.current = false;
-    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    // Stop audio if switching surahs
+    if (isThisSurahPlaying) {
+      globalStop();
+    }
   }, [chapterNum]);
 
   useEffect(() => {
     const fetchVerses = async () => {
       setLoading(true);
       try {
-        // Fetch verses and translations in parallel
         const [versesRes, translationsRes] = await Promise.all([
           fetch(`https://api.quran.com/api/v4/verses/by_chapter/${chapterNum}?language=en&words=false&fields=text_uthmani,page_number,juz_number&per_page=50&page=${page}`),
           fetch(`https://api.quran.com/api/v4/quran/translations/20?chapter_number=${chapterNum}`),
@@ -183,7 +179,6 @@ export default function SurahReader() {
         if (!parsed.success) throw new Error('Invalid verse data received');
         const data = parsed.data as ApiResponse;
 
-        // Merge translations into verses
         let translationTexts: string[] = [];
         if (translationsRes.ok) {
           const tData = await translationsRes.json();
@@ -218,27 +213,19 @@ export default function SurahReader() {
     }
   }, [verses, scrollToVerse]);
 
+  // Auto-scroll to active verse during playback
   useEffect(() => {
-    const fetchAudio = async () => {
-      try {
-        const res = await fetch(`https://api.quran.com/api/v4/chapter_recitations/${reciterId}/${chapterNum}`);
-        const raw = await res.json();
-        const parsed = audioResponseSchema.safeParse(raw);
-        if (parsed.success && parsed.data.audio_file?.audio_url) {
-          setAudioUrl(parsed.data.audio_file.audio_url);
-        }
-      } catch { /* silent */ }
-    };
-    fetchAudio();
-  }, [chapterNum, reciterId]);
+    if (isThisSurahPlaying && activeVerseNumber) {
+      const el = verseRefs.current.get(activeVerseNumber);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [activeVerseNumber, isThisSurahPlaying]);
 
   const changeReciter = (id: number) => {
     if (id === reciterId) return;
-    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
-    setIsPlaying(false);
-    setAudioCurrentTime(0);
-    setAudioDuration(0);
-    setAudioUrl(null);
+    if (isPlaying) globalStop();
     setReciterId(id);
     localStorage.setItem(RECITER_KEY, String(id));
     setShowReciterPicker(false);
@@ -264,7 +251,6 @@ export default function SurahReader() {
 
   useEffect(() => {
     const handleScroll = () => {
-      // Find which verse badge is closest to viewport center
       const viewportCenter = window.innerHeight / 2;
       let closestVerse = 1;
       let closestDist = Infinity;
@@ -275,14 +261,12 @@ export default function SurahReader() {
       });
       visibleVerseRef.current = closestVerse;
 
-      // Update floating Juz/page indicator
       const currentVerseData = verses.find(v => v.verse_number === closestVerse);
       if (currentVerseData) {
         if (currentVerseData.juz_number) setCurrentJuz(currentVerseData.juz_number);
         if (currentVerseData.page_number) setCurrentPage(currentVerseData.page_number);
       }
 
-      // Show indicator on scroll, fade after 2s
       setScrollActive(true);
       if (scrollFadeRef.current) clearTimeout(scrollFadeRef.current);
       scrollFadeRef.current = setTimeout(() => setScrollActive(false), 2000);
@@ -301,7 +285,6 @@ export default function SurahReader() {
     };
   }, [chapterNum, verses]);
 
-  // Save on mount + init juz/page
   useEffect(() => {
     if (verses.length > 0) {
       saveLastRead(chapterNum, scrollToVerse || 1);
@@ -327,43 +310,19 @@ export default function SurahReader() {
     }
   };
 
-  const togglePlay = useCallback(() => {
-    if (!audioUrl) return;
-    if (!audioRef.current) {
-      const audio = new Audio(audioUrl);
-      audioRef.current = audio;
-      // Handle case where metadata already loaded
-      if (audio.readyState >= 1 && audio.duration && isFinite(audio.duration)) {
-        setAudioDuration(audio.duration);
-      }
-      audio.addEventListener('loadedmetadata', () => { if (audio.duration && isFinite(audio.duration)) setAudioDuration(audio.duration); });
-      audio.addEventListener('durationchange', () => { if (audio.duration && isFinite(audio.duration)) setAudioDuration(audio.duration); });
-      audio.addEventListener('timeupdate', () => setAudioCurrentTime(audio.currentTime));
-      audio.addEventListener('ended', () => { setIsPlaying(false); setAudioCurrentTime(0); });
+  const handleTogglePlay = useCallback(() => {
+    if (isThisSurahPlaying) {
+      globalTogglePlay();
+    } else {
+      // Start from currently visible verse
+      const startVerse = visibleVerseRef.current || 1;
+      globalPlayVerse(chapterNum, surah?.name || `Surah ${chapterNum}`, startVerse, surah?.versesCount || 1);
     }
-    if (isPlaying) { audioRef.current.pause(); setIsPlaying(false); }
-    else { audioRef.current.play(); setIsPlaying(true); }
-  }, [audioUrl, isPlaying]);
+  }, [isThisSurahPlaying, globalTogglePlay, globalPlayVerse, chapterNum, surah]);
 
-  const skipBack = () => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 10);
-      setAudioCurrentTime(audioRef.current.currentTime);
-    }
-  };
-
-  const seekAudio = (value: number[]) => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = value[0];
-      setAudioCurrentTime(value[0]);
-    }
-  };
-
-  const formatTime = (s: number) => {
-    const m = Math.floor(s / 60);
-    const sec = Math.floor(s % 60);
-    return `${m}:${sec.toString().padStart(2, '0')}`;
-  };
+  const handleStop = useCallback(() => {
+    globalStop();
+  }, [globalStop]);
 
   const handleBookmark = (verseNum: number) => {
     const updated = toggleBookmark(chapterNum, verseNum, surah?.name || '');
@@ -374,35 +333,40 @@ export default function SurahReader() {
   const isBookmarked = (verseNum: number) =>
     bookmarks.some(b => b.surahNumber === chapterNum && b.verseNumber === verseNum);
 
-  const VerseBadge = ({ num }: { num: number }) => (
-    <span
-      ref={(el) => { if (el) verseRefs.current.set(num, el); }}
-      className="inline-flex items-center justify-center mx-1 align-middle rounded-full border border-primary/30 text-primary cursor-pointer"
-      style={{
-        width: '20px',
-        height: '20px',
-        fontSize: '9px',
-        fontFamily: 'Inter, sans-serif',
-        fontWeight: 600,
-        lineHeight: 1,
-        verticalAlign: 'middle',
-        background: isBookmarked(num) ? 'hsla(var(--primary) / 0.35)' : 'hsla(var(--primary) / 0.12)',
-      }}
-      onClick={(e) => { e.stopPropagation(); handleBookmark(num); }}
-    >
-      {num}
-    </span>
-  );
+  const VerseBadge = ({ num }: { num: number }) => {
+    const isActiveVerse = isThisSurahPlaying && activeVerseNumber === num;
+    return (
+      <span
+        ref={(el) => { if (el) verseRefs.current.set(num, el); }}
+        className="inline-flex items-center justify-center mx-1 align-middle rounded-full border border-primary/30 text-primary cursor-pointer"
+        style={{
+          width: '20px',
+          height: '20px',
+          fontSize: '9px',
+          fontFamily: 'Inter, sans-serif',
+          fontWeight: 600,
+          lineHeight: 1,
+          verticalAlign: 'middle',
+          background: isBookmarked(num) ? 'hsla(var(--primary) / 0.35)' : isActiveVerse ? 'hsla(var(--primary) / 0.25)' : 'hsla(var(--primary) / 0.12)',
+        }}
+        onClick={(e) => { e.stopPropagation(); handleBookmark(num); }}
+      >
+        {num}
+      </span>
+    );
+  };
 
   const effectiveFontSize = isLandscape ? landscapeFontSize : fontSize;
-  const audioProgress = audioDuration > 0 ? (audioCurrentTime / audioDuration) * 100 : 0;
+
+  // Helper to check if a verse is currently being played
+  const isVerseActive = (verseNum: number) => isThisSurahPlaying && activeVerseNumber === verseNum;
 
   return (
     <div className="min-h-screen night-sky-bg safe-area-top relative">
       <div className="geometric-pattern absolute inset-0 pointer-events-none" />
       <div className="relative z-10">
 
-        {/* Header - landscape: compact top-left label; portrait: full header */}
+        {/* Header */}
         {isLandscape ? (
           <div className="fixed top-0 left-0 z-20 px-3 py-2 flex items-center gap-2">
             <button
@@ -437,7 +401,7 @@ export default function SurahReader() {
           </div>
         )}
 
-        {/* Floating toolbar - landscape: compact top-right with safe area; portrait: normal */}
+        {/* Floating toolbar */}
         <div className={`fixed z-30 flex items-center gap-1.5 ${isLandscape ? 'top-1.5' : 'top-20 right-4 gap-2'}`} style={isLandscape ? { right: 'calc(16px + env(safe-area-inset-right, 0px))' } : undefined}>
           <button
             onClick={() => setShowReciterPicker(p => !p)}
@@ -462,7 +426,7 @@ export default function SurahReader() {
           </div>
         </div>
 
-        {/* Floating Juz/Page indicator - hidden in landscape (shown in header label) */}
+        {/* Floating Juz/Page indicator */}
         {!isLandscape && (currentJuz || currentPage) && (
           <div
             className="fixed top-[82px] left-1/2 -translate-x-1/2 z-25 pointer-events-none transition-opacity duration-500"
@@ -535,6 +499,7 @@ export default function SurahReader() {
                     const prevVerse = idx > 0 ? verses[idx - 1] : null;
                     const showJuzMarker = verse.juz_number && (!prevVerse || prevVerse.juz_number !== verse.juz_number);
                     const showPageMarker = verse.page_number && (!prevVerse || prevVerse.page_number !== verse.page_number);
+                    const active = isVerseActive(verse.verse_number);
                     return (
                       <div key={verse.id}>
                         {(showJuzMarker || showPageMarker) && (
@@ -548,20 +513,25 @@ export default function SurahReader() {
                             <div className="h-px flex-1 bg-primary/10" />
                           </div>
                         )}
-                        <p
-                          className="font-arabic-display text-primary/90 text-right leading-[2.4]"
-                          style={{ fontSize: `${effectiveFontSize}px` }}
-                          dir="rtl"
+                        <div
+                          className="rounded-xl px-2 py-1 transition-colors duration-300"
+                          style={active ? { background: 'rgba(201, 168, 76, 0.2)' } : {}}
                         >
-                          {verse.text_uthmani}
-                          <VerseBadge num={verse.verse_number} />
-                        </p>
-                        {verse.translations?.[0] && (
-                          <p className="text-[13px] leading-relaxed text-left mt-2" style={{ color: 'hsl(165, 50%, 60%)' }}>
-                            <span className="text-primary/40 text-[11px] font-semibold mr-1.5">{verse.verse_number}.</span>
-                            {stripHtml(verse.translations[0].text)}
+                          <p
+                            className="font-arabic-display text-primary/90 text-right leading-[2.4]"
+                            style={{ fontSize: `${effectiveFontSize}px` }}
+                            dir="rtl"
+                          >
+                            {verse.text_uthmani}
+                            <VerseBadge num={verse.verse_number} />
                           </p>
-                        )}
+                          {verse.translations?.[0] && (
+                            <p className="text-[13px] leading-relaxed text-left mt-2" style={{ color: 'hsl(165, 50%, 60%)' }}>
+                              <span className="text-primary/40 text-[11px] font-semibold mr-1.5">{verse.verse_number}.</span>
+                              {stripHtml(verse.translations[0].text)}
+                            </p>
+                          )}
+                        </div>
                         {idx < verses.length - 1 && (
                           <div className="my-5 mx-auto w-16 h-px bg-primary/20" />
                         )}
@@ -575,6 +545,7 @@ export default function SurahReader() {
                     const prevVerse = idx > 0 ? verses[idx - 1] : null;
                     const showJuzMarker = verse.juz_number && (!prevVerse || prevVerse.juz_number !== verse.juz_number);
                     const showPageMarker = verse.page_number && (!prevVerse || prevVerse.page_number !== verse.page_number);
+                    const active = isVerseActive(verse.verse_number);
                     return (
                       <span key={verse.id}>
                         {(showJuzMarker || showPageMarker) && idx > 0 && (
@@ -591,8 +562,11 @@ export default function SurahReader() {
                           </span>
                         )}
                         <span
-                          className="font-arabic-display text-primary/90 leading-[2.4]"
-                          style={{ fontSize: `${effectiveFontSize}px` }}
+                          className="font-arabic-display text-primary/90 leading-[2.4] rounded-lg transition-colors duration-300"
+                          style={{
+                            fontSize: `${effectiveFontSize}px`,
+                            ...(active ? { background: 'rgba(201, 168, 76, 0.2)', padding: '2px 4px' } : {}),
+                          }}
                         >
                           {verse.text_uthmani}
                           <VerseBadge num={verse.verse_number} />
@@ -625,154 +599,84 @@ export default function SurahReader() {
         </div>
       </div>
 
-      {/* Audio player */}
-      {audioUrl && (
-        isLandscape ? (
-          // Landscape: minimal circular play button with progress arc, bottom-right with safe area
-          <div className="fixed z-40" style={{ bottom: '28px', right: 'calc(16px + env(safe-area-inset-right, 0px))' }}>
-            <AnimatePresence mode="wait">
-              {audioExpanded ? (
-                <motion.div
-                  key="expanded"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  className="rounded-2xl border p-2.5 flex items-center gap-2"
-                  style={{ background: 'hsla(230, 20%, 12%, 0.95)', borderColor: 'hsla(0, 0%, 100%, 0.1)', backdropFilter: 'blur(30px)', width: '280px' }}
-                >
-                  <button onClick={skipBack} className="w-7 h-7 flex items-center justify-center flex-shrink-0 text-muted-foreground">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M1 4v6h6" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
-                    </svg>
-                  </button>
-                  <button onClick={togglePlay} className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                    {isPlaying ? (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="hsl(var(--primary))"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
-                    ) : (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="hsl(var(--primary))"><polygon points="6,3 20,12 6,21" /></svg>
-                    )}
-                  </button>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[8px] text-muted-foreground w-6 text-right">{formatTime(audioCurrentTime)}</span>
-                      <Slider value={[audioCurrentTime]} max={audioDuration || 1} step={1} onValueChange={seekAudio} className="flex-1 h-1" />
-                      <span className="text-[8px] text-muted-foreground w-6">{formatTime(audioDuration)}</span>
-                    </div>
-                  </div>
-                  <button onClick={() => setAudioExpanded(false)} className="w-6 h-6 flex items-center justify-center text-muted-foreground">
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
-                  </button>
-                </motion.div>
+      {/* Audio player - simplified, uses global context */}
+      {isLandscape ? (
+        <div className="fixed z-40" style={{ bottom: '28px', right: 'calc(16px + env(safe-area-inset-right, 0px))' }}>
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={handleTogglePlay}
+            className="relative w-12 h-12 rounded-full flex items-center justify-center"
+            style={{ background: 'hsla(230, 20%, 12%, 0.92)', boxShadow: '0 4px 16px hsla(0, 0%, 0%, 0.4)' }}
+          >
+            <span className="relative z-10">
+              {isPlaying ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
               ) : (
-                <motion.button
-                  key="collapsed"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  onClick={() => setAudioExpanded(true)}
-                  className="relative w-12 h-12 rounded-full flex items-center justify-center"
-                  style={{ background: 'hsla(230, 20%, 12%, 0.92)', boxShadow: '0 4px 16px hsla(0, 0%, 0%, 0.4)' }}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><polygon points="6,3 20,12 6,21" /></svg>
+              )}
+            </span>
+          </motion.button>
+        </div>
+      ) : (
+        <>
+          {/* Portrait: mini player bar */}
+          <AnimatePresence>
+            {isThisSurahPlaying && (
+              <motion.div
+                initial={{ y: 100, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 100, opacity: 0 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                className="fixed bottom-[100px] left-0 right-0 z-40 px-3 pb-2"
+              >
+                <div
+                  className="relative rounded-2xl border p-3 flex items-center gap-3"
+                  style={{ background: 'hsla(230, 20%, 12%, 0.92)', borderColor: 'hsla(0, 0%, 100%, 0.1)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)' }}
                 >
-                  {/* Progress arc */}
-                  <svg className="absolute inset-0 w-12 h-12 -rotate-90" viewBox="0 0 48 48">
-                    <circle
-                      cx="24" cy="24" r="21" fill="none"
-                      stroke="hsl(var(--primary))"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeDasharray={`${2 * Math.PI * 21}`}
-                      strokeDashoffset={`${2 * Math.PI * 21 * (1 - audioProgress / 100)}`}
-                      style={{ transition: 'stroke-dashoffset 0.3s ease' }}
-                    />
-                  </svg>
-                  <span className="relative z-10">
+                  <button
+                    onClick={handleStop}
+                    className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center text-muted-foreground"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                  </button>
+                  <button onClick={handleTogglePlay} className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
                     {isPlaying ? (
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
                     ) : (
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><polygon points="6,3 20,12 6,21" /></svg>
                     )}
-                  </span>
-                </motion.button>
-              )}
-            </AnimatePresence>
-          </div>
-        ) : (
-          // Portrait: collapsible mini player + floating FAB
-          <>
-            {/* Sliding audio player */}
-            <AnimatePresence>
-              {showPlayer && (
-                <motion.div
-                  initial={{ y: 100, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: 100, opacity: 0 }}
-                  transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                  className="fixed bottom-[100px] left-0 right-0 z-40 px-3 pb-2"
-                >
-                  <div
-                    className="relative rounded-2xl border p-3 flex items-center gap-3"
-                    style={{ background: 'hsla(230, 20%, 12%, 0.92)', borderColor: 'hsla(0, 0%, 100%, 0.1)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)' }}
-                  >
-                    {/* Close button */}
-                    <button
-                      onClick={() => setShowPlayer(false)}
-                      className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center text-muted-foreground"
-                    >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
-                    </button>
-                    <button onClick={skipBack} className="w-8 h-8 flex items-center justify-center flex-shrink-0 text-muted-foreground">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M1 4v6h6" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
-                      </svg>
-                    </button>
-                    <button onClick={togglePlay} className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                      {isPlaying ? (
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
-                      ) : (
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><polygon points="6,3 20,12 6,21" /></svg>
-                      )}
-                    </button>
-                    <div className="flex-1 min-w-0 pr-4">
-                      <p className="text-xs text-foreground truncate">{surah?.name}</p>
-                      <p className="text-[10px] text-muted-foreground">{RECITERS.find(r => r.id === reciterId)?.name || 'Unknown'}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[9px] text-muted-foreground w-7 text-right">{formatTime(audioCurrentTime)}</span>
-                        <Slider value={[audioCurrentTime]} max={audioDuration || 1} step={1} onValueChange={seekAudio} className="flex-1 h-1" />
-                        <span className="text-[9px] text-muted-foreground w-7">{formatTime(audioDuration)}</span>
-                      </div>
-                    </div>
+                  </button>
+                  <div className="flex-1 min-w-0 pr-4">
+                    <p className="text-xs text-foreground truncate">{surah?.name}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      Verse {audioState.currentVerse || '—'} · Al-Afasy
+                    </p>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-            {/* Floating play/pause FAB - only visible when player is hidden */}
-            <AnimatePresence>
-              {!showPlayer && (
-                <motion.button
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  onClick={() => setShowPlayer(true)}
-                  className="fixed z-50 w-12 h-12 rounded-full flex items-center justify-center"
-                  style={{
-                    bottom: '108px',
-                    right: '12px',
-                    background: 'hsla(230, 20%, 12%, 0.88)',
-                    boxShadow: '0 4px 16px hsla(0, 0%, 0%, 0.4)',
-                  }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  {isPlaying ? (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
-                  ) : (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><polygon points="6,3 20,12 6,21" /></svg>
-                  )}
-                </motion.button>
-              )}
-            </AnimatePresence>
-          </>
-        )
+          {/* Floating play FAB when no player showing */}
+          {!isThisSurahPlaying && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              onClick={handleTogglePlay}
+              className="fixed z-50 w-12 h-12 rounded-full flex items-center justify-center"
+              style={{
+                bottom: '108px',
+                right: '12px',
+                background: 'hsla(230, 20%, 12%, 0.88)',
+                boxShadow: '0 4px 16px hsla(0, 0%, 0%, 0.4)',
+              }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(var(--primary))"><polygon points="6,3 20,12 6,21" /></svg>
+            </motion.button>
+          )}
+        </>
       )}
     </div>
   );
