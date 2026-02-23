@@ -624,7 +624,7 @@ function DhikrCounter() {
         </div>
       </div>
 
-      <p className="text-sm text-white/30 italic">{selectedPreset.translation}</p>
+      {!isAr && <p className="text-sm text-white/30 italic">{selectedPreset.translation}</p>}
 
       <AnimatePresence>
         {completed && (
