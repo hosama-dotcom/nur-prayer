@@ -27,6 +27,7 @@ interface AudioContextValue {
   togglePlay: () => void;
   stop: () => void;
   activeVerseNumber: number | null;
+  audioElement: HTMLAudioElement | null;
 }
 
 const AudioCtx = createContext<AudioContextValue | null>(null);
