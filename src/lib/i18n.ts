@@ -11,6 +11,14 @@ const translations = {
   // Home
   'home.dailyVerse': { en: 'Daily Verse', ar: 'الآية اليومية' },
   'home.qibla': { en: 'Qibla', ar: 'القبلة' },
+  'qibla.kaabaMakkah': { en: 'Kaaba · Makkah', ar: 'الكعبة المشرفة · مكة المكرمة' },
+  'qibla.qiblaFound': { en: '✓ Qibla Found', ar: '✓ تم تحديد القبلة' },
+  'qibla.facingQibla': { en: 'You are facing the Qibla ✦', ar: 'أنت تواجه القبلة ✦' },
+  'qibla.faceDirection': { en: 'Face this direction to pray', ar: 'اتجه في هذا الاتجاه للصلاة' },
+  'qibla.fromNorth': { en: '° from North', ar: '° من الشمال' },
+  'qibla.permissionDenied': { en: 'Compass access denied. Enable motion sensors in your device settings.', ar: 'تم رفض الوصول للبوصلة. فعّل مستشعرات الحركة في إعدادات جهازك.' },
+  'qibla.waiting': { en: 'Waiting for compass data...', ar: '...في انتظار بيانات البوصلة' },
+  'qibla.instruction': { en: 'On mobile, rotate your device until the needle points to the Kaaba', ar: 'حرّك جهازك حتى يشير السهم نحو الكعبة' },
   'home.location': { en: 'Location unknown', ar: 'الموقع غير معروف' },
   'home.method': { en: 'Method', ar: 'طريقة' },
   'home.loading': { en: 'Loading prayer times...', ar: 'جاري تحميل مواقيت الصلاة...' },
@@ -39,6 +47,8 @@ const translations = {
   'dhikr.tapAnywhere': { en: 'Tap anywhere to count', ar: 'اضغط في أي مكان للعد' },
   'dhikr.advancingNext': { en: 'Advancing to next dhikr...', ar: 'الانتقال إلى الذكر التالي...' },
   'dhikr.tapReset': { en: 'Tap reset to start again', ar: 'اضغط إعادة للبدء من جديد' },
+  'dhikr.tabAdhkar': { en: 'Adhkar', ar: 'الذكر' },
+  'dhikr.tabDuas': { en: 'Duas', ar: 'الأدعية' },
 
   // Duas
   'duas.title': { en: 'Duas & Adhkar', ar: 'الأدعية والأذكار' },

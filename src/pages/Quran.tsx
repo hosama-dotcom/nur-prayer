@@ -48,7 +48,6 @@ export default function Quran() {
           className="pt-12 pb-6 text-center"
         >
           <p className="font-arabic-display text-5xl text-primary leading-tight">القُرآن الكريم</p>
-          <p className="text-xs text-muted-foreground mt-2">114 {t('quran.surahs')} · 30 {t('quran.juz')}</p>
         </motion.div>
 
         {/* Surah / Juz toggle */}
@@ -143,10 +142,10 @@ export default function Quran() {
                     </div>
                     {isAr ? (
                       <>
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 text-start">
                           <p className="text-xs text-muted-foreground">{surah.versesCount} {t('quran.verses')} · {surah.revelationType === 'Meccan' ? 'مكية' : 'مدنية'}</p>
                         </div>
-                        <div className="text-left flex-shrink-0">
+                        <div className="flex-shrink-0">
                           <p className="font-arabic text-primary/80" style={{ fontSize: '18px' }}>{surah.arabicName}</p>
                         </div>
                       </>

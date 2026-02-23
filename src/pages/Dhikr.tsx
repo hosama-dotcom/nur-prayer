@@ -668,10 +668,7 @@ function DhikrCounter() {
                       className={`w-full rounded-xl p-4 text-start transition-all border ${isSelected ? 'bg-primary/10 border-primary/30' : 'bg-white/[0.04] border-white/[0.06]'}`}>
                       <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0">
-                          <p className={`text-sm font-medium ${isSelected ? 'text-primary' : 'text-white/70'}`}>
-                            {lang === 'ar' ? preset.arabic : preset.transliteration}
-                            {isInSequence && <span className="text-[9px] text-white/20 ms-2">tasbih</span>}
-                          </p>
+                          {isInSequence && <span className="text-[9px] text-white/20">tasbih</span>}
                           {!isAr && <p className="text-[11px] text-white/30 mt-0.5">{preset.translation}</p>}
                           {savedCount > 0 && (
                             <div className="flex items-center gap-2 mt-1.5">
@@ -688,7 +685,7 @@ function DhikrCounter() {
                             </div>
                           )}
                         </div>
-                        <p className="font-arabic text-lg text-primary/50 flex-shrink-0 ms-3">{preset.arabic}</p>
+                        <p className={`font-arabic text-primary/50 flex-shrink-0 ms-3 ${isSelected ? 'text-primary' : ''}`} style={{ fontSize: '18px' }}>{preset.arabic}</p>
                       </div>
                     </button>
                   );
@@ -714,6 +711,7 @@ export default function Dhikr() {
 
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="relative z-30 pt-12 pb-2 text-center">
         <p className="font-arabic-display text-5xl text-primary leading-tight">الأَذْكَار وَالأَدْعِيَة</p>
+
       </motion.div>
 
       <div className="relative z-30 flex justify-center pt-2 pb-2">
@@ -733,7 +731,7 @@ export default function Dhikr() {
                   transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                 />
               )}
-              <span className="relative z-10">{tabKey === 'dhikr' ? t('nav.dhikr') : t('duas.title')}</span>
+              <span className="relative z-10">{tabKey === 'dhikr' ? t('dhikr.tabAdhkar') : t('dhikr.tabDuas')}</span>
             </button>
           ))}
         </div>

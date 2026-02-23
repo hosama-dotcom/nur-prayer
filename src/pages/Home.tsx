@@ -121,14 +121,14 @@ function RamadanCountdown({ maghribTime, fajrTime, lang, t }: { maghribTime: Dat
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <p className="text-[9px] uppercase tracking-[0.15em] text-white/40 mb-0.5">{label}</p>
+              <p className="uppercase tracking-[0.15em] text-white/40 mb-0.5" style={{ fontSize: '15px' }}>{label}</p>
               <p className="leading-none">
                 <span className="text-[26px] font-light text-[#C9A84C]">{hours}</span>
                 <span className="text-[12px] text-white/30 mx-0.5">{hLabel}</span>
                 <span className="text-[26px] font-light text-[#C9A84C] ml-1">{minutes.toString().padStart(2, '0')}</span>
                 <span className="text-[12px] text-white/30 mx-0.5">{mLabel}</span>
               </p>
-              <p className="text-[9px] text-white/25 mt-0.5">{subtext}</p>
+              <p className="text-white/25 mt-0.5" style={{ fontSize: '14px' }}>{subtext}</p>
             </div>
           </div>
         </div>
@@ -247,8 +247,8 @@ export default function Home() {
                     ...(isActive ? { boxShadow: '0 0 16px rgba(201, 168, 76, 0.25), 0 0 32px rgba(201, 168, 76, 0.1)' } : {}),
                   }}
                 >
-                  <p className="font-arabic text-sm mb-0.5" style={{ color: cardTextMuted }}>{prayer.arabicLabel}</p>
-                  <p className="text-[10px] font-semibold" style={{ color: isActive ? '#C9A84C' : cardText }}>
+                  <p className="font-arabic mb-0.5" style={{ color: cardTextMuted, fontSize: '16px' }}>{prayer.arabicLabel}</p>
+                  <p className="text-[10px] font-semibold" style={{ color: isActive ? '#C9A84C' : cardText, direction: 'ltr', textAlign: 'center' }}>
                     {formatTime(prayer.time)}
                   </p>
                   {/* Hide English label in Arabic mode */}
@@ -285,7 +285,7 @@ export default function Home() {
               <polygon points="12,22 9.5,14.5 12,16 14.5,14.5" fill={isDarkBackground ? 'rgba(255,255,255,0.3)' : 'rgba(10,20,40,0.3)'} />
             </svg>
             <span className="text-xs" style={{ color: cardText }}>{t('home.qibla')}</span>
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={isDarkBackground ? 'rgba(255,255,255,0.5)' : 'rgba(10,20,40,0.5)'} strokeWidth="2" strokeLinecap="round">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={isDarkBackground ? 'rgba(255,255,255,0.5)' : 'rgba(10,20,40,0.5)'} strokeWidth="2" strokeLinecap="round" className={isAr ? '-scale-x-100' : ''}>
               <path d="M9 18l6-6-6-6" />
             </svg>
           </button>
@@ -314,7 +314,7 @@ export default function Home() {
               border: '1px solid rgba(255,255,255,0.08)',
             }}
           >
-            <p className="text-[9px] uppercase tracking-widest text-white/40 mb-3">{t('home.dailyVerse')}</p>
+            <p className="uppercase tracking-widest text-white/40 mb-3" style={{ fontSize: '16px' }}>{t('home.dailyVerse')}</p>
             <p className="font-arabic text-xl text-white/90 text-center leading-relaxed mb-3">{verse.arabic}</p>
             {/* Hide English translation in Arabic mode */}
             {!isAr && (
@@ -334,14 +334,14 @@ export default function Home() {
           >
             {fajrTime && (
               <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.07] border border-white/[0.08] backdrop-blur-lg">
-                <span className="text-[10px] uppercase tracking-wider text-white/40">{t('home.imsak')}</span>
-                <span className="text-xs font-semibold text-white/80">{formatTime(new Date(fajrTime.time.getTime() - 10 * 60 * 1000))}</span>
+                <span className="uppercase tracking-wider text-white/40" style={{ fontSize: '15px' }}>{t('home.imsak')}</span>
+                <span className="text-xs font-semibold text-white/80" style={{ direction: 'ltr' }}>{formatTime(new Date(fajrTime.time.getTime() - 10 * 60 * 1000))}</span>
               </div>
             )}
             {maghribTime && (
               <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.07] border border-white/[0.08] backdrop-blur-lg">
-                <span className="text-[10px] uppercase tracking-wider text-white/40">{t('home.iftar')}</span>
-                <span className="text-xs font-semibold text-white/80">{formatTime(maghribTime.time)}</span>
+                <span className="uppercase tracking-wider text-white/40" style={{ fontSize: '15px' }}>{t('home.iftar')}</span>
+                <span className="text-xs font-semibold text-white/80" style={{ direction: 'ltr' }}>{formatTime(maghribTime.time)}</span>
               </div>
             )}
           </motion.div>

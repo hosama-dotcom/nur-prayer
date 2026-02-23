@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface QiblaCompassProps {
   open: boolean;
@@ -10,6 +11,7 @@ interface QiblaCompassProps {
 }
 
 export function QiblaCompass({ open, onClose, qiblaDirection, latitude, longitude }: QiblaCompassProps) {
+  const { t } = useLanguage();
   const [heading, setHeading] = useState<number | null>(null);
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [aligned, setAligned] = useState(false);
@@ -101,7 +103,7 @@ export function QiblaCompass({ open, onClose, qiblaDirection, latitude, longitud
               <line x1="12" y1="16" x2="52" y2="16" stroke={aligned ? '#6EE7B7' : '#C9A84C'} strokeWidth="0.5" opacity="0.4" />
             </svg>
             <p className={`text-[10px] mt-2 font-semibold tracking-[0.15em] uppercase ${aligned ? 'text-emerald-400' : 'text-primary/60'}`}>
-              {aligned ? '✓ Qibla Found' : 'Kaaba · Makkah'}
+              {aligned ? t('qibla.qiblaFound') : t('qibla.kaabaMakkah')}
             </p>
           </motion.div>
 
@@ -207,19 +209,19 @@ export function QiblaCompass({ open, onClose, qiblaDirection, latitude, longitud
             transition={{ delay: 0.3 }}
             className="mt-5 text-center px-8"
           >
-            {heading !== null ? (
+          {heading !== null ? (
               <>
                 <p className={`text-base font-medium ${aligned ? 'text-emerald-400' : 'text-white/70'}`}>
-                  {aligned ? 'You are facing the Qibla ✦' : 'Face this direction to pray'}
+                  {aligned ? t('qibla.facingQibla') : t('qibla.faceDirection')}
                 </p>
-                <p className="text-xs text-white/30 mt-1.5">{Math.round(qiblaDirection)}° from North</p>
+                <p className="text-xs text-white/30 mt-1.5">{Math.round(qiblaDirection)}{t('qibla.fromNorth')}</p>
               </>
             ) : permissionDenied ? (
               <p className="text-sm text-white/50 leading-relaxed">
-                Compass access denied. Enable motion sensors in your device settings.
+                {t('qibla.permissionDenied')}
               </p>
             ) : (
-              <p className="text-sm text-white/40">Waiting for compass data...</p>
+              <p className="text-sm text-white/40">{t('qibla.waiting')}</p>
             )}
           </motion.div>
 
@@ -230,7 +232,7 @@ export function QiblaCompass({ open, onClose, qiblaDirection, latitude, longitud
             transition={{ delay: 0.5 }}
             className="absolute bottom-20 text-[11px] text-white/20 text-center px-10 leading-relaxed italic"
           >
-            On mobile, rotate your device until the needle points to the Kaaba
+            {t('qibla.instruction')}
           </motion.p>
 
           {/* Coordinates */}
