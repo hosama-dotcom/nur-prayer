@@ -223,7 +223,7 @@ export default function Quran() {
                                     <div className="flex-1 min-w-0">
                                       <p className="text-xs font-medium text-foreground">{surah.name}</p>
                                       <p className="text-[10px] text-muted-foreground">
-                                        Verses {js.startVerse}–{js.endVerse}
+                                        {t('quran.verses')} {js.startVerse}–{js.endVerse}
                                       </p>
                                     </div>
                                     <p className="font-arabic text-sm text-primary/60">{surah.arabicName}</p>
