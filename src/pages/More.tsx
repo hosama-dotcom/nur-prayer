@@ -119,7 +119,7 @@ export default function More() {
                 >
                   <div className="text-start">
                     <p className="text-sm font-semibold text-foreground">{t('settings.calcMethod')}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{calcMethods.find(m => m.value === selectedMethod)?.label}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{calcMethods.find(m => m.value === selectedMethod)?.[isAr ? 'labelAr' : 'label']}</p>
                   </div>
                   <svg
                     width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--muted-foreground))" strokeWidth="2" strokeLinecap="round"
