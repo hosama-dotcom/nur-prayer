@@ -146,6 +146,19 @@ export default function Home() {
   const fajrTime = prayers.find(p => p.name === 'fajr');
   const maghribTime = prayers.find(p => p.name === 'maghrib');
 
+  // Dark backgrounds: fajr, isha, maghrib, sunrise (pre-dawn/night/dusk)
+  const isDarkBackground = ['fajr', 'isha', 'maghrib', 'sunrise'].includes(currentPrayer || '');
+
+  // Adaptive colors
+  const cardText = isDarkBackground ? 'rgba(255,255,255,0.9)' : 'rgba(10,20,40,0.85)';
+  const cardTextMuted = isDarkBackground ? 'rgba(255,255,255,0.7)' : 'rgba(10,20,40,0.75)';
+  const cardBg = 'rgba(255,255,255,0.12)';
+  const cardBorder = isDarkBackground ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.2)';
+  const inactiveCardBg = isDarkBackground ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.07)';
+  const inactiveCardBorder = isDarkBackground ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.08)';
+  const countdownColor = isDarkBackground ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.8)';
+  const countdownMuted = isDarkBackground ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.5)';
+
   return (
     <GradientBackground prayer={currentPrayer}>
       <div className="min-h-screen pb-24 px-5 safe-area-top">
@@ -182,9 +195,9 @@ export default function Home() {
               transition={{ delay: 0.4 }}
               className="mt-3"
             >
-              <p className="text-white/50 text-sm">
+              <p className="text-sm" style={{ color: countdownMuted }}>
                 {nextPrayer.label} in{' '}
-                <span className="text-white/80 font-medium">
+                <span className="font-medium" style={{ color: countdownColor }}>
                   {countdown.hours > 0 ? `${countdown.hours}h ` : ''}{countdown.minutes}m {countdown.seconds}s
                 </span>
               </p>
@@ -206,20 +219,18 @@ export default function Home() {
               return (
                 <div
                   key={prayer.name}
-                  className={`relative rounded-xl px-3.5 py-2.5 text-center min-w-[78px] transition-all border backdrop-blur-xl
-                    ${isActive
-                      ? 'bg-white/15 border-[#C9A84C]/40'
-                      : 'bg-white/[0.07] border-white/[0.08]'
-                    }
-                    ${isNext ? 'border-white/15' : ''}
-                  `}
-                  style={isActive ? { boxShadow: '0 0 16px rgba(201, 168, 76, 0.25), 0 0 32px rgba(201, 168, 76, 0.1)' } : {}}
+                  className="relative rounded-xl px-3.5 py-2.5 text-center min-w-[78px] transition-all backdrop-blur-xl"
+                  style={{
+                    background: isActive ? cardBg : inactiveCardBg,
+                    border: `1px solid ${isActive ? 'rgba(201,168,76,0.4)' : isNext ? 'rgba(255,255,255,0.15)' : inactiveCardBorder}`,
+                    ...(isActive ? { boxShadow: '0 0 16px rgba(201, 168, 76, 0.25), 0 0 32px rgba(201, 168, 76, 0.1)' } : {}),
+                  }}
                 >
-                  <p className={`font-arabic text-sm mb-0.5 ${isActive ? 'text-[rgba(10,20,40,0.75)]' : 'text-[rgba(10,20,40,0.75)]'}`}>{prayer.arabicLabel}</p>
-                  <p className={`text-[10px] font-semibold ${isActive ? 'text-[#C9A84C]' : 'text-[rgba(10,20,40,0.85)]'}`}>
+                  <p className="font-arabic text-sm mb-0.5" style={{ color: cardTextMuted }}>{prayer.arabicLabel}</p>
+                  <p className="text-[10px] font-semibold" style={{ color: isActive ? '#C9A84C' : cardText }}>
                     {formatTime(prayer.time)}
                   </p>
-                  <p className={`text-[9px] uppercase tracking-widest mt-0.5 ${isActive ? 'text-[rgba(10,20,40,0.6)]' : 'text-[rgba(10,20,40,0.85)]'}`}>{prayer.label}</p>
+                  <p className="text-[9px] uppercase tracking-widest mt-0.5" style={{ color: isActive ? (isDarkBackground ? 'rgba(255,255,255,0.6)' : 'rgba(10,20,40,0.6)') : cardText }}>{prayer.label}</p>
                 </div>
               );
             })}
@@ -236,21 +247,21 @@ export default function Home() {
         >
           <button
             onClick={() => setCompassOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border active:scale-95 transition-transform"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl active:scale-95 transition-transform"
             style={{
-              background: 'rgba(255,255,255,0.12)',
+              background: cardBg,
               backdropFilter: 'blur(6px)',
               WebkitBackdropFilter: 'blur(6px)',
-              border: '1px solid rgba(255,255,255,0.2)',
+              border: `1px solid ${cardBorder}`,
             }}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(10,20,40,0.75)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={cardTextMuted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" />
-              <polygon points="12,2 14.5,9.5 12,8 9.5,9.5" fill="rgba(10,20,40,0.75)" />
-              <polygon points="12,22 9.5,14.5 12,16 14.5,14.5" fill="rgba(10,20,40,0.3)" />
+              <polygon points="12,2 14.5,9.5 12,8 9.5,9.5" fill={cardTextMuted} />
+              <polygon points="12,22 9.5,14.5 12,16 14.5,14.5" fill={isDarkBackground ? 'rgba(255,255,255,0.3)' : 'rgba(10,20,40,0.3)'} />
             </svg>
-            <span className="text-xs" style={{ color: 'rgba(10,20,40,0.85)' }}>Qibla</span>
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(10,20,40,0.5)" strokeWidth="2" strokeLinecap="round">
+            <span className="text-xs" style={{ color: cardText }}>Qibla</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={isDarkBackground ? 'rgba(255,255,255,0.5)' : 'rgba(10,20,40,0.5)'} strokeWidth="2" strokeLinecap="round">
               <path d="M9 18l6-6-6-6" />
             </svg>
           </button>
