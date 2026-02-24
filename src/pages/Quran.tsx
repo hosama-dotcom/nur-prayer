@@ -134,7 +134,8 @@ export default function Quran() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: Math.min(i * 0.02, 0.5) }}
-                    className={`glass-card px-4 py-4 flex items-center gap-4 active:scale-[0.98] transition-transform cursor-pointer ${isAr ? 'flex-row-reverse' : ''}`}
+                    className={`glass-card px-4 py-4 flex items-center gap-4 active:scale-[0.98] transition-transform cursor-pointer`}
+                    style={isAr ? { direction: 'rtl' } : undefined}
                     onClick={() => navigate(`/quran/${surah.number}`)}
                   >
                     <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -142,13 +143,12 @@ export default function Quran() {
                     </div>
                     {isAr ? (
                       <>
-                        <div className="flex-shrink-0">
+                        <div className="flex-shrink-0 text-right">
                           <p className="font-arabic text-primary/80" style={{ fontSize: '18px' }}>{surah.arabicName}</p>
-                          <p className="text-xs text-muted-foreground text-end">{surah.versesCount} {t('quran.verses')}</p>
+                          <p className="text-xs text-muted-foreground">{surah.versesCount} {t('quran.verses')}</p>
                         </div>
-                        <div className="flex-1 min-w-0 text-start">
-                          <p className="text-xs text-muted-foreground">{surah.revelationType === 'Meccan' ? 'مكية' : 'مدنية'}</p>
-                        </div>
+                        <div className="flex-1" />
+                        <p className="text-xs text-muted-foreground flex-shrink-0">{surah.revelationType === 'Meccan' ? 'مكية' : 'مدنية'}</p>
                       </>
                     ) : (
                       <>
@@ -182,27 +182,38 @@ export default function Quran() {
                     >
                       <button
                         onClick={() => setExpandedJuz(isExpanded ? null : juz.number)}
-                        className={`w-full px-4 py-4 flex items-center gap-4 active:scale-[0.98] transition-transform ${isAr ? 'flex-row-reverse' : ''}`}
+                        className={`w-full px-4 py-4 flex items-center gap-4 active:scale-[0.98] transition-transform`}
+                        style={isAr ? { direction: 'rtl' } : undefined}
                       >
                         <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <span className="text-xs font-semibold text-primary">{juz.number}</span>
                         </div>
-                        <div className={`flex-1 min-w-0 ${isAr ? 'text-start' : 'text-left'}`}>
-                          <p className="text-sm font-medium text-foreground">
-                            {isAr ? juz.arabicName : `${t('quran.juz')} ${juz.number} — ${juz.name}`}
-                          </p>
-                          <p className="text-xs text-muted-foreground">{juz.surahs.length} {t('quran.surah')}{juz.surahs.length > 1 && !isAr ? 's' : ''}</p>
-                        </div>
-                        {!isAr && (
-                          <div className="flex items-center gap-2 flex-shrink-0">
-                            <p className="font-arabic text-lg text-primary/80">{juz.arabicName}</p>
-                            <svg
-                              width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--muted-foreground))" strokeWidth="2" strokeLinecap="round"
-                              className={`transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
-                            >
-                              <polyline points="9 18 15 12 9 6" />
-                            </svg>
-                          </div>
+                        {isAr ? (
+                          <>
+                            <div className="flex-shrink-0 text-right">
+                              <p className="font-arabic text-primary/80" style={{ fontSize: '18px' }}>{juz.arabicName}</p>
+                            </div>
+                            <div className="flex-1" />
+                            <p className="text-xs text-muted-foreground flex-shrink-0">{juz.surahs.length} {t('quran.surah')}</p>
+                          </>
+                        ) : (
+                          <>
+                            <div className="flex-1 min-w-0 text-left">
+                              <p className="text-sm font-medium text-foreground">
+                                {`${t('quran.juz')} ${juz.number} — ${juz.name}`}
+                              </p>
+                              <p className="text-xs text-muted-foreground">{juz.surahs.length} {t('quran.surah')}s</p>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <p className="font-arabic text-lg text-primary/80">{juz.arabicName}</p>
+                              <svg
+                                width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--muted-foreground))" strokeWidth="2" strokeLinecap="round"
+                                className={`transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+                              >
+                                <polyline points="9 18 15 12 9 6" />
+                              </svg>
+                            </div>
+                          </>
                         )}
                       </button>
 
