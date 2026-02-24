@@ -108,6 +108,7 @@ export default function SurahReader() {
   const { lang } = useLanguage();
   const isAr = lang === 'ar';
 
+  const [verses, setVerses] = useState<Verse[]>([]);
   const [highlightedVerse, setHighlightedVerse] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
