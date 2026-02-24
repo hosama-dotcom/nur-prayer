@@ -381,7 +381,7 @@ function DuasSection() {
             <div className="mb-5">
               <p className="text-2xl mb-1">{selectedTopic.icon}</p>
               <p className="font-arabic text-lg text-primary/70">{selectedTopic.arabicLabel}</p>
-              <p className="text-sm font-semibold text-foreground">{selectedTopic.label}</p>
+              {lang !== 'ar' && <p className="text-sm font-semibold text-foreground">{selectedTopic.label}</p>}
             </div>
             <div className="space-y-4">
               {duas.filter(d => d.topic === selectedTopic.id).map(dua => (
