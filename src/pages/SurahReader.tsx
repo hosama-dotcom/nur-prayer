@@ -371,6 +371,7 @@ export default function SurahReader() {
 
   // Helper to check if a verse is currently being played
   const isVerseActive = (verseNum: number) => isThisSurahPlaying && activeVerseNumber === verseNum;
+  const isVerseHighlighted = (verseNum: number) => highlightedVerse === verseNum;
 
   return (
     <div className="min-h-screen night-sky-bg safe-area-top relative">
