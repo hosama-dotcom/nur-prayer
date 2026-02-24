@@ -134,7 +134,7 @@ export default function Quran() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: Math.min(i * 0.02, 0.5) }}
-                    className="glass-card px-4 py-4 flex items-center gap-4 active:scale-[0.98] transition-transform cursor-pointer"
+                    className={`glass-card px-4 py-4 flex items-center gap-4 active:scale-[0.98] transition-transform cursor-pointer ${isAr ? 'flex-row-reverse' : ''}`}
                     onClick={() => navigate(`/quran/${surah.number}`)}
                   >
                     <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
