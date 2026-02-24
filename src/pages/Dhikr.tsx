@@ -227,7 +227,7 @@ function PersonalDuaModal({ open, onClose, onSave, editingDua }: {
 /* ── Duas Section ── */
 
 function DuasSection() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [view, setView] = useState<DuasView>('topics');
   const [selectedTopic, setSelectedTopic] = useState<DuaTopic | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
