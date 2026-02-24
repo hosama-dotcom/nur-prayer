@@ -207,7 +207,7 @@ export default function SurahReader() {
     fetchVerses();
   }, [chapterNum, page]);
 
-  // Scroll to verse after load
+  // Scroll to verse after load — auto-load more pages if needed
   useEffect(() => {
     if (!scrollToVerse || scrollDoneRef.current || verses.length === 0) return;
     const el = verseRefs.current.get(scrollToVerse);
@@ -215,14 +215,16 @@ export default function SurahReader() {
       setTimeout(() => {
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         scrollDoneRef.current = true;
-        // Brief gold highlight
         if (scrollToVerse > 1) {
           setHighlightedVerse(scrollToVerse);
           setTimeout(() => setHighlightedVerse(null), 2000);
         }
       }, 300);
+    } else if (!loading && page < totalPages) {
+      // Target verse not loaded yet — fetch next page
+      setPage(p => p + 1);
     }
-  }, [verses, scrollToVerse]);
+  }, [verses, scrollToVerse, loading, page, totalPages]);
 
   // Auto-scroll to active verse during playback
   useEffect(() => {
