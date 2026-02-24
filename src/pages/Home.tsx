@@ -166,7 +166,7 @@ export default function Home() {
   const fajrTime = prayers.find(p => p.name === 'fajr');
   const maghribTime = prayers.find(p => p.name === 'maghrib');
 
-  const isDarkBackground = ['fajr', 'isha', 'maghrib', 'sunrise'].includes(currentPrayer || '');
+  const isDarkBackground = ['fajr', 'isha', 'maghrib'].includes(currentPrayer || '');
 
   const cardText = isDarkBackground ? 'rgba(255,255,255,0.9)' : 'rgba(10,20,40,0.85)';
   const cardTextMuted = isDarkBackground ? 'rgba(255,255,255,0.7)' : 'rgba(10,20,40,0.75)';
