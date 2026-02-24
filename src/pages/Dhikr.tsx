@@ -102,8 +102,8 @@ function DuaCard({ dua, bookmarked, onToggleBookmark, isPersonal, onEdit, onDele
       {isCurated ? (
         <>
           <p className="font-arabic text-xl text-foreground/90 text-right leading-loose mb-4 pe-6">{(dua as Dua).arabic}</p>
-          <p className="text-xs text-muted-foreground italic mb-2">{(dua as Dua).transliteration}</p>
-          <p className="text-sm text-foreground/80 leading-relaxed mb-3">{(dua as Dua).translation}</p>
+          {lang !== 'ar' && <p className="text-xs text-muted-foreground italic mb-2">{(dua as Dua).transliteration}</p>}
+          {lang !== 'ar' && <p className="text-sm text-foreground/80 leading-relaxed mb-3">{(dua as Dua).translation}</p>}
         </>
       ) : (
         <>

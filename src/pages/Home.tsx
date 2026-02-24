@@ -340,7 +340,7 @@ export default function Home() {
             )}
             {maghribTime && (
               <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.07] border border-white/[0.08] backdrop-blur-lg">
-                <span className="uppercase tracking-wider text-white/40" style={{ fontSize: '10px' }}>{t('home.iftar')}</span>
+                <span className="uppercase tracking-wider text-white/40" style={{ fontSize: isAr ? '15px' : '10px' }}>{t('home.iftar')}</span>
                 <span className="text-xs font-semibold text-white/80" style={{ direction: 'ltr' }}>{formatTime(maghribTime.time)}</span>
               </div>
             )}
