@@ -134,7 +134,7 @@ export default function Quran() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: Math.min(i * 0.02, 0.5) }}
-                    className="glass-card px-4 py-4 flex items-center gap-4 active:scale-[0.98] transition-transform cursor-pointer"
+                    className={`glass-card px-4 py-4 flex items-center gap-4 active:scale-[0.98] transition-transform cursor-pointer ${isAr ? 'flex-row-reverse' : ''}`}
                     onClick={() => navigate(`/quran/${surah.number}`)}
                   >
                     <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -142,11 +142,11 @@ export default function Quran() {
                     </div>
                     {isAr ? (
                       <>
-                        <div className="flex-1 min-w-0 text-end">
-                          <p className="text-xs text-muted-foreground">{surah.versesCount} {t('quran.verses')} · {surah.revelationType === 'Meccan' ? 'مكية' : 'مدنية'}</p>
-                        </div>
-                        <div className="flex-shrink-0">
+                        <div className="flex-shrink-0 order-first">
                           <p className="font-arabic text-primary/80" style={{ fontSize: '18px' }}>{surah.arabicName}</p>
+                        </div>
+                        <div className="flex-1 min-w-0 text-start">
+                          <p className="text-xs text-muted-foreground">{surah.versesCount} {t('quran.verses')} · {surah.revelationType === 'Meccan' ? 'مكية' : 'مدنية'}</p>
                         </div>
                       </>
                     ) : (
@@ -181,12 +181,12 @@ export default function Quran() {
                     >
                       <button
                         onClick={() => setExpandedJuz(isExpanded ? null : juz.number)}
-                        className="w-full px-4 py-4 flex items-center gap-4 active:scale-[0.98] transition-transform"
+                        className={`w-full px-4 py-4 flex items-center gap-4 active:scale-[0.98] transition-transform ${isAr ? 'flex-row-reverse' : ''}`}
                       >
                         <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <span className="text-xs font-semibold text-primary">{juz.number}</span>
                         </div>
-                        <div className={`flex-1 min-w-0 ${isAr ? 'text-end' : 'text-left'}`}>
+                        <div className={`flex-1 min-w-0 ${isAr ? 'text-start' : 'text-left'}`}>
                           <p className="text-sm font-medium text-foreground">
                             {isAr ? juz.arabicName : `${t('quran.juz')} ${juz.number} — ${juz.name}`}
                           </p>
@@ -222,7 +222,7 @@ export default function Quran() {
                                   <button
                                     key={`${juz.number}-${js.surahNumber}`}
                                     onClick={() => navigate(`/quran/${js.surahNumber}?verse=${js.startVerse}`)}
-                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.05] active:scale-[0.97] transition-transform text-left"
+                                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.05] active:scale-[0.97] transition-transform ${isAr ? 'flex-row-reverse text-right' : 'text-left'}`}
                                   >
                                     <span className="text-[10px] font-semibold text-primary/60 w-6 text-center">{surah.number}</span>
                                     <div className="flex-1 min-w-0">

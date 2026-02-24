@@ -48,6 +48,42 @@ function savePersonalDuas(duas: PersonalDua[]) {
   localStorage.setItem(PERSONAL_DUAS_KEY, JSON.stringify(duas));
 }
 
+/* ── Arabic source name helper ── */
+const SOURCE_AR: Record<string, string> = {
+  'Abu Dawud': 'أبو داود',
+  'At-Tirmidhi': 'الترمذي',
+  'Muslim': 'مسلم',
+  'Al-Bukhari': 'البخاري',
+  'Al-Bukhari, Muslim': 'البخاري ومسلم',
+  'Ibn Majah': 'ابن ماجه',
+  'Ahmad': 'أحمد',
+  'Ibn Hibban': 'ابن حبان',
+  "Abu Dawud, At-Tirmidhi": 'أبو داود والترمذي',
+  "Abu Dawud, An-Nasa'i": "أبو داود والنسائي",
+  "An-Nasa'i": 'النسائي',
+  'Quran 43:13-14': 'القرآن ٤٣:١٣-١٤',
+  'Quran 9:129': 'القرآن ٩:١٢٩',
+  'Quran 21:87': 'القرآن ٢١:٨٧',
+  'Quran 1:2': 'القرآن ١:٢',
+  'Quran 27:19': 'القرآن ٢٧:١٩',
+  'Quran 14:7': 'القرآن ١٤:٧',
+  'Quran 25:74': 'القرآن ٢٥:٧٤',
+  'Quran 46:15': 'القرآن ٤٦:١٥',
+  'Quran 17:24': 'القرآن ١٧:٢٤',
+  'Quran 20:114': 'القرآن ٢٠:١١٤',
+};
+
+function getArabicSource(source: string): string {
+  if (SOURCE_AR[source]) return SOURCE_AR[source];
+  // Try partial matches
+  for (const [en, ar] of Object.entries(SOURCE_AR)) {
+    if (source.includes(en)) return ar;
+  }
+  // Translate "Hisnul Muslim" pattern
+  if (source.startsWith('Hisnul Muslim')) return source.replace('Hisnul Muslim', 'حصن المسلم');
+  return source;
+}
+
 /* ── Duas Sub-components ── */
 
 function BackButton({ onClick }: { onClick: () => void }) {
@@ -88,7 +124,7 @@ function DuaCard({ dua, bookmarked, onToggleBookmark, isPersonal, onEdit, onDele
       </button>
 
       {topicInfo && (
-        <p className="text-[10px] uppercase tracking-wider text-primary/50 mb-3">{topicInfo.icon} {topicInfo.label}</p>
+        <p className="text-[10px] uppercase tracking-wider text-primary/50 mb-3">{topicInfo.icon} {lang === 'ar' ? topicInfo.arabicLabel : topicInfo.label}</p>
       )}
 
       {isPersonal && (
@@ -116,7 +152,7 @@ function DuaCard({ dua, bookmarked, onToggleBookmark, isPersonal, onEdit, onDele
 
       <div className="flex items-center justify-between">
         {isCurated ? (
-          <p className="text-[10px] text-primary/60 font-medium">{(dua as Dua).source}</p>
+          <p className="text-[10px] text-primary/60 font-medium">{lang === 'ar' ? getArabicSource((dua as Dua).source) : (dua as Dua).source}</p>
         ) : (
           <div className="flex items-center gap-2">
             {onEdit && (
@@ -227,7 +263,7 @@ function PersonalDuaModal({ open, onClose, onSave, editingDua }: {
 /* ── Duas Section ── */
 
 function DuasSection() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [view, setView] = useState<DuasView>('topics');
   const [selectedTopic, setSelectedTopic] = useState<DuaTopic | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -367,7 +403,7 @@ function DuasSection() {
                   >
                     <span className="text-2xl mb-2 block">{topic.icon}</span>
                     <p className="font-arabic text-sm text-primary/70 mb-0.5">{topic.arabicLabel}</p>
-                    <p className="text-xs text-foreground/80 font-medium">{topic.label}</p>
+                    {lang !== 'ar' && <p className="text-xs text-foreground/80 font-medium">{topic.label}</p>}
                   </motion.button>
                 ))}
               </div>
@@ -381,7 +417,7 @@ function DuasSection() {
             <div className="mb-5">
               <p className="text-2xl mb-1">{selectedTopic.icon}</p>
               <p className="font-arabic text-lg text-primary/70">{selectedTopic.arabicLabel}</p>
-              <p className="text-sm font-semibold text-foreground">{selectedTopic.label}</p>
+              {lang !== 'ar' && <p className="text-sm font-semibold text-foreground">{selectedTopic.label}</p>}
             </div>
             <div className="space-y-4">
               {duas.filter(d => d.topic === selectedTopic.id).map(dua => (
