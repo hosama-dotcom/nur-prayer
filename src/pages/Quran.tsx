@@ -142,11 +142,12 @@ export default function Quran() {
                     </div>
                     {isAr ? (
                       <>
-                        <div className="flex-shrink-0 order-first">
+                        <div className="flex-shrink-0">
                           <p className="font-arabic text-primary/80" style={{ fontSize: '18px' }}>{surah.arabicName}</p>
+                          <p className="text-xs text-muted-foreground text-end">{surah.versesCount} {t('quran.verses')}</p>
                         </div>
                         <div className="flex-1 min-w-0 text-start">
-                          <p className="text-xs text-muted-foreground">{surah.versesCount} {t('quran.verses')} · {surah.revelationType === 'Meccan' ? 'مكية' : 'مدنية'}</p>
+                          <p className="text-xs text-muted-foreground">{surah.revelationType === 'Meccan' ? 'مكية' : 'مدنية'}</p>
                         </div>
                       </>
                     ) : (
