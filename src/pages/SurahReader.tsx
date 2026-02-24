@@ -555,6 +555,7 @@ export default function SurahReader() {
                     const showJuzMarker = verse.juz_number && (!prevVerse || prevVerse.juz_number !== verse.juz_number);
                     const showPageMarker = verse.page_number && (!prevVerse || prevVerse.page_number !== verse.page_number);
                     const active = isVerseActive(verse.verse_number);
+                    const highlighted = isVerseHighlighted(verse.verse_number);
                     return (
                       <span key={verse.id}>
                         {showJuzMarker && idx > 0 && (
