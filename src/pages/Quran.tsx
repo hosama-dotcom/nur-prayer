@@ -222,7 +222,7 @@ export default function Quran() {
                                   <button
                                     key={`${juz.number}-${js.surahNumber}`}
                                     onClick={() => navigate(`/quran/${js.surahNumber}?verse=${js.startVerse}`)}
-                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.05] active:scale-[0.97] transition-transform text-left"
+                                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.05] active:scale-[0.97] transition-transform ${isAr ? 'flex-row-reverse text-right' : 'text-left'}`}
                                   >
                                     <span className="text-[10px] font-semibold text-primary/60 w-6 text-center">{surah.number}</span>
                                     <div className="flex-1 min-w-0">
