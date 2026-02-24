@@ -88,7 +88,7 @@ function DuaCard({ dua, bookmarked, onToggleBookmark, isPersonal, onEdit, onDele
       </button>
 
       {topicInfo && (
-        <p className="text-[10px] uppercase tracking-wider text-primary/50 mb-3">{topicInfo.icon} {topicInfo.label}</p>
+        <p className="text-[10px] uppercase tracking-wider text-primary/50 mb-3">{topicInfo.icon} {lang === 'ar' ? topicInfo.arabicLabel : topicInfo.label}</p>
       )}
 
       {isPersonal && (
