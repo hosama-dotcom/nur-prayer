@@ -496,13 +496,20 @@ export default function SurahReader() {
                     const active = isVerseActive(verse.verse_number);
                     return (
                       <div key={verse.id}>
-                        {(showJuzMarker || showPageMarker) && (
+                        {showJuzMarker && (
+                          <div className="flex items-center justify-center gap-3 my-5">
+                            <div className="h-px flex-1 bg-primary/20" />
+                            <span className="text-[10px] text-primary/60 font-semibold tracking-wider px-2">
+                              {isAr ? `بداية الجزء ${verse.juz_number}` : `Juz ${verse.juz_number} begins here`}
+                            </span>
+                            <div className="h-px flex-1 bg-primary/20" />
+                          </div>
+                        )}
+                        {showPageMarker && !showJuzMarker && (
                           <div className="flex items-center justify-center gap-3 my-4">
                             <div className="h-px flex-1 bg-primary/10" />
                             <span className="text-[10px] text-primary/50 font-medium tracking-wider">
-                              {showJuzMarker && (isAr ? `جزء ${verse.juz_number}` : `Juz ${verse.juz_number}`)}
-                              {showJuzMarker && showPageMarker && ' · '}
-                              {showPageMarker && (isAr ? `الصفحة ${verse.page_number}` : `Page ${verse.page_number}`)}
+                              {isAr ? `الصفحة ${verse.page_number}` : `Page ${verse.page_number}`}
                             </span>
                             <div className="h-px flex-1 bg-primary/10" />
                           </div>
@@ -542,14 +549,23 @@ export default function SurahReader() {
                     const active = isVerseActive(verse.verse_number);
                     return (
                       <span key={verse.id}>
-                        {(showJuzMarker || showPageMarker) && idx > 0 && (
+                        {showJuzMarker && idx > 0 && (
+                          <span className="block my-5" dir="ltr">
+                            <span className="flex items-center justify-center gap-3">
+                              <span className="h-px flex-1 bg-primary/20" />
+                              <span className="text-[10px] text-primary/60 font-semibold tracking-wider px-2">
+                                {isAr ? `بداية الجزء ${verse.juz_number}` : `Juz ${verse.juz_number} begins here`}
+                              </span>
+                              <span className="h-px flex-1 bg-primary/20" />
+                            </span>
+                          </span>
+                        )}
+                        {showPageMarker && !showJuzMarker && idx > 0 && (
                           <span className="block my-4" dir="ltr">
                             <span className="flex items-center justify-center gap-3">
                               <span className="h-px flex-1 bg-primary/10" />
                               <span className="text-[10px] text-primary/50 font-medium tracking-wider">
-                                {showJuzMarker && (isAr ? `جزء ${verse.juz_number}` : `Juz ${verse.juz_number}`)}
-                                {showJuzMarker && showPageMarker && ' · '}
-                                {showPageMarker && (isAr ? `الصفحة ${verse.page_number}` : `Page ${verse.page_number}`)}
+                                {isAr ? `الصفحة ${verse.page_number}` : `Page ${verse.page_number}`}
                               </span>
                               <span className="h-px flex-1 bg-primary/10" />
                             </span>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { surahs } from '@/data/surahs';
 import { juzData } from '@/data/juzData';
+import { juzStartVerses } from '@/data/juzStartVerses';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface LastRead {
@@ -181,7 +182,10 @@ export default function Quran() {
                       className="glass-card overflow-hidden"
                     >
                       <button
-                        onClick={() => setExpandedJuz(isExpanded ? null : juz.number)}
+                        onClick={() => {
+                          const start = juzStartVerses[juz.number];
+                          if (start) navigate(`/quran/${start.surahNumber}?verse=${start.ayah}`);
+                        }}
                         className={`w-full px-4 py-4 flex items-center gap-4 active:scale-[0.98] transition-transform`}
                         style={isAr ? { direction: 'rtl' } : undefined}
                       >
