@@ -68,7 +68,7 @@ function DuaCard({ dua, bookmarked, onToggleBookmark, isPersonal, onEdit, onDele
   onEdit?: () => void;
   onDelete?: () => void;
 }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const isCurated = 'topic' in dua;
   const topicInfo = isCurated ? duaTopics.find(t => t.id === (dua as Dua).topic) : null;
 
