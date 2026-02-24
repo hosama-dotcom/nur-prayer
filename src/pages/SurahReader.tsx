@@ -109,6 +109,7 @@ export default function SurahReader() {
   const isAr = lang === 'ar';
 
   const [verses, setVerses] = useState<Verse[]>([]);
+  const [highlightedVerse, setHighlightedVerse] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -214,6 +215,11 @@ export default function SurahReader() {
       setTimeout(() => {
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         scrollDoneRef.current = true;
+        // Brief gold highlight
+        if (scrollToVerse > 1) {
+          setHighlightedVerse(scrollToVerse);
+          setTimeout(() => setHighlightedVerse(null), 2000);
+        }
       }, 300);
     }
   }, [verses, scrollToVerse]);
@@ -365,6 +371,7 @@ export default function SurahReader() {
 
   // Helper to check if a verse is currently being played
   const isVerseActive = (verseNum: number) => isThisSurahPlaying && activeVerseNumber === verseNum;
+  const isVerseHighlighted = (verseNum: number) => highlightedVerse === verseNum;
 
   return (
     <div className="min-h-screen night-sky-bg safe-area-top relative">
@@ -494,6 +501,7 @@ export default function SurahReader() {
                     const showJuzMarker = verse.juz_number && (!prevVerse || prevVerse.juz_number !== verse.juz_number);
                     const showPageMarker = verse.page_number && (!prevVerse || prevVerse.page_number !== verse.page_number);
                     const active = isVerseActive(verse.verse_number);
+                    const highlighted = isVerseHighlighted(verse.verse_number);
                     return (
                       <div key={verse.id}>
                         {showJuzMarker && (
@@ -515,8 +523,8 @@ export default function SurahReader() {
                           </div>
                         )}
                         <div
-                          className="rounded-xl px-2 py-1 transition-colors duration-300"
-                          style={active ? { background: 'rgba(201, 168, 76, 0.2)' } : {}}
+                          className={`rounded-xl px-2 py-1 transition-all duration-700 ${highlighted ? 'animate-pulse' : ''}`}
+                          style={active ? { background: 'rgba(201, 168, 76, 0.2)' } : highlighted ? { background: 'rgba(201, 168, 76, 0.15)' } : {}}
                         >
                           <p
                             className="font-arabic-display text-primary/90 text-right leading-[2.4]"
@@ -547,6 +555,7 @@ export default function SurahReader() {
                     const showJuzMarker = verse.juz_number && (!prevVerse || prevVerse.juz_number !== verse.juz_number);
                     const showPageMarker = verse.page_number && (!prevVerse || prevVerse.page_number !== verse.page_number);
                     const active = isVerseActive(verse.verse_number);
+                    const highlighted = isVerseHighlighted(verse.verse_number);
                     return (
                       <span key={verse.id}>
                         {showJuzMarker && idx > 0 && (
@@ -572,10 +581,10 @@ export default function SurahReader() {
                           </span>
                         )}
                         <span
-                          className="font-arabic-display text-primary/90 leading-[2.4] rounded-lg transition-colors duration-300"
+                          className={`font-arabic-display text-primary/90 leading-[2.4] rounded-lg transition-all duration-700`}
                           style={{
                             fontSize: `${effectiveFontSize}px`,
-                            ...(active ? { background: 'rgba(201, 168, 76, 0.2)', padding: '2px 4px' } : {}),
+                            ...(active ? { background: 'rgba(201, 168, 76, 0.2)', padding: '2px 4px' } : highlighted ? { background: 'rgba(201, 168, 76, 0.15)', padding: '2px 4px' } : {}),
                           }}
                         >
                           {verse.text_uthmani}
