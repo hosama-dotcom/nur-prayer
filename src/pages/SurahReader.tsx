@@ -523,8 +523,8 @@ export default function SurahReader() {
                           </div>
                         )}
                         <div
-                          className="rounded-xl px-2 py-1 transition-colors duration-300"
-                          style={active ? { background: 'rgba(201, 168, 76, 0.2)' } : {}}
+                          className={`rounded-xl px-2 py-1 transition-all duration-700 ${highlighted ? 'animate-pulse' : ''}`}
+                          style={active ? { background: 'rgba(201, 168, 76, 0.2)' } : highlighted ? { background: 'rgba(201, 168, 76, 0.15)' } : {}}
                         >
                           <p
                             className="font-arabic-display text-primary/90 text-right leading-[2.4]"
