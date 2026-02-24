@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { surahs } from '@/data/surahs';
 import { juzData } from '@/data/juzData';
+import { juzStartVerses } from '@/data/juzStartVerses';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface LastRead {
