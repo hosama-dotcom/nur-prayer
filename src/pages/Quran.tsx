@@ -142,7 +142,7 @@ export default function Quran() {
                     </div>
                     {isAr ? (
                       <>
-                        <div className="flex-1 min-w-0 text-start">
+                        <div className="flex-1 min-w-0 text-end">
                           <p className="text-xs text-muted-foreground">{surah.versesCount} {t('quran.verses')} · {surah.revelationType === 'Meccan' ? 'مكية' : 'مدنية'}</p>
                         </div>
                         <div className="flex-shrink-0">
@@ -186,21 +186,23 @@ export default function Quran() {
                         <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <span className="text-xs font-semibold text-primary">{juz.number}</span>
                         </div>
-                        <div className="flex-1 min-w-0 text-left">
+                        <div className={`flex-1 min-w-0 ${isAr ? 'text-end' : 'text-left'}`}>
                           <p className="text-sm font-medium text-foreground">
                             {isAr ? juz.arabicName : `${t('quran.juz')} ${juz.number} — ${juz.name}`}
                           </p>
                           <p className="text-xs text-muted-foreground">{juz.surahs.length} {t('quran.surah')}{juz.surahs.length > 1 && !isAr ? 's' : ''}</p>
                         </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          {!isAr && <p className="font-arabic text-lg text-primary/80">{juz.arabicName}</p>}
-                          <svg
-                            width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--muted-foreground))" strokeWidth="2" strokeLinecap="round"
-                            className={`transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
-                          >
-                            <polyline points="9 18 15 12 9 6" />
-                          </svg>
-                        </div>
+                        {!isAr && (
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <p className="font-arabic text-lg text-primary/80">{juz.arabicName}</p>
+                            <svg
+                              width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--muted-foreground))" strokeWidth="2" strokeLinecap="round"
+                              className={`transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+                            >
+                              <polyline points="9 18 15 12 9 6" />
+                            </svg>
+                          </div>
+                        )}
                       </button>
 
                       <AnimatePresence>
