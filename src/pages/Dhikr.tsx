@@ -116,7 +116,7 @@ function DuaCard({ dua, bookmarked, onToggleBookmark, isPersonal, onEdit, onDele
 
       <div className="flex items-center justify-between">
         {isCurated ? (
-          <p className="text-[10px] text-primary/60 font-medium">{(dua as Dua).source}</p>
+          <p className="text-[10px] text-primary/60 font-medium">{lang === 'ar' ? getArabicSource((dua as Dua).source) : (dua as Dua).source}</p>
         ) : (
           <div className="flex items-center gap-2">
             {onEdit && (
