@@ -134,7 +134,8 @@ export default function Quran() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: Math.min(i * 0.02, 0.5) }}
-                    className={`glass-card px-4 py-4 flex items-center gap-4 active:scale-[0.98] transition-transform cursor-pointer ${isAr ? 'flex-row-reverse' : ''}`}
+                    className={`glass-card px-4 py-4 flex items-center gap-4 active:scale-[0.98] transition-transform cursor-pointer`}
+                    style={isAr ? { direction: 'rtl' } : undefined}
                     onClick={() => navigate(`/quran/${surah.number}`)}
                   >
                     <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -142,13 +143,12 @@ export default function Quran() {
                     </div>
                     {isAr ? (
                       <>
-                        <div className="flex-shrink-0">
+                        <div className="flex-shrink-0 text-right">
                           <p className="font-arabic text-primary/80" style={{ fontSize: '18px' }}>{surah.arabicName}</p>
-                          <p className="text-xs text-muted-foreground text-end">{surah.versesCount} {t('quran.verses')}</p>
+                          <p className="text-xs text-muted-foreground">{surah.versesCount} {t('quran.verses')}</p>
                         </div>
-                        <div className="flex-1 min-w-0 text-start">
-                          <p className="text-xs text-muted-foreground">{surah.revelationType === 'Meccan' ? 'مكية' : 'مدنية'}</p>
-                        </div>
+                        <div className="flex-1" />
+                        <p className="text-xs text-muted-foreground flex-shrink-0">{surah.revelationType === 'Meccan' ? 'مكية' : 'مدنية'}</p>
                       </>
                     ) : (
                       <>
