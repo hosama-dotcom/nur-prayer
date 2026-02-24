@@ -121,14 +121,14 @@ function RamadanCountdown({ maghribTime, fajrTime, lang, t }: { maghribTime: Dat
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <p className="uppercase tracking-[0.15em] text-white/40 mb-0.5" style={{ fontSize: '15px' }}>{label}</p>
+              <p className="uppercase tracking-[0.15em] text-white/40 mb-0.5" style={{ fontSize: '10px' }}>{label}</p>
               <p className="leading-none">
                 <span className="text-[26px] font-light text-[#C9A84C]">{hours}</span>
                 <span className="text-[12px] text-white/30 mx-0.5">{hLabel}</span>
                 <span className="text-[26px] font-light text-[#C9A84C] ml-1">{minutes.toString().padStart(2, '0')}</span>
                 <span className="text-[12px] text-white/30 mx-0.5">{mLabel}</span>
               </p>
-              <p className="text-white/25 mt-0.5" style={{ fontSize: '14px' }}>{subtext}</p>
+              <p className="text-white/25 mt-0.5" style={{ fontSize: '10px' }}>{subtext}</p>
             </div>
           </div>
         </div>
@@ -166,7 +166,7 @@ export default function Home() {
   const fajrTime = prayers.find(p => p.name === 'fajr');
   const maghribTime = prayers.find(p => p.name === 'maghrib');
 
-  const isDarkBackground = ['fajr', 'isha', 'maghrib', 'sunrise'].includes(currentPrayer || '');
+  const isDarkBackground = ['fajr', 'isha', 'maghrib'].includes(currentPrayer || '');
 
   const cardText = isDarkBackground ? 'rgba(255,255,255,0.9)' : 'rgba(10,20,40,0.85)';
   const cardTextMuted = isDarkBackground ? 'rgba(255,255,255,0.7)' : 'rgba(10,20,40,0.75)';
@@ -314,7 +314,7 @@ export default function Home() {
               border: '1px solid rgba(255,255,255,0.08)',
             }}
           >
-            <p className="uppercase tracking-widest text-white/40 mb-3" style={{ fontSize: '16px' }}>{t('home.dailyVerse')}</p>
+            <p className="uppercase tracking-widest text-white/40 mb-3" style={{ fontSize: '10px' }}>{t('home.dailyVerse')}</p>
             <p className="font-arabic text-xl text-white/90 text-center leading-relaxed mb-3">{verse.arabic}</p>
             {/* Hide English translation in Arabic mode */}
             {!isAr && (
@@ -334,13 +334,13 @@ export default function Home() {
           >
             {fajrTime && (
               <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.07] border border-white/[0.08] backdrop-blur-lg">
-                <span className="uppercase tracking-wider text-white/40" style={{ fontSize: '15px' }}>{t('home.imsak')}</span>
+                <span className="uppercase tracking-wider text-white/40" style={{ fontSize: '10px' }}>{t('home.imsak')}</span>
                 <span className="text-xs font-semibold text-white/80" style={{ direction: 'ltr' }}>{formatTime(new Date(fajrTime.time.getTime() - 10 * 60 * 1000))}</span>
               </div>
             )}
             {maghribTime && (
               <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.07] border border-white/[0.08] backdrop-blur-lg">
-                <span className="uppercase tracking-wider text-white/40" style={{ fontSize: '15px' }}>{t('home.iftar')}</span>
+                <span className="uppercase tracking-wider text-white/40" style={{ fontSize: '10px' }}>{t('home.iftar')}</span>
                 <span className="text-xs font-semibold text-white/80" style={{ direction: 'ltr' }}>{formatTime(maghribTime.time)}</span>
               </div>
             )}
