@@ -215,6 +215,11 @@ export default function SurahReader() {
       setTimeout(() => {
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         scrollDoneRef.current = true;
+        // Brief gold highlight
+        if (scrollToVerse > 1) {
+          setHighlightedVerse(scrollToVerse);
+          setTimeout(() => setHighlightedVerse(null), 2000);
+        }
       }, 300);
     }
   }, [verses, scrollToVerse]);
