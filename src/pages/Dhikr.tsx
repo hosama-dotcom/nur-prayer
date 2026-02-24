@@ -48,6 +48,42 @@ function savePersonalDuas(duas: PersonalDua[]) {
   localStorage.setItem(PERSONAL_DUAS_KEY, JSON.stringify(duas));
 }
 
+/* ── Arabic source name helper ── */
+const SOURCE_AR: Record<string, string> = {
+  'Abu Dawud': 'أبو داود',
+  'At-Tirmidhi': 'الترمذي',
+  'Muslim': 'مسلم',
+  'Al-Bukhari': 'البخاري',
+  'Al-Bukhari, Muslim': 'البخاري ومسلم',
+  'Ibn Majah': 'ابن ماجه',
+  'Ahmad': 'أحمد',
+  'Ibn Hibban': 'ابن حبان',
+  "Abu Dawud, At-Tirmidhi": 'أبو داود والترمذي',
+  "Abu Dawud, An-Nasa'i": "أبو داود والنسائي",
+  "An-Nasa'i": 'النسائي',
+  'Quran 43:13-14': 'القرآن ٤٣:١٣-١٤',
+  'Quran 9:129': 'القرآن ٩:١٢٩',
+  'Quran 21:87': 'القرآن ٢١:٨٧',
+  'Quran 1:2': 'القرآن ١:٢',
+  'Quran 27:19': 'القرآن ٢٧:١٩',
+  'Quran 14:7': 'القرآن ١٤:٧',
+  'Quran 25:74': 'القرآن ٢٥:٧٤',
+  'Quran 46:15': 'القرآن ٤٦:١٥',
+  'Quran 17:24': 'القرآن ١٧:٢٤',
+  'Quran 20:114': 'القرآن ٢٠:١١٤',
+};
+
+function getArabicSource(source: string): string {
+  if (SOURCE_AR[source]) return SOURCE_AR[source];
+  // Try partial matches
+  for (const [en, ar] of Object.entries(SOURCE_AR)) {
+    if (source.includes(en)) return ar;
+  }
+  // Translate "Hisnul Muslim" pattern
+  if (source.startsWith('Hisnul Muslim')) return source.replace('Hisnul Muslim', 'حصن المسلم');
+  return source;
+}
+
 /* ── Duas Sub-components ── */
 
 function BackButton({ onClick }: { onClick: () => void }) {
