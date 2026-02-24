@@ -186,7 +186,7 @@ export default function Quran() {
                         <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <span className="text-xs font-semibold text-primary">{juz.number}</span>
                         </div>
-                        <div className={`flex-1 min-w-0 ${isAr ? 'text-end' : 'text-left'}`}>
+                        <div className={`flex-1 min-w-0 ${isAr ? 'text-start' : 'text-left'}`}>
                           <p className="text-sm font-medium text-foreground">
                             {isAr ? juz.arabicName : `${t('quran.juz')} ${juz.number} — ${juz.name}`}
                           </p>
