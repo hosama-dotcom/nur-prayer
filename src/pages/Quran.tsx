@@ -181,7 +181,7 @@ export default function Quran() {
                     >
                       <button
                         onClick={() => setExpandedJuz(isExpanded ? null : juz.number)}
-                        className="w-full px-4 py-4 flex items-center gap-4 active:scale-[0.98] transition-transform"
+                        className={`w-full px-4 py-4 flex items-center gap-4 active:scale-[0.98] transition-transform ${isAr ? 'flex-row-reverse' : ''}`}
                       >
                         <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <span className="text-xs font-semibold text-primary">{juz.number}</span>
