@@ -138,6 +138,10 @@ export default function SurahReader() {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const verseRefs = useRef<Map<number, HTMLSpanElement>>(new Map());
   const scrollDoneRef = useRef(false);
+  // Prevents cascading page increments: setPage(p+1) causes a re-render
+  // with loading=false before the fetch sets loading=true, which would
+  // trigger another page increment. This ref gates to one at a time.
+  const pageRequestedRef = useRef(false);
 
   // Track visible verse for last-read saving
   const visibleVerseRef = useRef<number>(1);
@@ -207,21 +211,35 @@ export default function SurahReader() {
     fetchVerses();
   }, [chapterNum, page]);
 
+  // Reset the page-request gate when a new fetch starts
+  useEffect(() => {
+    if (loading) pageRequestedRef.current = false;
+  }, [loading]);
+
   // Scroll to verse after load — auto-load more pages if needed
   useEffect(() => {
     if (!scrollToVerse || scrollDoneRef.current || verses.length === 0) return;
-    const el = verseRefs.current.get(scrollToVerse);
-    if (el) {
+    const target = scrollToVerse; // capture verse number, NOT the element
+    if (verseRefs.current.has(target)) {
+      // Re-fetch the element inside the timeout: VerseBadge is defined inside
+      // SurahReader so React treats it as a new component type on every render,
+      // unmounting/remounting all badges. Any element reference captured before
+      // the timeout fires may be stale/detached by then (e.g. a setCurrentJuz
+      // state update triggers a re-render between capture and timeout fire).
       setTimeout(() => {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        scrollDoneRef.current = true;
-        if (scrollToVerse > 1) {
-          setHighlightedVerse(scrollToVerse);
-          setTimeout(() => setHighlightedVerse(null), 2000);
+        const el = verseRefs.current.get(target);
+        if (el && document.contains(el)) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          scrollDoneRef.current = true;
+          if (target > 1) {
+            setHighlightedVerse(target);
+            setTimeout(() => setHighlightedVerse(null), 2000);
+          }
         }
       }, 300);
-    } else if (!loading && page < totalPages) {
-      // Target verse not loaded yet — fetch next page
+    } else if (!loading && !pageRequestedRef.current && page < totalPages) {
+      // Target verse not yet loaded — fetch next page exactly once per cycle
+      pageRequestedRef.current = true;
       setPage(p => p + 1);
     }
   }, [verses, scrollToVerse, loading, page, totalPages]);
@@ -507,12 +525,14 @@ export default function SurahReader() {
                     return (
                       <div key={verse.id}>
                         {showJuzMarker && (
-                          <div className="flex items-center justify-center gap-3 my-5">
-                            <div className="h-px flex-1 bg-primary/20" />
-                            <span className="text-[10px] text-primary/60 font-semibold tracking-wider px-2">
-                              {isAr ? `بداية الجزء ${verse.juz_number}` : `Juz ${verse.juz_number} begins here`}
-                            </span>
-                            <div className="h-px flex-1 bg-primary/20" />
+                          <div className="flex justify-center my-6">
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/25">
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary/50 flex-shrink-0" />
+                              <span className="text-[10px] font-semibold text-primary/80 tracking-wider">
+                                {isAr ? `بداية الجزء ${verse.juz_number}` : `Start of Juz ${verse.juz_number}`}
+                              </span>
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary/50 flex-shrink-0" />
+                            </div>
                           </div>
                         )}
                         {showPageMarker && !showJuzMarker && (
@@ -525,8 +545,8 @@ export default function SurahReader() {
                           </div>
                         )}
                         <div
-                          className={`rounded-xl px-2 py-1 transition-all duration-700 ${highlighted ? 'animate-pulse' : ''}`}
-                          style={active ? { background: 'rgba(201, 168, 76, 0.2)' } : highlighted ? { background: 'rgba(201, 168, 76, 0.15)' } : {}}
+                          className={`rounded-xl transition-all duration-700 ${highlighted ? 'animate-juz-flash px-2 py-1' : active ? 'px-2 py-1' : ''}`}
+                          style={active ? { background: 'rgba(201, 168, 76, 0.2)' } : {}}
                         >
                           <p
                             className="font-arabic-display text-primary/90 text-right leading-[2.4]"
@@ -561,13 +581,15 @@ export default function SurahReader() {
                     return (
                       <span key={verse.id}>
                         {showJuzMarker && idx > 0 && (
-                          <span className="block my-5" dir="ltr">
-                            <span className="flex items-center justify-center gap-3">
-                              <span className="h-px flex-1 bg-primary/20" />
-                              <span className="text-[10px] text-primary/60 font-semibold tracking-wider px-2">
-                                {isAr ? `بداية الجزء ${verse.juz_number}` : `Juz ${verse.juz_number} begins here`}
+                          <span className="block my-6" dir="ltr">
+                            <span className="flex justify-center">
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/25">
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary/50 inline-block flex-shrink-0" />
+                                <span className="text-[10px] font-semibold text-primary/80 tracking-wider">
+                                  {isAr ? `بداية الجزء ${verse.juz_number}` : `Start of Juz ${verse.juz_number}`}
+                                </span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary/50 inline-block flex-shrink-0" />
                               </span>
-                              <span className="h-px flex-1 bg-primary/20" />
                             </span>
                           </span>
                         )}
@@ -583,10 +605,10 @@ export default function SurahReader() {
                           </span>
                         )}
                         <span
-                          className={`font-arabic-display text-primary/90 leading-[2.4] rounded-lg transition-all duration-700`}
+                          className={`font-arabic-display text-primary/90 leading-[2.4] rounded-lg ${highlighted ? 'animate-juz-flash' : ''}`}
                           style={{
                             fontSize: `${effectiveFontSize}px`,
-                            ...(active ? { background: 'rgba(201, 168, 76, 0.2)', padding: '2px 4px' } : highlighted ? { background: 'rgba(201, 168, 76, 0.15)', padding: '2px 4px' } : {}),
+                            ...(active ? { background: 'rgba(201, 168, 76, 0.2)', padding: '2px 4px' } : highlighted ? { padding: '2px 4px' } : {}),
                           }}
                         >
                           {verse.text_uthmani}

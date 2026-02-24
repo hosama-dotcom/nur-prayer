@@ -183,43 +183,41 @@ export default function Quran() {
                       className="glass-card overflow-hidden"
                       style={isExpanded ? { borderLeft: '3px solid hsl(var(--primary))' } : undefined}
                     >
+                      {/* ── Juz Header Row ── */}
                       <button
                         onClick={() => setExpandedJuz(isExpanded ? null : juz.number)}
-                        className="w-full px-4 py-4 flex items-center gap-4 active:scale-[0.98] transition-transform"
+                        className="w-full px-4 py-4 flex items-center gap-3 active:scale-[0.98] transition-transform"
                         style={isAr ? { direction: 'rtl' } : undefined}
                       >
-                        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <span className="text-xs font-semibold text-primary">{juz.number}</span>
+                        {/* Number badge */}
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+                          <span className="text-[11px] font-bold text-primary">{juz.number}</span>
                         </div>
-                        {isAr ? (
-                          <>
-                            <div className="flex-shrink-0 text-right">
-                              <p className="font-arabic text-primary/80" style={{ fontSize: '18px' }}>{juz.arabicName}</p>
-                            </div>
-                            <div className="flex-1" />
-                            <p className="text-xs text-muted-foreground flex-shrink-0">{juz.surahs.length} {t('quran.surah')}</p>
-                          </>
-                        ) : (
-                          <>
-                            <div className="flex-1 min-w-0 text-left">
-                              <p className="text-sm font-medium text-foreground">
-                                {`${t('quran.juz')} ${juz.number} — ${juz.name}`}
-                              </p>
-                              <p className="text-xs text-muted-foreground">{juz.surahs.length} {t('quran.surah')}{juz.surahs.length > 1 ? 's' : ''}</p>
-                            </div>
-                            <div className="flex items-center gap-2 flex-shrink-0">
-                              <p className="font-arabic text-lg text-primary/80">{juz.arabicName}</p>
-                              <svg
-                                width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--muted-foreground))" strokeWidth="2" strokeLinecap="round"
-                                className={`transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
-                              >
-                                <polyline points="9 18 15 12 9 6" />
-                              </svg>
-                            </div>
-                          </>
-                        )}
+
+                        {/* Arabic name + subtitle */}
+                        <div className="flex-1 min-w-0 text-left" style={isAr ? { textAlign: 'right' } : undefined}>
+                          <p className="font-arabic text-primary/90 leading-tight" style={{ fontSize: '20px' }}>
+                            {juz.arabicName}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
+                            {isAr
+                              ? (juz.surahs.length === 1 ? 'سورة' : juz.surahs.length === 2 ? 'سورتان' : `${juz.surahs.length} سور`)
+                              : `${juz.name} · ${juz.surahs.length === 1 ? 'surah' : `${juz.surahs.length} surahs`}`
+                            }
+                          </p>
+                        </div>
+
+                        {/* Chevron — rotates 180° when expanded */}
+                        <svg
+                          width="15" height="15" viewBox="0 0 24 24" fill="none"
+                          stroke="hsl(var(--muted-foreground))" strokeWidth="2" strokeLinecap="round"
+                          className={`flex-shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                        >
+                          <path d="M6 9l6 6 6-6" />
+                        </svg>
                       </button>
 
+                      {/* ── Expanded Surah List ── */}
                       <AnimatePresence>
                         {isExpanded && (
                           <motion.div
@@ -229,26 +227,47 @@ export default function Quran() {
                             transition={{ duration: 0.2, ease: 'easeInOut' }}
                             className="overflow-hidden"
                           >
-                            <div className="px-4 pb-3 space-y-1">
+                            <div
+                              className="px-3 pb-3 pt-1 space-y-1 border-t border-white/[0.06]"
+                              style={isAr ? { direction: 'rtl' } : undefined}
+                            >
                               {juz.surahs.map((js, surahIdx) => {
                                 const surah = surahs.find(s => s.number === js.surahNumber);
                                 if (!surah) return null;
-                                // First surah in juz: navigate to exact juz start ayah
-                                const targetVerse = surahIdx === 0 && juzStart ? juzStart.ayah : js.startVerse;
+                                // First surah → exact Juz start ayah; subsequent surahs → ayah 1
+                                const targetVerse = surahIdx === 0 && juzStart ? juzStart.ayah : 1;
                                 return (
                                   <button
                                     key={`${juz.number}-${js.surahNumber}`}
                                     onClick={() => navigate(`/quran/${js.surahNumber}?verse=${targetVerse}`)}
-                                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.05] active:scale-[0.97] transition-transform ${isAr ? 'flex-row-reverse text-right' : 'text-left'}`}
+                                    className="w-full flex items-center gap-3 px-3 py-3 rounded-xl bg-white/[0.03] border border-white/[0.05] active:scale-[0.97] transition-transform text-left"
                                   >
-                                    <span className="text-[10px] font-semibold text-primary/60 w-6 text-center">{surah.number}</span>
+                                    {/* Surah number */}
+                                    <span className="text-[10px] font-semibold text-primary/50 w-6 text-center flex-shrink-0">
+                                      {surah.number}
+                                    </span>
+
+                                    {/* Arabic name + verse range */}
                                     <div className="flex-1 min-w-0">
-                                      <p className="text-xs font-medium text-foreground">{isAr ? surah.arabicName : surah.name}</p>
-                                      <p className="text-[10px] text-muted-foreground">
-                                        {isAr ? `${t('quran.verses')} ${js.startVerse}–${js.endVerse}` : `${surah.englishName} · verses ${js.startVerse}–${js.endVerse}`}
+                                      <p className="font-arabic text-primary/85 leading-tight" style={{ fontSize: '16px' }}>
+                                        {surah.arabicName}
+                                      </p>
+                                      <p className="text-[10px] text-muted-foreground mt-0.5">
+                                        {isAr
+                                          ? `الآيات ${js.startVerse}–${js.endVerse}`
+                                          : `${surah.name} · verses ${js.startVerse}–${js.endVerse}`
+                                        }
                                       </p>
                                     </div>
-                                    {!isAr && <p className="font-arabic text-sm text-primary/60">{surah.arabicName}</p>}
+
+                                    {/* Navigation chevron */}
+                                    <svg
+                                      width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                      stroke="hsl(var(--muted-foreground))" strokeWidth="2" strokeLinecap="round"
+                                      className={`flex-shrink-0 opacity-35 ${isAr ? 'rotate-180' : ''}`}
+                                    >
+                                      <path d="M9 18l6-6-6-6" />
+                                    </svg>
                                   </button>
                                 );
                               })}

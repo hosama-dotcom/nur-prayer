@@ -184,6 +184,16 @@
   50% { box-shadow: 0 0 0 8px rgba(201, 168, 76, 0); }
 }
 
+/* Juz start highlight — gold fade-in that fades to transparent */
+@keyframes juz-flash {
+  0%   { background: rgba(201, 168, 76, 0.5); }
+  60%  { background: rgba(201, 168, 76, 0.18); }
+  100% { background: rgba(201, 168, 76, 0); }
+}
+.animate-juz-flash {
+  animation: juz-flash 2s ease-out forwards;
+}
+
 /* Arabic mode: enforce minimum font size for legibility */
 html[lang="ar"] .text-\[9px\],
 html[lang="ar"] .text-\[10px\],
