@@ -367,7 +367,7 @@ function DuasSection() {
                   >
                     <span className="text-2xl mb-2 block">{topic.icon}</span>
                     <p className="font-arabic text-sm text-primary/70 mb-0.5">{topic.arabicLabel}</p>
-                    <p className="text-xs text-foreground/80 font-medium">{topic.label}</p>
+                    {lang !== 'ar' && <p className="text-xs text-foreground/80 font-medium">{topic.label}</p>}
                   </motion.button>
                 ))}
               </div>
