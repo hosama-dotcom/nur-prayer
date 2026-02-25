@@ -4,13 +4,12 @@ import { useLocation } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { surahs } from '@/data/surahs';
 
-const RECITER_NAMES_AR: Record<string, string> = {
-  'Al-Afasy': 'العفاسي',
-  'Mishary Rashid Al-Afasy': 'مشاري راشد العفاسي',
-  'Abdul Rahman Al-Sudais': 'عبد الرحمن السديس',
-  'Mahmoud Khalil Al-Husary': 'محمود خليل الحصري',
-  'Saad Al-Ghamdi': 'سعد الغامدي',
-  'Abu Bakr Al-Shatri': 'أبو بكر الشاطري',
+const RECITER_BY_CDN: Record<string, { name: string; nameAr: string }> = {
+  'ar.alafasy':                   { name: 'Mishary Al-Afasy',     nameAr: 'مشاري راشد العفاسي' },
+  'ar.abdurrahmanas-sudais':      { name: 'Abdul Rahman Al-Sudais', nameAr: 'عبد الرحمن السديس' },
+  'ar.husary':                    { name: 'Mahmoud Al-Husary',    nameAr: 'محمود خليل الحصري' },
+  'ar.saadalghamdi':              { name: 'Saad Al-Ghamdi',       nameAr: 'سعد الغامدي' },
+  'ar.shaatree':                  { name: 'Abu Bakr Al-Shatri',   nameAr: 'أبو بكر الشاطري' },
 };
 
 export function MiniPlayer() {
@@ -26,8 +25,8 @@ export function MiniPlayer() {
   const surahData = state.surahNumber ? surahs.find(s => s.number === state.surahNumber) : null;
   const displayName = isAr && surahData ? surahData.arabicName : state.surahName;
 
-  const reciterName = 'Al-Afasy';
-  const displayReciter = isAr ? (RECITER_NAMES_AR[reciterName] || reciterName) : reciterName;
+  const reciterInfo = RECITER_BY_CDN[state.reciterIdentifier];
+  const displayReciter = isAr ? (reciterInfo?.nameAr ?? state.reciterIdentifier) : (reciterInfo?.name ?? state.reciterIdentifier);
   const verseLabel = isAr ? `الآية ${state.currentVerse}` : `Verse ${state.currentVerse}`;
   const pausedLabel = isAr ? 'متوقف' : 'Paused';
 

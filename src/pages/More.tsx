@@ -45,7 +45,7 @@ function AboutScreen({ t }: { t: (key: any) => string }) {
         </div>
       </div>
 
-      <p className="text-[10px] text-muted-foreground/40 mt-auto pt-12">© 2025 Nur · All rights reserved</p>
+      <p className="text-[10px] text-muted-foreground/40 mt-auto pt-12">© {new Date().getFullYear()} Nur · All rights reserved</p>
     </div>
   );
 }

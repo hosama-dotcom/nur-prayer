@@ -179,19 +179,20 @@ export function usePrayerTimes() {
 
   // Countdown timer
   useEffect(() => {
-    if (!nextPrayer) return;
+    if (!nextPrayer || !location) return;
+    const { lat, lng } = location;
     const interval = setInterval(() => {
       setCountdown(getTimeUntil(nextPrayer.time));
       if (prayers.length > 0) {
         const cp = getCurrentPrayer(prayers);
         if (cp !== currentPrayer) {
           setCurrentPrayer(cp);
-          setNextPrayer(getNextPrayer(prayers, location!.lat, location!.lng, method));
+          setNextPrayer(getNextPrayer(prayers, lat, lng, method));
         }
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, [nextPrayer, prayers, currentPrayer]);
+  }, [nextPrayer, prayers, currentPrayer, location, method]);
 
   return {
     location,

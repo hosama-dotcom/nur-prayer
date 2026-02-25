@@ -171,7 +171,7 @@ export default function Home() {
   const cardText = isDarkBackground ? 'rgba(255,255,255,0.9)' : 'rgba(10,20,40,0.85)';
   const cardTextMuted = isDarkBackground ? 'rgba(255,255,255,0.7)' : 'rgba(10,20,40,0.75)';
   const cardBg = 'rgba(255,255,255,0.12)';
-  const cardBorder = isDarkBackground ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.2)';
+  const cardBorder = 'rgba(255,255,255,0.2)';
   const inactiveCardBg = isDarkBackground ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.07)';
   const inactiveCardBorder = isDarkBackground ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.08)';
   const countdownColor = isDarkBackground ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.8)';
