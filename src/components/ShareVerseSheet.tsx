@@ -33,10 +33,10 @@ const GEOMETRIC_SVG = `url("data:image/svg+xml,%3Csvg width='80' height='80' vie
 
 function getVerseFontSize(text: string): number {
   const len = text.length;
-  if (len < 50) return 72;
-  if (len <= 100) return 60;
-  if (len <= 150) return 48;
-  return 38;
+  if (len < 50) return 86;
+  if (len <= 100) return 72;
+  if (len <= 150) return 58;
+  return 46;
 }
 
 function stripHtml(html: string): string {
@@ -50,6 +50,7 @@ export default function ShareVerseSheet({ open, onOpenChange, verse, surahNumber
   const [bgIndex, setBgIndex] = useState(0);
   const [rendering, setRendering] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+  const scaleWrapperRef = useRef<HTMLDivElement>(null);
 
   const verseRef = `${surahNumber}:${verse.verse_number}`;
   const translationText = verse.translations?.[0] ? stripHtml(verse.translations[0].text) : '';
@@ -60,16 +61,34 @@ export default function ShareVerseSheet({ open, onOpenChange, verse, surahNumber
 
   const renderToCanvas = useCallback(async (): Promise<Blob | null> => {
     if (!cardRef.current) return null;
-    const canvas = await html2canvas(cardRef.current, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: null,
-      width: 1080,
-      height: 1080,
-    });
-    return new Promise((resolve) => {
-      canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
-    });
+
+    // Wait for fonts (especially Scheherazade) to fully load
+    await document.fonts.ready;
+    // Allow 300ms for layout/paint to settle
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    // Temporarily remove preview scale so html2canvas captures at full 1080x1080
+    const wrapper = scaleWrapperRef.current;
+    const origTransform = wrapper?.style.transform || '';
+    if (wrapper) wrapper.style.transform = 'none';
+
+    try {
+      const canvas = await html2canvas(cardRef.current, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: null,
+        logging: false,
+        width: 1080,
+        height: 1080,
+      });
+      return new Promise((resolve) => {
+        canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
+      });
+    } finally {
+      // Restore the preview scale
+      if (wrapper) wrapper.style.transform = origTransform;
+    }
   }, []);
 
   const handleShare = async () => {
@@ -78,13 +97,21 @@ export default function ShareVerseSheet({ open, onOpenChange, verse, surahNumber
       const blob = await renderToCanvas();
       if (!blob) return;
       const file = new File([blob], `nur-verse-${verseRef}.png`, { type: 'image/png' });
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file] });
-      } else {
-        downloadBlob(blob);
+      try {
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: 'Nur — Quran Verse' });
+        } else {
+          downloadBlob(blob);
+        }
+      } catch (shareErr) {
+        console.error('[Nur] Share failed:', shareErr);
+        // Fall back to download if share was not just cancelled by user
+        if (shareErr instanceof Error && shareErr.name !== 'AbortError') {
+          downloadBlob(blob);
+        }
       }
-    } catch {
-      // User cancelled share or error — do nothing
+    } catch (err) {
+      console.error('[Nur] Render failed:', err);
     } finally {
       setRendering(false);
     }
@@ -94,21 +121,53 @@ export default function ShareVerseSheet({ open, onOpenChange, verse, surahNumber
     setRendering(true);
     try {
       const blob = await renderToCanvas();
-      if (blob) downloadBlob(blob);
+      if (!blob) return;
+
+      // Detect iOS Safari where <a download> doesn't work
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+      if (isIOS) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          window.open(reader.result as string, '_blank');
+        };
+        reader.readAsDataURL(blob);
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `nur-verse-${verseRef}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      console.error('[Nur] Save failed:', err);
     } finally {
       setRendering(false);
     }
   };
 
   const downloadBlob = (blob: Blob) => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `nur-verse-${verseRef}.png`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    if (isIOS) {
+      // iOS Safari doesn't support <a download>, open in new tab instead
+      const reader = new FileReader();
+      reader.onload = () => {
+        window.open(reader.result as string, '_blank');
+      };
+      reader.readAsDataURL(blob);
+    } else {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `nur-verse-${verseRef}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
   };
 
   const pills: { mode: ContentMode; labelKey: TranslationKey }[] = [
@@ -124,7 +183,7 @@ export default function ShareVerseSheet({ open, onOpenChange, verse, surahNumber
           {/* Live preview (scaled) */}
           <div className="flex justify-center">
             <div style={{ width: '100%', maxWidth: '340px', aspectRatio: '1', overflow: 'hidden', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <div style={{ width: '1080px', height: '1080px', transform: 'scale(0.315)', transformOrigin: 'top left' }}>
+              <div ref={scaleWrapperRef} style={{ width: '1080px', height: '1080px', transform: 'scale(0.315)', transformOrigin: 'top left' }}>
                 <ShareCard
                   ref={cardRef}
                   verse={verse}
@@ -251,7 +310,7 @@ const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <span style={{
             fontFamily: "'Scheherazade New', serif",
-            fontSize: '44px',
+            fontSize: '53px',
             color: '#C9A84C',
             lineHeight: 1,
           }}>
@@ -260,14 +319,14 @@ const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(({
           <div style={{ textAlign: 'right' }}>
             <div style={{
               fontFamily: "'Scheherazade New', serif",
-              fontSize: '36px',
+              fontSize: '43px',
               color: '#C9A84C',
               lineHeight: 1.3,
             }}>
               {surahArabicName}
             </div>
             <div style={{
-              fontSize: '28px',
+              fontSize: '34px',
               color: 'rgba(201, 168, 76, 0.6)',
               marginTop: '4px',
               fontFamily: 'Inter, sans-serif',
@@ -311,7 +370,7 @@ const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(({
           {showTranslation && translationText && (
             <div style={{
               fontFamily: 'Inter, sans-serif',
-              fontSize: '32px',
+              fontSize: '38px',
               color: 'rgba(255, 255, 255, 0.85)',
               fontStyle: 'italic',
               textAlign: 'center',
@@ -337,7 +396,7 @@ const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(({
           }} />
           <div style={{
             fontFamily: 'Inter, sans-serif',
-            fontSize: '22px',
+            fontSize: '26px',
             color: 'rgba(255, 255, 255, 0.3)',
             textAlign: 'center',
           }}>
