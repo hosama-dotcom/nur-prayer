@@ -185,7 +185,7 @@ export default function ShareVerseSheet({ open, onOpenChange, verse, surahNumber
           {/* Live preview (scaled) */}
           <div className="flex justify-center">
             <div style={{ width: '100%', maxWidth: '340px', aspectRatio: '1', overflow: 'hidden', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <div ref={scaleWrapperRef} style={{ width: '1080px', height: '1080px', transform: 'scale(0.315)', transformOrigin: 'top left' }}>
+              <div ref={scaleWrapperRef} style={{ width: '1080px', height: '1080px', transform: 'scale(0.315)', transformOrigin: 'top left', pointerEvents: 'none' }}>
                 <ShareCard
                   ref={cardRef}
                   verse={verse}
@@ -240,8 +240,17 @@ export default function ShareVerseSheet({ open, onOpenChange, verse, surahNumber
           <button
             onClick={handleShare}
             disabled={!buttonsReady}
-            className="w-full py-3.5 rounded-xl font-semibold text-sm transition-opacity disabled:opacity-50"
-            style={{ background: '#C9A84C', color: '#0A0A1A' }}
+            className="w-full rounded-xl font-semibold text-sm transition-opacity disabled:opacity-50"
+            style={{
+              background: '#C9A84C',
+              color: '#0A0A1A',
+              position: 'relative',
+              zIndex: 50,
+              transform: 'translateZ(0)',
+              touchAction: 'manipulation',
+              minHeight: '44px',
+              padding: '12px 24px',
+            }}
           >
             {preRendering ? '...' : t('share.share' as TranslationKey)}
           </button>
@@ -251,6 +260,14 @@ export default function ShareVerseSheet({ open, onOpenChange, verse, surahNumber
             onClick={handleSave}
             disabled={!buttonsReady}
             className="w-full text-center text-xs text-muted-foreground underline underline-offset-2 disabled:opacity-50"
+            style={{
+              position: 'relative',
+              zIndex: 50,
+              transform: 'translateZ(0)',
+              touchAction: 'manipulation',
+              minHeight: '44px',
+              padding: '12px 24px',
+            }}
           >
             {t('share.saveToPhotos' as TranslationKey)}
           </button>
