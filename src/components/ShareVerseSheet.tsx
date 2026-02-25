@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, forwardRef } from 'react';
+import { useState, useRef, useEffect, forwardRef } from 'react';
 import html2canvas from 'html2canvas';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -48,7 +48,8 @@ export default function ShareVerseSheet({ open, onOpenChange, verse, surahNumber
   const { t } = useLanguage();
   const [contentMode, setContentMode] = useState<ContentMode>('arabic');
   const [bgIndex, setBgIndex] = useState(0);
-  const [rendering, setRendering] = useState(false);
+  const [preRendering, setPreRendering] = useState(false);
+  const [renderedCanvas, setRenderedCanvas] = useState<{ blob: Blob; dataUrl: string } | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const scaleWrapperRef = useRef<HTMLDivElement>(null);
 
@@ -58,122 +59,123 @@ export default function ShareVerseSheet({ open, onOpenChange, verse, surahNumber
   const bg = BACKGROUNDS[bgIndex];
 
   const showTranslation = contentMode === 'translation';
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
-  const renderToCanvas = useCallback(async (): Promise<Blob | null> => {
-    if (!cardRef.current) return null;
-
-    // Wait for fonts (especially Scheherazade) to fully load
-    await document.fonts.ready;
-    // Allow 300ms for layout/paint to settle
-    await new Promise(resolve => setTimeout(resolve, 300));
-
-    // Temporarily remove preview scale so html2canvas captures at full 1080x1080
-    const wrapper = scaleWrapperRef.current;
-    const origTransform = wrapper?.style.transform || '';
-    if (wrapper) wrapper.style.transform = 'none';
-
-    try {
-      const canvas = await html2canvas(cardRef.current, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: false,
-        backgroundColor: null,
-        logging: false,
-        width: 1080,
-        height: 1080,
-      });
-      return new Promise((resolve) => {
-        canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
-      });
-    } finally {
-      // Restore the preview scale
-      if (wrapper) wrapper.style.transform = origTransform;
+  // Pre-render canvas when sheet opens or when user changes options
+  useEffect(() => {
+    if (!open) {
+      setRenderedCanvas(null);
+      return;
     }
-  }, []);
 
-  const handleShare = async () => {
-    setRendering(true);
-    try {
-      const blob = await renderToCanvas();
-      if (!blob) return;
-      const file = new File([blob], `nur-verse-${verseRef}.png`, { type: 'image/png' });
+    let cancelled = false;
+
+    const preRender = async () => {
+      setPreRendering(true);
+      setRenderedCanvas(null);
       try {
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: 'Nur — Quran Verse' });
-        } else {
-          downloadBlob(blob);
+        // Wait for fonts (especially Scheherazade) to fully load
+        await document.fonts.ready;
+        // Allow 300ms for DOM mount + layout/paint to settle
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        if (cancelled || !cardRef.current) return;
+
+        // Temporarily remove preview scale so html2canvas captures at full 1080x1080
+        const wrapper = scaleWrapperRef.current;
+        const origTransform = wrapper?.style.transform || '';
+        if (wrapper) wrapper.style.transform = 'none';
+
+        try {
+          const canvas = await html2canvas(cardRef.current, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: false,
+            backgroundColor: null,
+            logging: false,
+            width: 1080,
+            height: 1080,
+          });
+
+          if (cancelled) return;
+
+          const blob = await new Promise<Blob | null>((resolve) => {
+            canvas.toBlob((b) => resolve(b), 'image/png', 1.0);
+          });
+
+          if (cancelled || !blob) return;
+
+          const dataUrl = canvas.toDataURL('image/png');
+          setRenderedCanvas({ blob, dataUrl });
+        } finally {
+          if (wrapper) wrapper.style.transform = origTransform;
         }
-      } catch (shareErr) {
-        console.error('[Nur] Share failed:', shareErr);
-        // Fall back to download if share was not just cancelled by user
-        if (shareErr instanceof Error && shareErr.name !== 'AbortError') {
-          downloadBlob(blob);
+      } catch (err) {
+        console.error('[Nur] Pre-render failed:', err);
+      } finally {
+        if (!cancelled) setPreRendering(false);
+      }
+    };
+
+    preRender();
+    return () => { cancelled = true; };
+  }, [open, bgIndex, contentMode]);
+
+  // Synchronous handler — canvas is already rendered, preserves iOS user gesture chain
+  const handleShare = () => {
+    if (!renderedCanvas) return;
+    const { blob, dataUrl } = renderedCanvas;
+    const file = new File([blob], `nur-verse-${verseRef}.png`, { type: 'image/png' });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: 'Nur — Quran Verse' }).catch((err) => {
+        console.error('[Nur] Share failed:', err);
+        if (err instanceof Error && err.name !== 'AbortError') {
+          // Fall back to opening image in new tab
+          window.open(dataUrl, '_blank');
         }
-      }
-    } catch (err) {
-      console.error('[Nur] Render failed:', err);
-    } finally {
-      setRendering(false);
-    }
-  };
-
-  const handleSave = async () => {
-    setRendering(true);
-    try {
-      const blob = await renderToCanvas();
-      if (!blob) return;
-
-      // Detect iOS Safari where <a download> doesn't work
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-
-      if (isIOS) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          window.open(reader.result as string, '_blank');
-        };
-        reader.readAsDataURL(blob);
-      } else {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `nur-verse-${verseRef}.png`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }
-    } catch (err) {
-      console.error('[Nur] Save failed:', err);
-    } finally {
-      setRendering(false);
-    }
-  };
-
-  const downloadBlob = (blob: Blob) => {
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    if (isIOS) {
-      // iOS Safari doesn't support <a download>, open in new tab instead
-      const reader = new FileReader();
-      reader.onload = () => {
-        window.open(reader.result as string, '_blank');
-      };
-      reader.readAsDataURL(blob);
+      });
     } else {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `nur-verse-${verseRef}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      // Web Share API not available or doesn't support files — fall back
+      if (isIOS) {
+        window.open(dataUrl, '_blank');
+        setTimeout(() => alert('Press and hold the image, then tap Save to Photos'), 300);
+      } else {
+        triggerDownload(blob);
+      }
     }
+  };
+
+  // Synchronous handler — canvas is already rendered, preserves iOS user gesture chain
+  const handleSave = () => {
+    if (!renderedCanvas) return;
+    const { blob, dataUrl } = renderedCanvas;
+
+    if (isIOS) {
+      window.open(dataUrl, '_blank');
+      setTimeout(() => alert('Press and hold the image, then tap Save to Photos'), 300);
+    } else {
+      triggerDownload(blob);
+    }
+  };
+
+  const triggerDownload = (blob: Blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `nur-verse-${verseRef}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const pills: { mode: ContentMode; labelKey: TranslationKey }[] = [
     { mode: 'arabic', labelKey: 'share.arabicOnly' },
     { mode: 'translation', labelKey: 'share.translation' },
   ];
+
+  const buttonsReady = !!renderedCanvas && !preRendering;
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
@@ -237,17 +239,17 @@ export default function ShareVerseSheet({ open, onOpenChange, verse, surahNumber
           {/* Share button */}
           <button
             onClick={handleShare}
-            disabled={rendering}
+            disabled={!buttonsReady}
             className="w-full py-3.5 rounded-xl font-semibold text-sm transition-opacity disabled:opacity-50"
             style={{ background: '#C9A84C', color: '#0A0A1A' }}
           >
-            {rendering ? '...' : t('share.share' as TranslationKey)}
+            {preRendering ? '...' : t('share.share' as TranslationKey)}
           </button>
 
           {/* Save to photos */}
           <button
             onClick={handleSave}
-            disabled={rendering}
+            disabled={!buttonsReady}
             className="w-full text-center text-xs text-muted-foreground underline underline-offset-2 disabled:opacity-50"
           >
             {t('share.saveToPhotos' as TranslationKey)}
