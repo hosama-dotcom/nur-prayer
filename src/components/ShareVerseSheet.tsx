@@ -317,7 +317,7 @@ export default function ShareVerseSheet({ open, onOpenChange, verse, surahNumber
     return () => { cancelled = true; };
   }, [open, bgIndex, contentMode]);
 
-  const handleShare = () => {
+  const handleShare = async () => {
     console.log('[Nur] Share button tapped');
     try {
       if (!renderedCanvas) {
@@ -325,31 +325,29 @@ export default function ShareVerseSheet({ open, onOpenChange, verse, surahNumber
         alert('Image not ready yet. Please wait a moment and try again.');
         return;
       }
-      const { blob, dataUrl } = renderedCanvas;
-      console.log('[Nur] Creating file from blob, size:', blob.size);
+      const { dataUrl } = renderedCanvas;
+
+      // Convert dataUrl to blob and File
+      console.log('[Nur] Converting data URL to blob via fetch');
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      console.log('[Nur] Blob created from fetch, size:', blob.size);
       const file = new File([blob], `nur-verse-${verseRef}.png`, { type: 'image/png' });
 
+      // Check if sharing files is supported
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         console.log('[Nur] Sharing via Web Share API...');
-        navigator.share({ files: [file], title: 'Nur — Quran Verse' }).catch((err) => {
-          console.error('[Nur] Share API rejected:', err);
-          if (err instanceof Error && err.name !== 'AbortError') {
-            window.open(dataUrl, '_blank');
-          }
-        });
+        await navigator.share({ files: [file], title: 'Nur — Quran Verse' });
+        console.log('[Nur] Share completed');
       } else {
-        console.log('[Nur] Web Share not available, using fallback');
-        if (isIOS) {
-          console.log('[Nur] iOS fallback: opening data URL in new tab');
-          window.open(dataUrl, '_blank');
-          setTimeout(() => alert('Press and hold the image, then tap Save to Photos'), 300);
-        } else {
-          console.log('[Nur] Desktop fallback: triggering download');
-          triggerDownload(blob);
-        }
+        // Fallback: open in new tab
+        console.log('[Nur] Web Share not available or cannot share files, fallback to new tab');
+        window.open(dataUrl, '_blank');
       }
     } catch (err) {
       console.error('[Nur] handleShare error:', err);
+      // Don't alert on user-cancelled share (AbortError)
+      if (err instanceof Error && err.name === 'AbortError') return;
       alert('Share failed: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
@@ -366,9 +364,14 @@ export default function ShareVerseSheet({ open, onOpenChange, verse, surahNumber
       console.log('[Nur] Saving, blob size:', blob.size);
 
       if (isIOS) {
+        // Show one-time tip before opening the tab
+        const tipShown = localStorage.getItem('nur_save_tip_shown');
+        if (!tipShown) {
+          alert('The image will open in a new tab — press and hold it then tap Save to Photos');
+          localStorage.setItem('nur_save_tip_shown', '1');
+        }
         console.log('[Nur] iOS save: opening data URL in new tab');
         window.open(dataUrl, '_blank');
-        setTimeout(() => alert('Press and hold the image, then tap Save to Photos'), 300);
       } else {
         console.log('[Nur] Desktop save: triggering download');
         triggerDownload(blob);
