@@ -286,7 +286,6 @@ export default function Tracker() {
   const { t, lang } = useLanguage();
   const khatmLog = useKhatmLog();
   const [showAutoKhatm, setShowAutoKhatm] = useState(false);
-  const [juzKey, setJuzKey] = useState(0);
 
   const handleAllJuzComplete = () => {
     setShowAutoKhatm(true);
@@ -296,7 +295,7 @@ export default function Tracker() {
     khatmLog.addKhatm();
     localStorage.setItem('nur_juz_progress', JSON.stringify(new Array(30).fill(false)));
     setShowAutoKhatm(false);
-    setJuzKey(k => k + 1);
+    window.location.reload();
   };
 
   return (
@@ -310,7 +309,7 @@ export default function Tracker() {
 
         <KhatmCounter khatmLog={khatmLog} />
         <ReadingStreak />
-        <JuzProgress key={juzKey} onAllComplete={handleAllJuzComplete} />
+        <JuzProgress onAllComplete={handleAllJuzComplete} />
       </div>
 
       <Dialog open={showAutoKhatm} onOpenChange={setShowAutoKhatm}>

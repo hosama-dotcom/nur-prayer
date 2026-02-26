@@ -12,10 +12,8 @@ const ADHAN_URLS: Record<Exclude<AdhanSound, 'None'>, string> = {
 const PRAYERS_WITH_ADHAN: PrayerName[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
 function getAdhanPrefs(): AdhanPrefs {
-  try {
-    const saved = localStorage.getItem('nur_adhan_prefs');
-    if (saved) return JSON.parse(saved);
-  } catch { /* ignore corrupt data */ }
+  const saved = localStorage.getItem('nur_adhan_prefs');
+  if (saved) return JSON.parse(saved);
   return { fajr: true, dhuhr: true, asr: true, maghrib: true, isha: true };
 }
 
@@ -24,10 +22,8 @@ function getAdhanSound(): AdhanSound {
 }
 
 function getLastPlayed(): { prayer: string; time: number } | null {
-  try {
-    const saved = localStorage.getItem('nur_last_adhan_played');
-    return saved ? JSON.parse(saved) : null;
-  } catch { return null; }
+  const saved = localStorage.getItem('nur_last_adhan_played');
+  return saved ? JSON.parse(saved) : null;
 }
 
 function setLastPlayed(prayer: string) {

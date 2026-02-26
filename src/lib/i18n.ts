@@ -105,24 +105,10 @@ const translations = {
   'quran.verses': { en: 'verses', ar: 'آيات' },
   'quran.surahs': { en: 'Surahs', ar: 'السور' },
 
-  // Share
-  'share.share': { en: 'Share', ar: 'مشاركة' },
-  'share.saveToPhotos': { en: 'Save to Photos', ar: 'حفظ في الصور' },
-  'share.arabicOnly': { en: 'Arabic only', ar: 'عربي فقط' },
-  'share.translation': { en: 'Translation', ar: 'ترجمة' },
-  'share.tafseer': { en: 'Tafseer', ar: 'تفسير' },
-  'share.both': { en: 'Both', ar: 'الكل' },
-  'share.copied': { en: 'Copied!', ar: 'تم النسخ!' },
-  'share.bookmarkAdded': { en: 'Bookmarked', ar: 'تم الحفظ' },
-  'share.bookmarkRemoved': { en: 'Bookmark removed', ar: 'تم الإزالة' },
-  'share.tafseerLoading': { en: 'Loading...', ar: 'جارٍ التحميل...' },
-  'share.tafseerOffline': { en: 'Tafseer unavailable offline', ar: 'التفسير غير متاح بدون إنترنت' },
-
   // Common
   'common.in': { en: 'in', ar: 'بعد' },
   'common.cancel': { en: 'Cancel', ar: 'إلغاء' },
   'common.reset': { en: 'Reset', ar: 'إعادة' },
-  'common.retry': { en: 'Retry', ar: 'إعادة المحاولة' },
 } as const;
 
 export type TranslationKey = keyof typeof translations;

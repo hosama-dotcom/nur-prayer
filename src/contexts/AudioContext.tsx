@@ -13,20 +13,17 @@ function getGlobalVerseNumber(surahNumber: number, verseNumber: number): number 
   return (cumulativeVerses[surahNumber] || 0) + verseNumber;
 }
 
-const DEFAULT_RECITER = 'ar.alafasy';
-
 interface AudioState {
   isPlaying: boolean;
   surahNumber: number | null;
   surahName: string | null;
   currentVerse: number | null;
   totalVerses: number | null;
-  reciterIdentifier: string;
 }
 
 interface AudioContextValue {
   state: AudioState;
-  playVerse: (surahNumber: number, surahName: string, verseNumber: number, totalVerses: number, reciterIdentifier?: string) => void;
+  playVerse: (surahNumber: number, surahName: string, verseNumber: number, totalVerses: number) => void;
   togglePlay: () => void;
   stop: () => void;
   activeVerseNumber: number | null;
@@ -48,7 +45,6 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     surahName: null,
     currentVerse: null,
     totalVerses: null,
-    reciterIdentifier: DEFAULT_RECITER,
   });
 
   // Keep refs in sync for callbacks
@@ -61,19 +57,12 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       audioRef.current.src = '';
       audioRef.current.removeAttribute('src');
     }
-    setState(prev => ({
-      isPlaying: false,
-      surahNumber: null,
-      surahName: null,
-      currentVerse: null,
-      totalVerses: null,
-      reciterIdentifier: prev.reciterIdentifier,
-    }));
+    setState({ isPlaying: false, surahNumber: null, surahName: null, currentVerse: null, totalVerses: null });
   }, []);
 
-  const playVerseAudio = useCallback((surahNumber: number, verseNumber: number, reciterIdentifier: string) => {
+  const playVerseAudio = useCallback((surahNumber: number, verseNumber: number) => {
     const globalNum = getGlobalVerseNumber(surahNumber, verseNumber);
-    const url = `https://cdn.islamic.network/quran/audio/128/${reciterIdentifier}/${globalNum}.mp3`;
+    const url = `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${globalNum}.mp3`;
 
     if (!audioRef.current) {
       audioRef.current = new Audio();
@@ -88,7 +77,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         if (verseNumber < s.totalVerses) {
           const next = verseNumber + 1;
           setState(prev => ({ ...prev, currentVerse: next }));
-          playVerseAudio(surahNumber, next, s.reciterIdentifier);
+          playVerseAudio(surahNumber, next);
         } else {
           setState(prev => ({ ...prev, isPlaying: false, currentVerse: null }));
         }
@@ -96,11 +85,12 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     };
 
     audio.onerror = () => {
+      // Try next verse on error
       const s = stateRef.current;
       if (s.totalVerses && verseNumber < s.totalVerses) {
         const next = verseNumber + 1;
         setState(prev => ({ ...prev, currentVerse: next }));
-        playVerseAudio(surahNumber, next, s.reciterIdentifier);
+        playVerseAudio(surahNumber, next);
       } else {
         setState(prev => ({ ...prev, isPlaying: false }));
       }
@@ -109,13 +99,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     audio.play().catch(() => {});
   }, []);
 
-  const playVerse = useCallback((
-    surahNumber: number,
-    surahName: string,
-    verseNumber: number,
-    totalVerses: number,
-    reciterIdentifier: string = DEFAULT_RECITER,
-  ) => {
+  const playVerse = useCallback((surahNumber: number, surahName: string, verseNumber: number, totalVerses: number) => {
+    // Stop any existing playback
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.src = '';
@@ -126,9 +111,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       surahName,
       currentVerse: verseNumber,
       totalVerses,
-      reciterIdentifier,
     });
-    playVerseAudio(surahNumber, verseNumber, reciterIdentifier);
+    playVerseAudio(surahNumber, verseNumber);
   }, [playVerseAudio]);
 
   const togglePlay = useCallback(() => {

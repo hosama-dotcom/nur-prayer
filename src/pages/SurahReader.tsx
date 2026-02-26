@@ -7,9 +7,6 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/u
 import { z } from 'zod';
 import { useAudioPlayer } from '@/contexts/AudioContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import VerseActionBar from '@/components/VerseActionBar';
-import ShareVerseSheet from '@/components/ShareVerseSheet';
-import type { TranslationKey } from '@/lib/i18n';
 
 const verseSchema = z.object({
   id: z.number(),
@@ -31,11 +28,11 @@ const apiResponseSchema = z.object({
 });
 
 const RECITERS = [
-  { id: 7, name: 'Mishary Rashid Al-Afasy', nameAr: 'مشاري راشد العفاسي', short: 'Afasy', cdn: 'ar.alafasy' },
-  { id: 1, name: 'Abdul Rahman Al-Sudais', nameAr: 'عبد الرحمن السديس', short: 'Sudais', cdn: 'ar.abdurrahmanas-sudais' },
-  { id: 5, name: 'Mahmoud Khalil Al-Husary', nameAr: 'محمود خليل الحصري', short: 'Husary', cdn: 'ar.husary' },
-  { id: 9, name: 'Saad Al-Ghamdi', nameAr: 'سعد الغامدي', short: 'Ghamdi', cdn: 'ar.saadalghamdi' },
-  { id: 6, name: 'Abu Bakr Al-Shatri', nameAr: 'أبو بكر الشاطري', short: 'Shatri', cdn: 'ar.shaatree' },
+  { id: 7, name: 'Mishary Rashid Al-Afasy', nameAr: 'مشاري راشد العفاسي', short: 'Afasy' },
+  { id: 1, name: 'Abdul Rahman Al-Sudais', nameAr: 'عبد الرحمن السديس', short: 'Sudais' },
+  { id: 5, name: 'Mahmoud Khalil Al-Husary', nameAr: 'محمود خليل الحصري', short: 'Husary' },
+  { id: 9, name: 'Saad Al-Ghamdi', nameAr: 'سعد الغامدي', short: 'Ghamdi' },
+  { id: 6, name: 'Abu Bakr Al-Shatri', nameAr: 'أبو بكر الشاطري', short: 'Shatri' },
 ];
 const RECITER_KEY = 'nur-reciter-id';
 
@@ -108,7 +105,7 @@ export default function SurahReader() {
   const navigate = useNavigate();
   const chapterNum = parseInt(number || '1', 10);
   const surah = surahs.find(s => s.number === chapterNum);
-  const { lang, t } = useLanguage();
+  const { lang } = useLanguage();
   const isAr = lang === 'ar';
 
   const [verses, setVerses] = useState<Verse[]>([]);
@@ -131,12 +128,6 @@ export default function SurahReader() {
     const stored = localStorage.getItem(RECITER_KEY);
     return stored ? parseInt(stored, 10) : 7;
   });
-
-  // Verse action bar & share sheet state
-  const [selectedVerse, setSelectedVerse] = useState<Verse | null>(null);
-  const [actionBarPos, setActionBarPos] = useState<{ top: number; left: number } | null>(null);
-  const [shareVerse, setShareVerse] = useState<Verse | null>(null);
-  const [copyToast, setCopyToast] = useState(false);
 
   // Global audio
   const { state: audioState, playVerse: globalPlayVerse, togglePlay: globalTogglePlay, stop: globalStop, activeVerseNumber } = useAudioPlayer();
@@ -307,9 +298,6 @@ export default function SurahReader() {
         if (currentVerseData.page_number) setCurrentPage(currentVerseData.page_number);
       }
 
-      // Dismiss action bar on scroll
-      if (selectedVerse) { setSelectedVerse(null); setActionBarPos(null); }
-
       setScrollActive(true);
       if (scrollFadeRef.current) clearTimeout(scrollFadeRef.current);
       scrollFadeRef.current = setTimeout(() => setScrollActive(false), 2000);
@@ -357,11 +345,11 @@ export default function SurahReader() {
     if (isThisSurahPlaying) {
       globalTogglePlay();
     } else {
+      // Start from currently visible verse
       const startVerse = visibleVerseRef.current || 1;
-      const reciter = RECITERS.find(r => r.id === reciterId);
-      globalPlayVerse(chapterNum, surah?.name || `Surah ${chapterNum}`, startVerse, surah?.versesCount || 1, reciter?.cdn || 'ar.alafasy');
+      globalPlayVerse(chapterNum, surah?.name || `Surah ${chapterNum}`, startVerse, surah?.versesCount || 1);
     }
-  }, [isThisSurahPlaying, globalTogglePlay, globalPlayVerse, chapterNum, surah, reciterId]);
+  }, [isThisSurahPlaying, globalTogglePlay, globalPlayVerse, chapterNum, surah]);
 
   const handleStop = useCallback(() => {
     globalStop();
@@ -372,52 +360,6 @@ export default function SurahReader() {
     setBookmarks(updated);
     if (navigator.vibrate) navigator.vibrate(15);
   };
-
-  // Verse tap → show action bar
-  const handleVerseTap = (verse: Verse, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (selectedVerse?.verse_number === verse.verse_number) {
-      setSelectedVerse(null);
-      setActionBarPos(null);
-      return;
-    }
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    setActionBarPos({
-      top: rect.bottom + window.scrollY + 8,
-      left: rect.left + rect.width / 2,
-    });
-    setSelectedVerse(verse);
-  };
-
-  // Dismiss action bar on outside tap or scroll
-  const dismissActionBar = useCallback(() => {
-    setSelectedVerse(null);
-    setActionBarPos(null);
-  }, []);
-
-  // Copy verse text
-  const handleCopyVerse = useCallback(() => {
-    if (!selectedVerse) return;
-    navigator.clipboard.writeText(selectedVerse.text_uthmani).then(() => {
-      setCopyToast(true);
-      setTimeout(() => setCopyToast(false), 1500);
-    });
-    dismissActionBar();
-  }, [selectedVerse, dismissActionBar]);
-
-  // Bookmark from action bar
-  const handleActionBarBookmark = useCallback(() => {
-    if (!selectedVerse) return;
-    handleBookmark(selectedVerse.verse_number);
-    dismissActionBar();
-  }, [selectedVerse, dismissActionBar]);
-
-  // Share from action bar
-  const handleActionBarShare = useCallback(() => {
-    if (!selectedVerse) return;
-    setShareVerse(selectedVerse);
-    dismissActionBar();
-  }, [selectedVerse, dismissActionBar]);
 
   const isBookmarked = (verseNum: number) =>
     bookmarks.some(b => b.surahNumber === chapterNum && b.verseNumber === verseNum);
@@ -452,7 +394,7 @@ export default function SurahReader() {
   const isVerseHighlighted = (verseNum: number) => highlightedVerse === verseNum;
 
   return (
-    <div className="min-h-screen night-sky-bg safe-area-top relative" onClick={dismissActionBar}>
+    <div className="min-h-screen night-sky-bg safe-area-top relative">
       <div className="geometric-pattern absolute inset-0 pointer-events-none" />
       <div className="relative z-10">
 
@@ -463,7 +405,7 @@ export default function SurahReader() {
               onClick={() => navigate('/quran')}
               className="w-7 h-7 rounded-lg bg-secondary/50 flex items-center justify-center backdrop-blur-sm"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className={isAr ? 'scale-x-[-1]' : ''}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <path d="M15 18l-6-6 6-6" />
               </svg>
             </button>
@@ -479,7 +421,7 @@ export default function SurahReader() {
                 onClick={() => navigate('/quran')}
                 className="w-10 h-10 rounded-xl bg-secondary/50 flex items-center justify-center backdrop-blur-sm"
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className={isAr ? 'scale-x-[-1]' : ''}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <path d="M15 18l-6-6 6-6" />
                 </svg>
               </button>
@@ -603,9 +545,8 @@ export default function SurahReader() {
                           </div>
                         )}
                         <div
-                          className={`rounded-xl transition-all duration-700 cursor-pointer ${highlighted ? 'animate-juz-flash px-2 py-1' : active ? 'px-2 py-1' : ''} ${selectedVerse?.verse_number === verse.verse_number ? 'ring-1 ring-primary/30' : ''}`}
+                          className={`rounded-xl transition-all duration-700 ${highlighted ? 'animate-juz-flash px-2 py-1' : active ? 'px-2 py-1' : ''}`}
                           style={active ? { background: 'rgba(201, 168, 76, 0.2)' } : {}}
-                          onClick={(e) => handleVerseTap(verse, e)}
                         >
                           <p
                             className="font-arabic-display text-primary/90 text-right leading-[2.4]"
@@ -664,12 +605,11 @@ export default function SurahReader() {
                           </span>
                         )}
                         <span
-                          className={`font-arabic-display text-primary/90 leading-[2.4] rounded-lg cursor-pointer ${highlighted ? 'animate-juz-flash' : ''} ${selectedVerse?.verse_number === verse.verse_number ? 'ring-1 ring-primary/30' : ''}`}
+                          className={`font-arabic-display text-primary/90 leading-[2.4] rounded-lg ${highlighted ? 'animate-juz-flash' : ''}`}
                           style={{
                             fontSize: `${effectiveFontSize}px`,
                             ...(active ? { background: 'rgba(201, 168, 76, 0.2)', padding: '2px 4px' } : highlighted ? { padding: '2px 4px' } : {}),
                           }}
-                          onClick={(e) => handleVerseTap(verse, e)}
                         >
                           {verse.text_uthmani}
                           <VerseBadge num={verse.verse_number} />
@@ -696,63 +636,11 @@ export default function SurahReader() {
           {error && (
             <div className="text-center py-10">
               <p className="text-sm text-destructive mb-3">{error}</p>
-              <button onClick={() => { setError(null); setPage(1); }} className="text-sm text-primary underline">{t('common.retry')}</button>
+              <button onClick={() => { setError(null); setPage(1); }} className="text-sm text-primary underline">Retry</button>
             </div>
           )}
         </div>
       </div>
-
-      {/* Verse action bar */}
-      <AnimatePresence>
-        {selectedVerse && actionBarPos && (
-          <div
-            key="action-bar"
-            className="absolute z-50"
-            style={{
-              top: `${actionBarPos.top}px`,
-              left: `${actionBarPos.left}px`,
-              transform: 'translateX(-50%)',
-            }}
-          >
-            <VerseActionBar
-              isBookmarked={isBookmarked(selectedVerse.verse_number)}
-              onCopy={handleCopyVerse}
-              onBookmark={handleActionBarBookmark}
-              onShare={handleActionBarShare}
-            />
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Share verse bottom sheet */}
-      {shareVerse && (
-        <ShareVerseSheet
-          open={!!shareVerse}
-          onOpenChange={(open) => { if (!open) setShareVerse(null); }}
-          verse={shareVerse}
-          surahNumber={chapterNum}
-          surahArabicName={surah?.arabicName || ''}
-        />
-      )}
-
-      {/* Copy toast */}
-      <AnimatePresence>
-        {copyToast && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-48 left-1/2 -translate-x-1/2 z-[60] px-4 py-2 rounded-full text-xs font-medium"
-            style={{
-              background: 'rgba(0,0,0,0.75)',
-              backdropFilter: 'blur(10px)',
-              color: '#C9A84C',
-            }}
-          >
-            {t('share.copied' as TranslationKey)}
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Audio player */}
       {isLandscape ? (
@@ -827,7 +715,7 @@ export default function SurahReader() {
               className="fixed z-50 w-12 h-12 rounded-full flex items-center justify-center"
               style={{
                 bottom: '108px',
-                [isAr ? 'left' : 'right']: '12px',
+                right: '12px',
                 background: 'hsla(230, 20%, 12%, 0.88)',
                 boxShadow: '0 4px 16px hsla(0, 0%, 0%, 0.4)',
               }}
