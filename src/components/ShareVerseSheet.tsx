@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect, forwardRef } from 'react';
+import { useState, useRef, forwardRef } from 'react';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { TranslationKey } from '@/lib/i18n';
+import html2canvas from 'html2canvas';
 
 interface ShareVerse {
   verse_number: number;
@@ -43,362 +44,62 @@ function stripHtml(html: string): string {
   return doc.body.textContent || '';
 }
 
-/* ── Canvas 2D rendering (replaces html2canvas — works reliably on iOS Safari) ── */
-
-function wrapCanvasText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
-  const words = text.split(/\s+/);
-  if (words.length === 0) return [''];
-  const lines: string[] = [];
-  let currentLine = words[0];
-  for (let i = 1; i < words.length; i++) {
-    const testLine = currentLine + ' ' + words[i];
-    if (ctx.measureText(testLine).width > maxWidth) {
-      lines.push(currentLine);
-      currentLine = words[i];
-    } else {
-      currentLine = testLine;
-    }
-  }
-  lines.push(currentLine);
-  return lines;
-}
-
-function drawCardBackground(ctx: CanvasRenderingContext2D, size: number, bgId: string) {
-  if (bgId === 'black') {
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(0, 0, size, size);
-    return;
-  }
-  const gradientColors: Record<string, [string, string]> = {
-    navy: ['#0d2137', '#080f1a'],
-    green: ['#0d2b1e', '#060f0a'],
-    amber: ['#2b1a0d', '#0f0804'],
-  };
-  const [inner, outer] = gradientColors[bgId] || gradientColors.navy;
-  const grad = ctx.createRadialGradient(size * 0.3, size * 0.2, 0, size * 0.3, size * 0.2, size * 0.85);
-  grad.addColorStop(0, inner);
-  grad.addColorStop(1, outer);
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, size, size);
-}
-
-function drawGeometricPattern(ctx: CanvasRenderingContext2D, size: number) {
-  ctx.save();
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 0.5;
-  for (let x = 0; x < size; x += 80) {
-    for (let y = 0; y < size; y += 80) {
-      const cx = x + 40, cy = y + 40;
-      ctx.globalAlpha = 0.0048;
-      ctx.beginPath();
-      ctx.moveTo(cx, y); ctx.lineTo(x + 80, cy); ctx.lineTo(cx, y + 80); ctx.lineTo(x, cy);
-      ctx.closePath(); ctx.stroke();
-      ctx.globalAlpha = 0.0032;
-      ctx.beginPath();
-      ctx.moveTo(cx, y + 12); ctx.lineTo(x + 68, cy); ctx.lineTo(cx, y + 68); ctx.lineTo(x + 12, cy);
-      ctx.closePath(); ctx.stroke();
-      ctx.globalAlpha = 0.002;
-      ctx.beginPath();
-      ctx.moveTo(cx, y + 24); ctx.lineTo(x + 56, cy); ctx.lineTo(cx, y + 56); ctx.lineTo(x + 24, cy);
-      ctx.closePath(); ctx.stroke();
-    }
-  }
-  ctx.restore();
-}
-
-async function renderShareCardCanvas(params: {
-  verseText: string;
-  surahArabicName: string;
-  verseRef: string;
-  arabicFontSize: number;
-  bgId: string;
-  showTranslation: boolean;
-  translationText: string;
-}): Promise<HTMLCanvasElement> {
-  const SIZE = 1080;
-  const SCALE = 2;
-  console.log('[Nur] Creating canvas', SIZE * SCALE, 'x', SIZE * SCALE);
-
-  const canvas = document.createElement('canvas');
-  canvas.width = SIZE * SCALE;
-  canvas.height = SIZE * SCALE;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Could not get canvas 2d context');
-  ctx.scale(SCALE, SCALE);
-
-  // Background + geometric pattern
-  drawCardBackground(ctx, SIZE, params.bgId);
-  drawGeometricPattern(ctx, SIZE);
-  console.log('[Nur] Background + pattern drawn');
-
-  // "نور" branding top-left
-  ctx.save();
-  ctx.font = "53px 'Scheherazade New', serif";
-  ctx.fillStyle = '#C9A84C';
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-  ctx.fillText('نور', 70, 55);
-  ctx.restore();
-
-  // Surah name top-right
-  ctx.save();
-  ctx.font = "43px 'Scheherazade New', serif";
-  ctx.fillStyle = '#C9A84C';
-  ctx.textAlign = 'right';
-  ctx.textBaseline = 'top';
-  ctx.fillText(params.surahArabicName, SIZE - 70, 60);
-  ctx.restore();
-
-  // Verse reference below surah name
-  ctx.save();
-  ctx.font = "34px 'Inter', sans-serif";
-  ctx.fillStyle = 'rgba(201, 168, 76, 0.6)';
-  ctx.textAlign = 'right';
-  ctx.textBaseline = 'top';
-  ctx.fillText(params.verseRef, SIZE - 70, 120);
-  ctx.restore();
-
-  // ── Middle content (vertically centered) ──
-  const TOP_AREA = 180;
-  const BOTTOM_AREA = 80;
-  const middleHeight = SIZE - TOP_AREA - BOTTOM_AREA;
-
-  // Measure Arabic verse
-  ctx.font = `${params.arabicFontSize}px 'Scheherazade New', serif`;
-  const arabicLineHeight = params.arabicFontSize * 1.8;
-  const arabicLines = wrapCanvasText(ctx, params.verseText, 940);
-  const arabicBlockHeight = arabicLines.length * arabicLineHeight;
-
-  // Measure translation
-  let translationLines: string[] = [];
-  const transFontSize = 38;
-  const transLineHeight = transFontSize * 1.6;
-  let transBlockHeight = 0;
-  if (params.showTranslation && params.translationText) {
-    ctx.font = `italic ${transFontSize}px 'Inter', sans-serif`;
-    translationLines = wrapCanvasText(ctx, params.translationText, 900).slice(0, 3);
-    transBlockHeight = translationLines.length * transLineHeight;
-  }
-
-  // Total content height + vertical centering
-  const GAP = 28;
-  let totalHeight = arabicBlockHeight + GAP + 1; // text + gap + divider
-  if (transBlockHeight > 0) totalHeight += GAP + transBlockHeight;
-  let y = TOP_AREA + (middleHeight - totalHeight) / 2;
-
-  // Draw Arabic verse text
-  ctx.save();
-  ctx.font = `${params.arabicFontSize}px 'Scheherazade New', serif`;
-  ctx.fillStyle = '#C9A84C';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'top';
-  for (const line of arabicLines) {
-    ctx.fillText(line, SIZE / 2, y);
-    y += arabicLineHeight;
-  }
-  ctx.restore();
-  console.log('[Nur] Arabic text drawn,', arabicLines.length, 'lines');
-
-  // Gold divider
-  y += GAP;
-  ctx.fillStyle = 'rgba(201, 168, 76, 0.4)';
-  ctx.fillRect(SIZE / 2 - 60, y, 120, 1);
-  y += 1;
-
-  // Translation text
-  if (translationLines.length > 0) {
-    y += GAP;
-    ctx.save();
-    ctx.font = `italic ${transFontSize}px 'Inter', sans-serif`;
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    for (const line of translationLines) {
-      ctx.fillText(line, SIZE / 2, y);
-      y += transLineHeight;
-    }
-    ctx.restore();
-    console.log('[Nur] Translation drawn,', translationLines.length, 'lines');
-  }
-
-  // Bottom divider
-  ctx.fillStyle = 'rgba(201, 168, 76, 0.3)';
-  ctx.fillRect(70, SIZE - BOTTOM_AREA, SIZE - 140, 1);
-
-  // Footer URL
-  ctx.save();
-  ctx.font = "26px 'Inter', sans-serif";
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'top';
-  ctx.fillText('nur-prayer.lovable.app', SIZE / 2, SIZE - BOTTOM_AREA + 16);
-  ctx.restore();
-
-  console.log('[Nur] Canvas render complete');
-  return canvas;
-}
-
 /* ── Component ── */
 
 export default function ShareVerseSheet({ open, onOpenChange, verse, surahNumber, surahArabicName }: ShareVerseSheetProps) {
   const { t } = useLanguage();
   const [contentMode, setContentMode] = useState<ContentMode>('arabic');
   const [bgIndex, setBgIndex] = useState(0);
-  const [preRendering, setPreRendering] = useState(false);
-  const [renderedCanvas, setRenderedCanvas] = useState<{ blob: Blob; dataUrl: string } | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const scaleWrapperRef = useRef<HTMLDivElement>(null);
 
-  const verseRef = `${surahNumber}:${verse.verse_number}`;
   const translationText = verse.translations?.[0] ? stripHtml(verse.translations[0].text) : '';
   const arabicFontSize = getVerseFontSize(verse.text_uthmani);
   const bg = BACKGROUNDS[bgIndex];
 
   const showTranslation = contentMode === 'translation';
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-
-  // Pre-render canvas when sheet opens or when user changes options
-  useEffect(() => {
-    if (!open) {
-      setRenderedCanvas(null);
-      return;
-    }
-
-    let cancelled = false;
-
-    const preRender = async () => {
-      setPreRendering(true);
-      setRenderedCanvas(null);
-      console.log('[Nur] Pre-render starting');
-
-      try {
-        await document.fonts.ready;
-        console.log('[Nur] Fonts ready');
-        // Allow 300ms for DOM mount + layout/paint to settle
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        if (cancelled) return;
-
-        console.log('[Nur] Starting canvas render');
-        const canvas = await renderShareCardCanvas({
-          verseText: verse.text_uthmani,
-          surahArabicName,
-          verseRef,
-          arabicFontSize,
-          bgId: bg.id,
-          showTranslation,
-          translationText,
-        });
-        console.log('[Nur] Canvas rendered:', canvas.width, 'x', canvas.height);
-
-        if (cancelled) return;
-
-        const blob = await new Promise<Blob | null>((resolve) => {
-          canvas.toBlob((b) => resolve(b), 'image/png', 1.0);
-        });
-        console.log('[Nur] Blob created:', blob ? blob.size + ' bytes' : 'null');
-
-        if (cancelled || !blob) return;
-
-        const dataUrl = canvas.toDataURL('image/png');
-        console.log('[Nur] Data URL created, length:', dataUrl.length);
-
-        setRenderedCanvas({ blob, dataUrl });
-        console.log('[Nur] Pre-render complete, buttons should be enabled');
-      } catch (err) {
-        console.error('[Nur] Pre-render failed:', err);
-        alert('Share card render failed: ' + (err instanceof Error ? err.message : String(err)));
-      } finally {
-        if (!cancelled) setPreRendering(false);
-      }
-    };
-
-    preRender();
-    return () => { cancelled = true; };
-  }, [open, bgIndex, contentMode]);
 
   const handleShare = async () => {
-    console.log('[Nur] Share button tapped');
     try {
-      if (!renderedCanvas) {
-        console.log('[Nur] No rendered canvas available');
-        alert('Image not ready yet. Please wait a moment and try again.');
-        return;
-      }
-      const { dataUrl } = renderedCanvas;
-
-      // Convert dataUrl to blob and File
-      console.log('[Nur] Converting data URL to blob via fetch');
+      const canvas = await html2canvas(cardRef.current!, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: null,
+      });
+      const dataUrl = canvas.toDataURL('image/png');
       const res = await fetch(dataUrl);
       const blob = await res.blob();
-      console.log('[Nur] Blob created from fetch, size:', blob.size);
-      const file = new File([blob], `nur-verse-${verseRef}.png`, { type: 'image/png' });
-
-      // Check if sharing files is supported
+      const file = new File([blob], 'nur-verse.png', { type: 'image/png' });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        console.log('[Nur] Sharing via Web Share API...');
         await navigator.share({ files: [file], title: 'Nur — Quran Verse' });
-        console.log('[Nur] Share completed');
       } else {
-        // Fallback: open in new tab
-        console.log('[Nur] Web Share not available or cannot share files, fallback to new tab');
         window.open(dataUrl, '_blank');
       }
-    } catch (err) {
-      console.error('[Nur] handleShare error:', err);
-      // Don't alert on user-cancelled share (AbortError)
-      if (err instanceof Error && err.name === 'AbortError') return;
-      alert('Share failed: ' + (err instanceof Error ? err.message : String(err)));
+    } catch (err: any) {
+      alert('Share failed: ' + err.message);
     }
   };
 
-  const handleSave = () => {
-    console.log('[Nur] Save button tapped');
+  const handleSave = async () => {
     try {
-      if (!renderedCanvas) {
-        console.log('[Nur] No rendered canvas available');
-        alert('Image not ready yet. Please wait a moment and try again.');
-        return;
-      }
-      const { blob, dataUrl } = renderedCanvas;
-      console.log('[Nur] Saving, blob size:', blob.size);
-
-      if (isIOS) {
-        // Show one-time tip before opening the tab
-        const tipShown = localStorage.getItem('nur_save_tip_shown');
-        if (!tipShown) {
-          alert('The image will open in a new tab — press and hold it then tap Save to Photos');
-          localStorage.setItem('nur_save_tip_shown', '1');
-        }
-        console.log('[Nur] iOS save: opening data URL in new tab');
-        window.open(dataUrl, '_blank');
-      } else {
-        console.log('[Nur] Desktop save: triggering download');
-        triggerDownload(blob);
-      }
-    } catch (err) {
-      console.error('[Nur] handleSave error:', err);
-      alert('Save failed: ' + (err instanceof Error ? err.message : String(err)));
+      const canvas = await html2canvas(cardRef.current!, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: null,
+      });
+      const dataUrl = canvas.toDataURL('image/png');
+      window.open(dataUrl, '_blank');
+    } catch (err: any) {
+      alert('Save failed: ' + err.message);
     }
-  };
-
-  const triggerDownload = (blob: Blob) => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `nur-verse-${verseRef}.png`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
   };
 
   const pills: { mode: ContentMode; labelKey: TranslationKey }[] = [
     { mode: 'arabic', labelKey: 'share.arabicOnly' },
     { mode: 'translation', labelKey: 'share.translation' },
   ];
-
-  const buttonsReady = !!renderedCanvas && !preRendering;
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
@@ -462,33 +163,31 @@ export default function ShareVerseSheet({ open, onOpenChange, verse, surahNumber
           {/* Share button */}
           <button
             onClick={handleShare}
-            disabled={!buttonsReady}
-            className="w-full rounded-xl font-semibold text-sm transition-opacity disabled:opacity-50"
+            className="w-full rounded-xl font-semibold text-sm"
             style={{
               background: '#C9A84C',
               color: '#0A0A1A',
               position: 'relative',
               zIndex: 50,
-              transform: 'translateZ(0)',
               touchAction: 'manipulation',
               minHeight: '44px',
+              cursor: 'pointer',
               padding: '12px 24px',
             }}
           >
-            {preRendering ? '...' : t('share.share' as TranslationKey)}
+            {t('share.share' as TranslationKey)}
           </button>
 
           {/* Save to photos */}
           <button
             onClick={handleSave}
-            disabled={!buttonsReady}
-            className="w-full text-center text-xs text-muted-foreground underline underline-offset-2 disabled:opacity-50"
+            className="w-full text-center text-xs text-muted-foreground underline underline-offset-2"
             style={{
               position: 'relative',
               zIndex: 50,
-              transform: 'translateZ(0)',
               touchAction: 'manipulation',
               minHeight: '44px',
+              cursor: 'pointer',
               padding: '12px 24px',
             }}
           >
