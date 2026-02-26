@@ -1,8 +1,7 @@
-import { useState, useRef, forwardRef } from 'react';
+import { useState } from 'react';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { TranslationKey } from '@/lib/i18n';
-import html2canvas from 'html2canvas';
 
 interface ShareVerse {
   verse_number: number;
@@ -27,6 +26,14 @@ const BACKGROUNDS = [
   { id: 'black', gradient: '#000000' },
 ] as const;
 
+/* Canvas gradient stop colors matching the CSS backgrounds above */
+const BG_CANVAS_COLORS: [string, string][] = [
+  ['#0d2137', '#080f1a'],
+  ['#0d2b1e', '#060f0a'],
+  ['#2b1a0d', '#0f0804'],
+  ['#000000', '#000000'],
+];
+
 const SWATCH_COLORS = ['#0d2137', '#0d2b1e', '#2b1a0d', '#000000'];
 
 const GEOMETRIC_SVG = `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 0L80 40L40 80L0 40Z' fill='none' stroke='rgba(255,255,255,0.12)' stroke-width='0.5'/%3E%3Cpath d='M40 12L68 40L40 68L12 40Z' fill='none' stroke='rgba(255,255,255,0.08)' stroke-width='0.5'/%3E%3Cpath d='M40 24L56 40L40 56L24 40Z' fill='none' stroke='rgba(255,255,255,0.05)' stroke-width='0.5'/%3E%3C/svg%3E")`;
@@ -44,14 +51,29 @@ function stripHtml(html: string): string {
   return doc.body.textContent || '';
 }
 
+function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let line = '';
+  for (const word of words) {
+    const testLine = line ? line + ' ' + word : word;
+    if (ctx.measureText(testLine).width > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = testLine;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
 /* ── Component ── */
 
 export default function ShareVerseSheet({ open, onOpenChange, verse, surahNumber, surahArabicName }: ShareVerseSheetProps) {
   const { t } = useLanguage();
   const [contentMode, setContentMode] = useState<ContentMode>('arabic');
   const [bgIndex, setBgIndex] = useState(0);
-  const cardRef = useRef<HTMLDivElement>(null);
-  const scaleWrapperRef = useRef<HTMLDivElement>(null);
 
   const translationText = verse.translations?.[0] ? stripHtml(verse.translations[0].text) : '';
   const arabicFontSize = getVerseFontSize(verse.text_uthmani);
@@ -59,23 +81,138 @@ export default function ShareVerseSheet({ open, onOpenChange, verse, surahNumber
 
   const showTranslation = contentMode === 'translation';
 
+  /* ── Pure Canvas 2D card generator (no html2canvas, no cross-origin issues) ── */
+  const generateCard = async (): Promise<HTMLCanvasElement> => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1080;
+    canvas.height = 1080;
+    const ctx = canvas.getContext('2d')!;
+
+    await document.fonts.ready;
+
+    // Background gradient
+    const [c0, c1] = BG_CANVAS_COLORS[bgIndex];
+    if (c0 === c1) {
+      ctx.fillStyle = c0;
+    } else {
+      const g = ctx.createRadialGradient(324, 216, 0, 540, 540, 900);
+      g.addColorStop(0, c0);
+      g.addColorStop(1, c1);
+      ctx.fillStyle = g;
+    }
+    ctx.fillRect(0, 0, 1080, 1080);
+
+    // Geometric diamond pattern overlay (very subtle)
+    ctx.save();
+    ctx.globalAlpha = 0.04;
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.lineWidth = 0.5;
+    for (let x = 0; x < 1080; x += 80) {
+      for (let y = 0; y < 1080; y += 80) {
+        const cx = x + 40, cy = y + 40;
+        ctx.beginPath();
+        ctx.moveTo(cx, y);
+        ctx.lineTo(x + 80, cy);
+        ctx.lineTo(cx, y + 80);
+        ctx.lineTo(x, cy);
+        ctx.closePath();
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+
+    // "نور" logo — top left
+    ctx.fillStyle = '#C9A84C';
+    ctx.font = "500 53px 'Scheherazade New', serif";
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText('نور', 70, 100);
+
+    // Surah name — top right
+    ctx.textAlign = 'right';
+    ctx.font = "400 43px 'Scheherazade New', serif";
+    ctx.fillText(surahArabicName, 1010, 100);
+
+    // Verse reference
+    ctx.font = '400 34px Inter, sans-serif';
+    ctx.fillStyle = 'rgba(201, 168, 76, 0.6)';
+    ctx.fillText(`${surahNumber}:${verse.verse_number}`, 1010, 140);
+
+    // Arabic verse text — centered, word-wrapped
+    ctx.fillStyle = '#C9A84C';
+    ctx.textAlign = 'center';
+    ctx.direction = 'rtl';
+    ctx.font = `400 ${arabicFontSize}px 'Scheherazade New', serif`;
+
+    const verseLines = wrapText(ctx, verse.text_uthmani, 900);
+    const lineHeight = arabicFontSize * 1.8;
+    const verseTotalHeight = verseLines.length * lineHeight;
+
+    // Vertically center the verse block between header and footer
+    const topBound = 170;
+    const bottomBound = showTranslation ? 780 : 940;
+    const verseCenterY = topBound + (bottomBound - topBound) / 2;
+    let verseY = verseCenterY - verseTotalHeight / 2 + lineHeight * 0.6;
+
+    for (const line of verseLines) {
+      ctx.fillText(line, 540, verseY);
+      verseY += lineHeight;
+    }
+
+    // Short gold divider (centered, 120px wide)
+    const dividerY = verseY + 14;
+    ctx.strokeStyle = 'rgba(201, 168, 76, 0.4)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(480, dividerY);
+    ctx.lineTo(600, dividerY);
+    ctx.stroke();
+
+    // Translation (if enabled)
+    if (showTranslation && translationText) {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+      ctx.font = 'italic 38px Inter, sans-serif';
+      ctx.direction = 'ltr';
+      ctx.textAlign = 'center';
+      const transLines = wrapText(ctx, translationText, 860);
+      const transLineHeight = 38 * 1.6;
+      let transY = dividerY + 50;
+      for (let i = 0; i < Math.min(transLines.length, 3); i++) {
+        ctx.fillText(transLines[i], 540, transY);
+        transY += transLineHeight;
+      }
+    }
+
+    // Bottom full-width divider
+    ctx.strokeStyle = 'rgba(201, 168, 76, 0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(70, 1000);
+    ctx.lineTo(1010, 1000);
+    ctx.stroke();
+
+    // Watermark
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.font = '26px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.direction = 'ltr';
+    ctx.fillText('nur-prayer.lovable.app', 540, 1040);
+
+    return canvas;
+  };
+
   const handleShare = async () => {
     try {
-      const canvas = await html2canvas(cardRef.current!, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: false,
-        backgroundColor: null,
-      });
-      const dataUrl = canvas.toDataURL('image/png');
-      const res = await fetch(dataUrl);
-      const blob = await res.blob();
-      const file = new File([blob], 'nur-verse.png', { type: 'image/png' });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: 'Nur — Quran Verse' });
-      } else {
-        window.open(dataUrl, '_blank');
-      }
+      const canvas = await generateCard();
+      canvas.toBlob(async (blob) => {
+        if (!blob) { alert('Failed to generate image'); return; }
+        const file = new File([blob], 'nur-verse.png', { type: 'image/png' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: 'Nur — Quran Verse' });
+        } else {
+          window.open(canvas.toDataURL('image/png'), '_blank');
+        }
+      }, 'image/png');
     } catch (err: any) {
       alert('Share failed: ' + err.message);
     }
@@ -83,12 +220,7 @@ export default function ShareVerseSheet({ open, onOpenChange, verse, surahNumber
 
   const handleSave = async () => {
     try {
-      const canvas = await html2canvas(cardRef.current!, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: false,
-        backgroundColor: null,
-      });
+      const canvas = await generateCard();
       const dataUrl = canvas.toDataURL('image/png');
       window.open(dataUrl, '_blank');
     } catch (err: any) {
@@ -106,12 +238,11 @@ export default function ShareVerseSheet({ open, onOpenChange, verse, surahNumber
       <DrawerContent className="night-sky-bg border-t border-white/10 max-h-[90vh] overflow-y-auto">
         <div className="px-4 pt-2 pb-6 space-y-4">
 
-          {/* Live preview (scaled) */}
+          {/* Live preview (scaled DOM card — not used for export) */}
           <div className="flex justify-center">
             <div style={{ width: '100%', maxWidth: '340px', aspectRatio: '1', overflow: 'hidden', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', position: 'relative' }}>
-              <div ref={scaleWrapperRef} style={{ width: '1080px', height: '1080px', transform: 'scale(0.315)', transformOrigin: 'top left', pointerEvents: 'none', position: 'absolute', top: 0, left: 0 }}>
+              <div style={{ width: '1080px', height: '1080px', transform: 'scale(0.315)', transformOrigin: 'top left', pointerEvents: 'none', position: 'absolute', top: 0, left: 0 }}>
                 <ShareCard
-                  ref={cardRef}
                   verse={verse}
                   surahNumber={surahNumber}
                   surahArabicName={surahArabicName}
@@ -199,7 +330,7 @@ export default function ShareVerseSheet({ open, onOpenChange, verse, surahNumber
   );
 }
 
-/* ── The 1080x1080 share card (used for live preview only) ── */
+/* ── The 1080x1080 share card (DOM version — used for live preview only) ── */
 
 interface ShareCardProps {
   verse: ShareVerse;
@@ -211,15 +342,14 @@ interface ShareCardProps {
   translationText: string;
 }
 
-const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(({
+function ShareCard({
   verse, surahNumber, surahArabicName, arabicFontSize,
   background, showTranslation, translationText,
-}, ref) => {
+}: ShareCardProps) {
   const verseRef = `${surahNumber}:${verse.verse_number}`;
 
   return (
     <div
-      ref={ref}
       style={{
         width: '1080px',
         height: '1080px',
@@ -347,6 +477,4 @@ const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(({
       </div>
     </div>
   );
-});
-
-ShareCard.displayName = 'ShareCard';
+}
